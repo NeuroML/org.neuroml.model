@@ -1,4 +1,4 @@
-NeuroML V1 Model JAVA API
+NeuroML V2 Model JAVA API
 =========================
 
 NeuroML is an international, collaborative initiative to develop standards for the exchange of models of neuronal systems and to allow for greater transparency and accessibility of these complex models.
