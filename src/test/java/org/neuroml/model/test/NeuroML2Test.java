@@ -1,4 +1,4 @@
-package org.neuroml2.model.test;
+package org.neuroml.model.test;
 
 import java.io.File;
 

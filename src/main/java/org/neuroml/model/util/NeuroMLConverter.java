@@ -24,7 +24,7 @@ public class NeuroMLConverter
 	
 	public NeuroMLConverter() throws Exception
 	{
-		jaxb = JAXBContext.newInstance("org.neuroml2.model");
+		jaxb = JAXBContext.newInstance("org.neuroml.model");
 		
 		marshaller = jaxb.createMarshaller();		
 		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",new NeuroMLNamespacePrefixMapper());
