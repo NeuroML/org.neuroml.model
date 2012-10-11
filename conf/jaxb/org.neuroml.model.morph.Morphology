@@ -1,0 +1,14 @@
+
+	/**
+	 * Gets the list of cells for this Morphology.
+	 */
+	public List<Cell> getCellList()
+	{	
+		if (getCells() == null) {
+			ObjectFactory ofac = new ObjectFactory();
+			Cells cs = ofac.createCells();
+			setCells(cs);		
+		}
+			
+		return getCells().getCell();
+	}

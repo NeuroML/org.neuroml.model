@@ -1,0 +1,36 @@
+
+	/** Get the list of cells in this NeuroML file */
+	public List<Level3Cell> getCellList()
+	{
+		Level3Cells cells = getCells();
+		if (cells == null) {
+			neuroml.ObjectFactory ofac = new neuroml.ObjectFactory();
+			cells = ofac.createLevel3Cells();
+			setCells(cells);						
+		}
+		return cells.getCell();	
+	}
+	
+	/** Get the list of populations in this NeuroML file */		
+	public List<neuroml.network.Population> getPopulationList()
+	{
+		neuroml.network.Populations pops = getPopulations();
+		if (pops == null) {
+			neuroml.network.ObjectFactory ofac = new neuroml.network.ObjectFactory();
+			pops = ofac.createPopulations();
+			setPopulations(pops);						
+		}
+		return pops.getPopulation();
+	}
+	
+	/** Get the list of projections in this NeuroML file */		
+	public List<neuroml.network.Projection> getProjectionList()
+	{
+		neuroml.network.Projections projs = getProjections();
+		if (projs == null) {
+			neuroml.network.ObjectFactory ofac = new neuroml.network.ObjectFactory();
+			projs = ofac.createProjections();
+			setProjections(projs);						
+		}
+		return projs.getProjection();
+	}

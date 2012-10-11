@@ -1,0 +1,180 @@
+<jxb:bindings version="2.0"
+               xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+               xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<jxb:bindings schemaLocation="Level1/Metadata_v1.8.1.xsd" node="/xs:schema">	
+	    	         
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.meta"/>    
+    	</jxb:schemaBindings>
+		
+		<jxb:bindings node=".//xs:complexType[@name='Property']/xs:attribute[@name='tag']">
+		  <jxb:property name="tagAttribute"/>
+		</jxb:bindings> 
+		
+		<jxb:bindings node=".//xs:complexType[@name='Property']/xs:attribute[@name='value']">
+		  <jxb:property name="valueAttribute"/>
+		</jxb:bindings> 
+		
+		
+	    
+	</jxb:bindings>
+	
+	<jxb:bindings schemaLocation="Level1/MorphML_v1.8.1.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.morph"/>    		
+    	</jxb:schemaBindings>
+		
+		<jxb:bindings node=".//xs:attribute[@name='lengthUnits']">
+		  <jxb:property name="lengthUnitsAlt"/>
+		</jxb:bindings> 	
+		
+	    <jxb:bindings node="//xs:complexType[@name='Cable']/xs:attribute[@name='fract_along_parent']">
+    		<jxb:property name="FractAlongParentAttribute" />
+	    </jxb:bindings>
+    		    
+	</jxb:bindings>
+	
+	<jxb:bindings schemaLocation="Level2/Biophysics_v1.8.1.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.bio"/>    		
+    	</jxb:schemaBindings>
+		
+		<jxb:bindings node=".//xs:attribute[@name='passive_conductance']">
+		  <jxb:property name="passive_conductance_old"/>
+		</jxb:bindings> 
+
+		<jxb:bindings node=".//xs:complexType[@name='SpecCapacitance']/xs:sequence/xs:element[@name='variableParameter']">
+		  <jxb:property name="VariableParameterAlt"/>
+		</jxb:bindings> 
+		
+		<jxb:bindings node=".//xs:complexType[@name='SpecAxialResistance']/xs:sequence/xs:element[@name='variableParameter']">
+		  <jxb:property name="VariableParameterAlt"/>
+		</jxb:bindings> 
+
+		<jxb:bindings node=".//xs:complexType[@name='Mechanism']/xs:sequence/xs:element[@name='variableParameter']">
+		  <jxb:property name="VariableParameterAlt"/>
+		</jxb:bindings> 
+
+		
+    		    
+	</jxb:bindings>
+
+	<jxb:bindings schemaLocation="Level2/ChannelML_v1.8.1.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.channel"/>    		
+    	</jxb:schemaBindings>
+    	
+    	<!-- kept here for future reference on how to remap a schema
+    	     type to a java class -->
+    	<!--jxb:bindings node="//xs:complexType[@name='ChannelML']">
+    		<jxb:class name="Channel" />
+	    </jxb:bindings-->
+		
+		
+	    <jxb:bindings node="//xs:attribute[@name='shell_thickness']">
+    		<jxb:property name="ShellThicknessAttribute" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:attribute[@name='decay_constant']">
+    		<jxb:property name="DecayConstantAttribute" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:attribute[@name='inv_decay_constant']">
+    		<jxb:property name="InvDecayConstantAttribute" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:attribute[@name='resting_conc']">
+    		<jxb:property name="RestingConcAttribute" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:attribute[@name='ceiling']">
+    		<jxb:property name="CeilingAttribute" />
+	    </jxb:bindings>
+    		    
+	</jxb:bindings>
+	
+	<jxb:bindings schemaLocation="Level3/NetworkML_v1.8.1.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.network"/>    		
+    	</jxb:schemaBindings>
+    	
+    	<!--<jxb:bindings node="//xs:element[@name='group']">
+    		<jxb:class name="allowedGroups" />
+	    </jxb:bindings>-->
+	    
+	    <jxb:bindings node="//xs:element[@name='properties']">
+    		<jxb:class name="internalProperties" />
+	    </jxb:bindings>
+		
+		<jxb:bindings node=".//xs:attribute[@name='lengthUnits']">
+		  <jxb:property name="lengthUnitsAlt"/>
+		</jxb:bindings> 	
+		
+		<jxb:bindings node=".//xs:attribute[@name='source']">
+		  <jxb:property name="sourceAttribute"/>
+		</jxb:bindings> 	
+		
+		<jxb:bindings node=".//xs:attribute[@name='target']">
+		  <jxb:property name="targetAttribute"/>
+		</jxb:bindings> 	
+
+	    <jxb:bindings node="//xs:complexType[@name='Projection']/xs:sequence/xs:element[@name='source']">
+    		<jxb:class name="sourceElement" />
+	    </jxb:bindings>
+
+	    <jxb:bindings node="//xs:complexType[@name='Projection']/xs:sequence/xs:element[@name='target']">
+    		<jxb:class name="targetElement" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:complexType[@name='PotentialSynLoc']/xs:attribute[@name='synapse_type']">
+    		<jxb:property name="SynapseTypeAttributePSL" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:complexType[@name='PotentialSynLoc']/xs:sequence/xs:sequence/xs:element[@name='group']">
+    		<jxb:class name="GroupElementPSL1" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:complexType[@name='PotentialSynapticLocation']/xs:sequence/xs:sequence/xs:element[@name='group']">
+    		<jxb:class name="GroupElementPSL2" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:complexType[@name='GlobalSynapticProperties']/xs:complexContent/xs:extension/xs:sequence/xs:element[@name='synapse_type']">
+    		<jxb:class name="SynapseTypeElement" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:complexType[@name='GlobalSynapticProperties']/xs:complexContent/xs:extension/xs:attribute[@name='synapse_type']">
+    		<jxb:property name="SynapseTypeAttributeGSP" />
+	    </jxb:bindings>
+		
+		
+	    <jxb:bindings node="//xs:complexType[@name='Population']/xs:sequence/xs:element[@name='cell_type']">
+    		<jxb:class name="CellTypeElement" />
+	    </jxb:bindings>
+		
+	    <jxb:bindings node="//xs:complexType[@name='Population']/xs:attribute[@name='cell_type']">
+    		<jxb:property name="CellTypeAttribute" />
+	    </jxb:bindings>
+
+
+    		    
+	</jxb:bindings>
+	
+	<jxb:bindings schemaLocation="Level3/NeuroML_Level3_v1.8.1.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml"/>    		
+    	</jxb:schemaBindings>    
+
+
+		<jxb:bindings node=".//xs:attribute[@name='lengthUnits']">
+		  <jxb:property name="lengthUnitsAlt"/>
+		</jxb:bindings> 		
+    		    
+	</jxb:bindings>
+
+</jxb:bindings>

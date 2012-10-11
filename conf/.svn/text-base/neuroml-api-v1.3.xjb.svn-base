@@ -1,0 +1,63 @@
+<jxb:bindings version="2.0"
+               xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+               xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<jxb:bindings schemaLocation="Level1/Metadata_v1.3.xsd" node="/xs:schema">	
+	    	         
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.meta"/>    
+    	</jxb:schemaBindings>
+	    
+	</jxb:bindings>
+	
+	<jxb:bindings schemaLocation="Level1/MorphML_v1.3.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.morph"/>    		
+    	</jxb:schemaBindings>
+    		    
+	</jxb:bindings>
+	
+	<jxb:bindings schemaLocation="Level2/Biophysics_v1.3.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.bio"/>    		
+    	</jxb:schemaBindings>
+    		    
+	</jxb:bindings>
+
+	<jxb:bindings schemaLocation="Level2/ChannelML_v1.3.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.channel"/>    		
+    	</jxb:schemaBindings>
+    	
+    	<!-- kept here for future reference on how to remap a schema
+    	     type to a java class -->
+    	<!--jxb:bindings node="//xs:complexType[@name='ChannelML']">
+    		<jxb:class name="Channel" />
+	    </jxb:bindings-->
+    		    
+	</jxb:bindings>
+	
+	<jxb:bindings schemaLocation="Level3/NetworkML_v1.3.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml.network"/>    		
+    	</jxb:schemaBindings>
+    	
+    	<jxb:bindings node="//xs:element[@name='group']">
+    		<jxb:class name="allowedGroups" />
+	    </jxb:bindings>
+    		    
+	</jxb:bindings>
+	
+	<jxb:bindings schemaLocation="Level3/NeuroML_Level3_v1.3.xsd" node="/xs:schema">	
+
+    	<jxb:schemaBindings>			
+    		<jxb:package name="neuroml"/>    		
+    	</jxb:schemaBindings>    	
+    		    
+	</jxb:bindings>
+
+</jxb:bindings>

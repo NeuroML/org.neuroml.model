@@ -1,0 +1,30 @@
+
+	/**
+	 * Get the list of segments representing this cell.
+	 */
+	public List<Segment> getSegmentList()
+	{
+
+		if (getSegments() == null || getSegments().getSegment() == null || getSegments().getSegment().size() == 0) {
+			ObjectFactory ofac = new ObjectFactory();
+			Cell.Segments segs = ofac.createCellSegments();
+			setSegments(segs);
+		}
+		
+		return getSegments().getSegment();
+	} 	
+
+	/**
+	 * Get the list of cables for this Cell.
+     */
+
+	public List<Cable> getCableList()
+	{
+		if (getCables() == null) {
+			ObjectFactory ofac = new ObjectFactory();
+			Cables cbls = ofac.createCellCables();
+			setCables(cbls);
+		}
+		
+		return getCables().getCable();
+	}
