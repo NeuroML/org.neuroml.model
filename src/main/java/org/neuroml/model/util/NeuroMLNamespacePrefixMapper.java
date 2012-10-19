@@ -1,9 +1,9 @@
 package org.neuroml.model.util;
 
-import java.util.*;
-import com.sun.xml.bind.marshaller.NamespacePrefixMapper;
+import java.util.HashMap;
+import java.util.Map;
 
-public class NeuroMLNamespacePrefixMapper extends NamespacePrefixMapper
+public class NeuroMLNamespacePrefixMapper// extends NamespacePrefixMapper
 {
 	protected Map<String, String> namespaceToPrefixMap;
 	

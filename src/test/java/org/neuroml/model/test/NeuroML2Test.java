@@ -1,10 +1,15 @@
 package org.neuroml.model.test;
 
 import java.io.File;
+import java.net.URL;
+import java.util.List;
+
+import junit.framework.Assert;
 
 import org.junit.Test;
 import org.neuroml.model.ExpTwoSynapse;
 import org.neuroml.model.IzhikevichCell;
+import org.neuroml.model.Morphology;
 import org.neuroml.model.Neuroml;
 import org.neuroml.model.util.NeuroMLConverter;
 
@@ -36,5 +41,14 @@ public class NeuroML2Test
             System.out.println("Done NeuroML2Test!");
     }
 	
+	@Test public void testMorphology() throws Exception
+	{
+		NeuroMLConverter neuromlConverter=new NeuroMLConverter();
+		Neuroml neuroml = neuromlConverter.urlToNeuroML(new URL("http://www.opensourcebrain.org/projects/celegans/repository/revisions/master/raw/CElegans/generatedNeuroML2/RIGL.nml"));
+		
+		Morphology morphology=neuroml.getCell().get(0).getMorphology();
+		Assert.assertNotNull(morphology);
+		Assert.assertTrue(!morphology.getSegment().isEmpty());
+	}
 
 }

@@ -3,6 +3,7 @@ package org.neuroml.model.util;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.net.URL;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -27,7 +28,7 @@ public class NeuroMLConverter
 		jaxb = JAXBContext.newInstance("org.neuroml.model");
 		
 		marshaller = jaxb.createMarshaller();		
-		marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",new NeuroMLNamespacePrefixMapper());
+		//marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",new NeuroMLNamespacePrefixMapper());
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
 		
 		unmarshaller = jaxb.createUnmarshaller();
@@ -44,6 +45,13 @@ public class NeuroMLConverter
 		
 		return jbe.getValue();		
 	}
+	
+	public Neuroml urlToNeuroML(URL url) throws Exception
+	{
+		JAXBElement<Neuroml> jbe = (JAXBElement<Neuroml>) unmarshaller.unmarshal(url);
+		return jbe.getValue();		
+	}
+	
 	
 
 
