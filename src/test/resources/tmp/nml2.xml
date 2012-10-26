@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
-<neuroml xmlns:ns2="http://www.neuroml.org/schema/neuroml2">
-    <ns2:expTwoSynapse tauRise="2ms" tauDecay="12ms" erev="-10mV" gbase="1nS"/>
-    <ns2:izhikevichCell/>
+<neuroml xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:ns3="http://www.neuroml.org/schema/neuroml2" id="net0" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2  http://neuroml.svn.sourceforge.net/viewvc/neuroml/NeuroML2/Schemas/NeuroML2/NeuroML_v2alpha.xsd">
+    <ns3:expTwoSynapse tauRise="2ms" tauDecay="12ms" erev="-10mV" gbase="1nS" id="Syn0"/>
+    <ns3:izhikevichCell Idur="100 ms" Idel="100 ms" Iamp="2" d="2" c="-50" b="0.2" a="0.02" thresh="30mV" v0="-70mV" id="Izh0"/>
 </neuroml>
