@@ -7,9 +7,16 @@ import junit.framework.Assert;
 
 import org.junit.Test;
 import org.neuroml.model.ExpTwoSynapse;
+import org.neuroml.model.IaFCell;
+import org.neuroml.model.IaFTauCell;
+import org.neuroml.model.Instances;
+import org.neuroml.model.Instance;
+import org.neuroml.model.Location;
 import org.neuroml.model.IzhikevichCell;
 import org.neuroml.model.Morphology;
+import org.neuroml.model.Network;
 import org.neuroml.model.Neuroml;
+import org.neuroml.model.Population;
 import org.neuroml.model.util.NeuroMLConverter;
 
 public class NeuroML2Test {
@@ -17,7 +24,7 @@ public class NeuroML2Test {
     @Test
     public void testCells() throws Exception {
         Neuroml nml2 = new Neuroml();
-        nml2.setId("net0");
+        nml2.setId("SomeCells");
 
         IzhikevichCell iz1 = new IzhikevichCell();
         iz1.setId("Izh0");
@@ -39,15 +46,67 @@ public class NeuroML2Test {
         e2syn.setErev("-10mV");
         e2syn.setGbase("1nS");
         nml2.getExpTwoSynapse().add(e2syn);
+        
+        neuroml2ToXml(nml2, nml2.getId()+ ".xml");
 
+    }
+    
+    private void neuroml2ToXml(Neuroml nml2, String name) throws Exception 
+    {
         String wdir = System.getProperty("user.dir");
         String tempdir = wdir + File.separator + "src/test/resources/tmp";
         NeuroMLConverter conv = new NeuroMLConverter();
-        String tempFile = tempdir + File.separator + "nml2.xml";
+        String tempFile = tempdir + File.separator + name;
         conv.neuroml2ToXml(nml2, tempFile);
-
         System.out.println("Saved to: " + tempFile);
-        System.out.println("Done NeuroML2Test!");
+    }
+    
+
+    @Test
+    public void testNetwork() throws Exception {
+        Neuroml nml2 = new Neuroml();
+        nml2.setId("InstanceBasedNet");
+        
+        IaFCell iaf = new IaFCell();
+        iaf.setId("iaf0");
+        iaf.setLeakReversal("-60mV");
+        iaf.setThresh("-55mV");
+        iaf.setReset("-65mV");
+        iaf.setC("1.0nF");
+        iaf.setLeakConductance("0.05uS");
+        nml2.getIafCell().add(iaf); 
+        
+        Network net = new Network();
+        net.setId("Net1");
+        nml2.getNetwork().add(net); 
+        
+        Population pop = new Population();
+        pop.setId("pop1");
+        pop.setComponent(iaf.getId());
+        
+        net.getPopulation().add(pop);
+        
+        Instances instances = new Instances();
+        pop.setInstances(instances);
+        
+        int size = 9;
+        float maxX = 100;
+        float maxY = 100;
+        float maxZ = 100;
+        
+        for (int i=0;i<size;i++)
+        {
+            Instance instance = new Instance();
+            Location loc = new Location();
+            instance.setLocation(loc);
+            loc.setX((float)Math.random()*maxX);
+            loc.setY((float)Math.random()*maxY);
+            loc.setZ((float)Math.random()*maxZ);
+            instances.getInstance().add(instance);
+        }
+
+        neuroml2ToXml(nml2, nml2.getId()+ ".xml");
+        
     }
 
 	
