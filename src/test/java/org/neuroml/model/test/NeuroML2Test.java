@@ -6,7 +6,9 @@ import java.net.URL;
 import junit.framework.Assert;
 
 import org.junit.Test;
+import org.neuroml.model.ExpOneSynapse;
 import org.neuroml.model.ExpTwoSynapse;
+import org.neuroml.model.ExplicitInput;
 import org.neuroml.model.IaFCell;
 import org.neuroml.model.IaFTauCell;
 import org.neuroml.model.Instances;
@@ -17,12 +19,14 @@ import org.neuroml.model.Morphology;
 import org.neuroml.model.Network;
 import org.neuroml.model.Neuroml;
 import org.neuroml.model.Population;
+import org.neuroml.model.PulseGenerator;
+import org.neuroml.model.SynapticConnection;
 import org.neuroml.model.util.NeuroMLConverter;
 
 public class NeuroML2Test {
 
     @Test
-    public void testCells() throws Exception {
+    public void testCellSave() throws Exception {
         Neuroml nml2 = new Neuroml();
         nml2.setId("SomeCells");
 
@@ -50,20 +54,9 @@ public class NeuroML2Test {
         neuroml2ToXml(nml2, nml2.getId()+ ".xml");
 
     }
-    
-    private void neuroml2ToXml(Neuroml nml2, String name) throws Exception 
-    {
-        String wdir = System.getProperty("user.dir");
-        String tempdir = wdir + File.separator + "src/test/resources/tmp";
-        NeuroMLConverter conv = new NeuroMLConverter();
-        String tempFile = tempdir + File.separator + name;
-        conv.neuroml2ToXml(nml2, tempFile);
-        System.out.println("Saved to: " + tempFile);
-    }
-    
 
     @Test
-    public void testNetwork() throws Exception {
+    public void testNetworkSave() throws Exception {
         Neuroml nml2 = new Neuroml();
         nml2.setId("InstanceBasedNet");
         
@@ -86,10 +79,21 @@ public class NeuroML2Test {
         
         net.getPopulation().add(pop);
         
+
+        //<expOneSynapse id="syn1" gbase="5nS" erev="0mV" tauDecay="3ms" />
+        ExpOneSynapse e1 = new ExpOneSynapse();
+        e1.setId("syn1");
+        e1.setGbase("5nS");
+        e1.setErev("0mV");
+        e1.setTauDecay("3ms");
+        
+        nml2.getExpOneSynapse().add(e1);
+
+        
         Instances instances = new Instances();
         pop.setInstances(instances);
         
-        int size = 9;
+        int size = 5;
         float maxX = 100;
         float maxY = 100;
         float maxZ = 100;
@@ -103,21 +107,72 @@ public class NeuroML2Test {
             loc.setY((float)Math.random()*maxY);
             loc.setZ((float)Math.random()*maxZ);
             instances.getInstance().add(instance);
-        }
 
+            PulseGenerator pg = new PulseGenerator();
+            pg.setId("pulseGen"+i);
+            pg.setDelay("100ms");
+            pg.setDuration("800ms");
+            pg.setAmplitude(0.5*Math.random()+ "nA");
+            nml2.getPulseGenerator().add(pg);
+            
+            ExplicitInput ei = new ExplicitInput();
+            ei.setTarget(pop.getId()+"["+i+"]");
+            ei.setInput(pg.getId());
+            net.getExplicitInput().add(ei);
+        }
+        
+        
+        float probConn = 0.5f;
+
+        for (int pre=0;pre<size;pre++)
+        {
+
+            for (int post=0;post<size;post++)
+            {
+            	if (pre!=post)
+            	{
+            		if (Math.random()<probConn)
+            		{
+            	        //<synapticConnection from="iafCells[0]" to="iafCells[1]" synapse="syn1"/>
+            			SynapticConnection sc = new SynapticConnection();
+            			sc.setFrom(pop.getId()+"["+pre+"]");
+            			sc.setTo(pop.getId()+"["+post+"]");
+            			sc.setSynapse(e1.getId());
+            			
+            			net.getSynapticConnection().add(sc);
+            		}
+            	}
+            }
+            	
+        }
+        
         neuroml2ToXml(nml2, nml2.getId()+ ".xml");
         
     }
+    
+    private void neuroml2ToXml(Neuroml nml2, String name) throws Exception 
+    {
+        String wdir = System.getProperty("user.dir");
+        String tempdir = wdir + File.separator + "src/test/resources/tmp";
+        NeuroMLConverter conv = new NeuroMLConverter();
+        String tempFile = tempdir + File.separator + name;
+        conv.neuroml2ToXml(nml2, tempFile);
+        System.out.println("Saved to: " + tempFile);
+    }
+    
 
 	
 	@Test public void testMorphology() throws Exception
 	{
 		NeuroMLConverter neuromlConverter=new NeuroMLConverter();
-		Neuroml neuroml = neuromlConverter.urlToNeuroML(new URL("http://www.opensourcebrain.org/projects/celegans/repository/revisions/master/raw/CElegans/generatedNeuroML2/RIGL.nml"));
+		String url = "http://www.opensourcebrain.org/projects/celegans/repository/revisions/master/raw/CElegans/generatedNeuroML2/RIGL.nml";
+		Neuroml neuroml = neuromlConverter.urlToNeuroML(new URL(url));
 		
 		Morphology morphology=neuroml.getCell().get(0).getMorphology();
 		Assert.assertNotNull(morphology);
 		Assert.assertTrue(!morphology.getSegment().isEmpty());
+
+        System.out.println("Successfully loaded NeuroMl 2 cell model "+neuroml.getCell().get(0).getId()+" from: " + url);
 	}
 
 }
