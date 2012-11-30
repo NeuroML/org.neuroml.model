@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class NeuroMLNamespacePrefixMapper// extends NamespacePrefixMapper
 {
-    protected final static String TEMP_NAMESPACE = "_nml2_";
+    protected final static String TEMP_NAMESPACE = "ns3";
 
 	protected Map<String, String> namespaceToPrefixMap;
 	
