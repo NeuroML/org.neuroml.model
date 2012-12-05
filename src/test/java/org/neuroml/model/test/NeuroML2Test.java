@@ -153,9 +153,12 @@ public class NeuroML2Test {
     private void neuroml2ToXml(Neuroml nml2, String name) throws Exception 
     {
         String wdir = System.getProperty("user.dir");
-        String tempdir = wdir + File.separator + "src/test/resources/tmp";
+        String tempdirname = wdir + File.separator + "src/test/resources/tmp";
+        File tempdir = new File(tempdirname);
+        if (!tempdir.exists()) tempdir.mkdir();
+        
         NeuroMLConverter conv = new NeuroMLConverter();
-        String tempFile = tempdir + File.separator + name;
+        String tempFile = tempdirname + File.separator + name;
         conv.neuroml2ToXml(nml2, tempFile);
         System.out.println("Saved to: " + tempFile);
     }
