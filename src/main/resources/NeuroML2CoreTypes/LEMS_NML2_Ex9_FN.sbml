@@ -1,0 +1,51 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<sbml xmlns="http://www.sbml.org/sbml/level2/version2" metaid="metaid_0000001" level="2" version="2" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sbml.org/sbml/level2/version2 http://sbml.org/Special/xml-schemas/sbml-l2v2-schema/sbml.xsd">
+    <notes>
+        <p xmlns="http://www.w3.org/1999/xhtml">
+
+SBML export for:
+Components:
+    fn1 (fitzHughNagumoCell:  I=0.8 (none) SEC=1.0 (SI time))
+    net1 (network: )
+    sim1 (SimulationSet: )
+
+        </p>
+    </notes>
+
+    <!--Adding simulation Component(id=sim1 type=Simulation) of network: net1 (network: )-->
+
+    <model id="net1" name="net1">
+
+        <listOfCompartments>
+
+            <!--Population fnPop1 contains 1 instances of components of: Component(id=fn1 type=fitzHughNagumoCell)-->
+
+            <compartment id="fnPop1_0" size="1"/>
+        </listOfCompartments>
+
+        <listOfParameters>
+            <parameter id="I" value="0.8" constant="false"/>
+            <parameter id="SEC" value="1.0" constant="false"/>
+            <parameter id="V" constant="false"/>
+            <parameter id="W" constant="false"/>
+        </listOfParameters>
+
+
+        <listOfRules>
+            <rateRule variable="V">
+                <math xmlns="http://www.w3.org/1998/Math/MathML">
+                    <!--Complete export to MathML not yet implemented!-->
+                    <ci>null</ci>
+                </math>
+            </rateRule>
+            <rateRule variable="W">
+                <math xmlns="http://www.w3.org/1998/Math/MathML">
+                    <!--Complete export to MathML not yet implemented!-->
+                    <ci>null</ci>
+                </math>
+            </rateRule>
+        </listOfRules>
+
+
+    </model>
+</sbml>

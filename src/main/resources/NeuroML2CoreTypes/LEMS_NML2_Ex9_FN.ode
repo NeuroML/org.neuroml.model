@@ -1,0 +1,16 @@
+# XPP export for:
+# 
+# Components:
+#     fn1 (fitzHughNagumoCell:  I=0.8 (none) SEC=1.0 (SI time))
+#     net1 (network: )
+#     sim1 (SimulationSet: )
+# 
+# Adding simulation Component(id=sim1 type=Simulation) of network: net1 (network: )
+#    Population fnPop1 contains components of: Component(id=fn1 type=fitzHughNagumoCell) 
+V' = (V - (V**3) / 3 - W + I) / SEC
+W' = (0.08 * (V + 0.7 - 0.8 * W)) / SEC
+
+par I=0.8 
+
+@ total=200.0,dt=0.05,maxstor=10000
+@ xhi=200.0,yhi=1.5,ylo=-1.5,nplot=2,yp2=W

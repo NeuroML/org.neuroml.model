@@ -10,7 +10,6 @@ import org.neuroml.model.ExpOneSynapse;
 import org.neuroml.model.ExpTwoSynapse;
 import org.neuroml.model.ExplicitInput;
 import org.neuroml.model.IaFCell;
-import org.neuroml.model.IaFTauCell;
 import org.neuroml.model.Instances;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
@@ -176,6 +175,24 @@ public class NeuroML2Test {
 		Assert.assertTrue(!morphology.getSegment().isEmpty());
 
         System.out.println("Successfully loaded NeuroMl 2 cell model "+neuroml.getCell().get(0).getId()+" from: " + url);
+	}
+	
+	@Test public void testLocalExamples() throws Exception
+	{
+		NeuroMLConverter neuromlConverter=new NeuroMLConverter();
+		String wdir = System.getProperty("user.dir");
+        String tempdirname = wdir + File.separator + "src/test/resources/examples";
+        File tempdir = new File(tempdirname);
+        for (File f: tempdir.listFiles())
+        {
+        	if (f.getName().endsWith(".nml"))
+        	{
+        		Neuroml neuroml = neuromlConverter.loadNeuroML(f);
+        		System.out.println("Successfully loaded NeuroMl 2 model "+neuroml.getId()+" from: " + f);
+        	}
+        }
+		
+
 	}
 
 }

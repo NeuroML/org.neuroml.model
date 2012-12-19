@@ -48,6 +48,16 @@ public class NeuroMLConverter
 		
 		return jbe.getValue();		
 	}
+
+	
+	public Neuroml loadNeuroML(File xmlFile) throws Exception
+	{
+		if (!xmlFile.exists()) throw new FileNotFoundException(xmlFile.getAbsolutePath());
+		
+		JAXBElement<Neuroml> jbe = (JAXBElement<Neuroml>) unmarshaller.unmarshal(xmlFile);
+		
+		return jbe.getValue();		
+	}
 	
 	public Neuroml urlToNeuroML(URL url) throws Exception
 	{

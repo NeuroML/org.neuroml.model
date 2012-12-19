@@ -4,13 +4,10 @@
     xmlns="http://www.neuroml.org/schema/neuroml2"
     xmlns:xi="http://www.w3.org/2001/XInclude"
     xmlns:xs="http://www.w3.org/2001/XMLSchema"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.w3.org/2001/XMLSchema http://www.w3.org/2001/XMLSchema.xsd"
     elementFormDefault="qualified"
     attributeFormDefault="unqualified">
-
-    <!-- An attempt to incorporate LEMS custom definitions...
-    xmlns:lems="http://www.neuroml.org/lems/0.5"
-    <xs:import namespace="http://www.neuroml.org/lems/0.5"
-        schemaLocation=" http://neuroml.svn.sourceforge.net/viewvc/neuroml/NeuroML2/Schemas/LEMS/LEMS_v0.5.xsd"/>-->
 
     <!--+++++++++++++++++++++++++++++++++++++++++++++++++++++++-->
     <!--      Core elements                                    -->
@@ -325,8 +322,9 @@
         <xs:complexContent>
             <xs:extension base="Standalone">
                 <xs:choice>
-                    <xs:element name="gate" type="GateHH" minOccurs="0" maxOccurs="unbounded"/>    <!-- TODO check type="gateHH" for this -->
-                    <xs:element name="gateHH" type="GateHH" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element name="gate" type="GateHHRates" minOccurs="0" maxOccurs="unbounded"/>    <!-- TODO check type="gateHHrates" for this -->
+                    <xs:element name="gateHHrates" type="GateHHRates" minOccurs="0" maxOccurs="unbounded"/>
+                    <xs:element name="gateHHtauInf" type="GateHHTauInf" minOccurs="0" maxOccurs="unbounded"/>
                 </xs:choice>
 
                 <xs:attribute name="species" type="NmlId" use="optional"/>
@@ -347,16 +345,18 @@
       </xs:restriction>
     </xs:simpleType>
 
+
     <xs:simpleType name="gateTypes">
       <xs:restriction base="xs:string">
-        <xs:enumeration value="gateHH"/>
+        <xs:enumeration value="gateHHrates"/>
+        <xs:enumeration value="gateHHtauInf"/>
         <xs:enumeration value="gateKS"/>
       </xs:restriction>
     </xs:simpleType>
 
 
 
-    <xs:complexType name="GateHH">
+    <xs:complexType name="GateHHRates">
         <xs:complexContent>
             <xs:extension base="Base">
                 <xs:all>
@@ -364,8 +364,20 @@
                     <xs:element name="q10Settings" type="Q10Settings" minOccurs="0"/>
                     <xs:element name="forwardRate" type="HHRate" minOccurs="0"/>
                     <xs:element name="reverseRate" type="HHRate" minOccurs="0"/>
+                </xs:all>
+                <xs:attribute name="instances" type="xs:integer" use="optional" default="1"/>
+                <xs:attribute name="type" type="gateTypes" use="optional"/>
+            </xs:extension>
+        </xs:complexContent>
+    </xs:complexType>
+
+    <xs:complexType name="GateHHTauInf">
+        <xs:complexContent>
+            <xs:extension base="Base">
+                <xs:all>
+                    <xs:element name="notes" type="Notes" minOccurs="0"/>
+                    <xs:element name="q10Settings" type="Q10Settings" minOccurs="0"/>
                     <xs:element name="timeCourse" type="HHTime"  minOccurs="0"/>
-                    <xs:element name="fixedTimeCourse" type="FixedTimeCourse" minOccurs="0"/>
                     <xs:element name="steadyState" type="HHVariable" minOccurs="0"/>
                 </xs:all>
                 <xs:attribute name="instances" type="xs:integer" use="optional" default="1"/>
@@ -401,11 +413,12 @@
             <xs:attribute name="rate" type="Nml2Quantity_time" use="optional"/>
             <xs:attribute name="midpoint" type="Nml2Quantity_voltage" use="optional"/>
             <xs:attribute name="scale" type="Nml2Quantity_voltage" use="optional"/>
+            <xs:attribute name="tau" type="Nml2Quantity_time" use="optional"/>    <!-- TODO: make this and prev 3 attrs either/or-->
     </xs:complexType>
 
-    <xs:complexType name="FixedTimeCourse">
+    <!--<xs:complexType name="FixedTimeCourse">
             <xs:attribute name="tau" type="Nml2Quantity_time" use="required"/>
-    </xs:complexType>
+    </xs:complexType>-->
 
 
 
@@ -561,9 +574,9 @@
                 <xs:attribute name="b" type="Nml2Quantity_none" use="required"/>
                 <xs:attribute name="c" type="Nml2Quantity_none" use="required"/>
                 <xs:attribute name="d" type="Nml2Quantity_none" use="required"/>
-                <xs:attribute name="Iamp" type="Nml2Quantity_none" use="required"/>
+                <!--<xs:attribute name="Iamp" type="Nml2Quantity_none" use="required"/>
                 <xs:attribute name="Idel" type="Nml2Quantity_time" use="required"/>
-                <xs:attribute name="Idur" type="Nml2Quantity_time" use="required"/>
+                <xs:attribute name="Idur" type="Nml2Quantity_time" use="required"/>-->
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -581,9 +594,9 @@
                 <xs:attribute name="tauw" type="Nml2Quantity_time" use="required"/>
                 <xs:attribute name="a" type="Nml2Quantity_conductance" use="required"/>
                 <xs:attribute name="b" type="Nml2Quantity_current" use="required"/>
-                <xs:attribute name="Iamp" type="Nml2Quantity_current" use="required"/>
+                <!--<xs:attribute name="Iamp" type="Nml2Quantity_current" use="required"/>
                 <xs:attribute name="Idel" type="Nml2Quantity_time" use="required"/>
-                <xs:attribute name="Idur" type="Nml2Quantity_time" use="required"/>
+                <xs:attribute name="Idur" type="Nml2Quantity_time" use="required"/>-->
             </xs:extension>
         </xs:complexContent>
     </xs:complexType>
@@ -651,7 +664,7 @@
 
                 <!-- TODO: Do we want to do away with numerical ids and just use unique strings/names in id attribute?? -->
                 <!--<xs:attribute name="id" type="SegmentId" use="required"/>-->
-                <xs:attribute name="name" type="xs:string" use="required"/>
+                <xs:attribute name="name" type="xs:string" use="optional"/>
 
             </xs:extension>
         </xs:complexContent>
@@ -1096,7 +1109,7 @@
             <xs:extension base="Standalone">
                 <xs:choice>
                     <xs:element name="layout" type="Layout" minOccurs="0"/>
-                    <xs:element name="instances" type="Instances"/>
+                    <xs:element name="instance" type="Instance" maxOccurs="unbounded"/>
                 </xs:choice>
 
                 <xs:attribute name="cell" type="NmlId" use="optional"/>       <!-- Only one of these should be used!!! -->
@@ -1144,13 +1157,6 @@
                 <xs:attribute name="zSize" type="xs:nonNegativeInteger" use="optional"/> <!-- only use if 3D grid-->
     </xs:complexType>
 
-
-    <xs:complexType name="Instances">
-                <xs:sequence>
-                    <xs:element name="instance" type="Instance" maxOccurs="unbounded"/>
-                </xs:sequence>
-                <xs:attribute name="size" type="xs:nonNegativeInteger"/>
-    </xs:complexType>
 
     <xs:complexType name="Instance">
                 <xs:sequence>
@@ -1214,6 +1220,7 @@
     <xs:complexType name="ExplicitInput">
                 <xs:attribute name="target" type="xs:string"/>
                 <xs:attribute name="input" type="xs:string"/>
+                <xs:attribute name="destination" type="xs:string"/>
     </xs:complexType>
 
 
@@ -1250,6 +1257,12 @@
                     <xs:element name="notes" type="Notes" minOccurs="0"/> <!-- More metadata needed -->
                     <xs:element name="annotation" type="Annotation" minOccurs="0"/> <!-- More metadata needed -->
                 </xs:sequence>
+                <xs:attribute name="name" type="xs:string" use="optional">
+                    <xs:annotation>
+                        <xs:documentation>Optional human readable name of the element. Not necessarily unique; should not be used for referencing/indexing.</xs:documentation>
+                    </xs:annotation>
+                </xs:attribute>
+                    
                 <xs:attribute name="metaid" type="MetaId" use="optional"/>
 
             </xs:extension>
