@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.net.URL;
+import java.util.ArrayList;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -12,16 +13,23 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
+import org.neuroml.model.Cell;
 import org.neuroml.model.Morphology;
 import org.neuroml.model.Neuroml;
+import org.neuroml.model.Segment;
 
 public class NeuroMLConverter
 {
-	protected JAXBContext jaxb;
+	protected static JAXBContext jaxb;
 	
-	protected Marshaller marshaller;
+	protected static Marshaller marshaller;
 	
-	protected Unmarshaller unmarshaller;	
+	protected static Unmarshaller unmarshaller;	
+
+    public static String NAMESPACE_URI_VERSION_2 = "http://www.neuroml.org/schema/neuroml2";
+
+    public static String DEFAULT_SCHEMA_FILENAME_VERSION_2_ALPHA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2alpha.xsd";
+    public static String DEFAULT_SCHEMA_FILENAME_VERSION_2_BETA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta.xsd";
 	
 	
 	public NeuroMLConverter() throws Exception
@@ -32,7 +40,7 @@ public class NeuroMLConverter
 		//marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",new NeuroMLNamespacePrefixMapper());
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
 		marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
-                "http://www.neuroml.org/schema/neuroml2  http://neuroml.svn.sourceforge.net/viewvc/neuroml/NeuroML2/Schemas/NeuroML2/NeuroML_v2alpha.xsd");
+				NAMESPACE_URI_VERSION_2+" "+DEFAULT_SCHEMA_FILENAME_VERSION_2_BETA);
 		
 		unmarshaller = jaxb.createUnmarshaller();
 	}
@@ -70,7 +78,7 @@ public class NeuroMLConverter
     /*
      * TODO: Needs to be made much more efficient
      */
-	public void neuroml2ToXml(Neuroml nml2, String filename) throws Exception
+	public File neuroml2ToXml(Neuroml nml2, String filename) throws Exception
 	{
 		JAXBElement<Neuroml> jbc =
 			new JAXBElement<Neuroml>(new QName("neuroml"),
@@ -90,5 +98,10 @@ public class NeuroMLConverter
         fos.write(correctNs.getBytes());
         
 		fos.close();
+		return f;
 	}
+	
+
+
+
 }

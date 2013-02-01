@@ -6,7 +6,7 @@
 	<version>1.0.0</version>
 	<packaging>bundle</packaging>
 	<properties>
-		<build.version2>2alpha</build.version2>
+		<build.version2>2beta</build.version2>
 	</properties>
 	<dependencies>
 		<dependency>
