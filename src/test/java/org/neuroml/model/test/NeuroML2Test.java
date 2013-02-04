@@ -172,7 +172,7 @@ public class NeuroML2Test {
     }
     
 
-	
+	/*
 	@Test public void testMorphology() throws Exception
 	{
 		NeuroMLConverter neuromlConverter=new NeuroMLConverter();
@@ -187,7 +187,7 @@ public class NeuroML2Test {
         
         NeuroML2Validator nmlv = new NeuroML2Validator();
         assertTrue(nmlv.validateWithTests(neuroml));
-	}
+	}*/
 	
 	@Test public void testLocalExamples() throws Exception
 	{
