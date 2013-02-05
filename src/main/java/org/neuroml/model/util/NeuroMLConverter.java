@@ -5,7 +5,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.net.URL;
-import java.util.ArrayList;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -13,10 +12,8 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
-import org.neuroml.model.Cell;
 import org.neuroml.model.Morphology;
 import org.neuroml.model.Neuroml;
-import org.neuroml.model.Segment;
 
 public class NeuroMLConverter
 {
@@ -52,6 +49,7 @@ public class NeuroMLConverter
 		File f = new File(xmlFile);
 		if (!f.exists()) throw new FileNotFoundException(f.getAbsolutePath());
 		
+		@SuppressWarnings("unchecked")
 		JAXBElement<Morphology> jbe = (JAXBElement<Morphology>) unmarshaller.unmarshal(f);
 		
 		return jbe.getValue();		
@@ -62,6 +60,7 @@ public class NeuroMLConverter
 	{
 		if (!xmlFile.exists()) throw new FileNotFoundException(xmlFile.getAbsolutePath());
 		
+		@SuppressWarnings("unchecked")
 		JAXBElement<Neuroml> jbe = (JAXBElement<Neuroml>) unmarshaller.unmarshal(xmlFile);
 		
 		return jbe.getValue();		
@@ -69,6 +68,7 @@ public class NeuroMLConverter
 	
 	public Neuroml urlToNeuroML(URL url) throws Exception
 	{
+		@SuppressWarnings("unchecked")
 		JAXBElement<Neuroml> jbe = (JAXBElement<Neuroml>) unmarshaller.unmarshal(url);
 		return jbe.getValue();		
 	}

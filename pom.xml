@@ -7,6 +7,7 @@
 	<packaging>bundle</packaging>
 	<properties>
 		<build.version2>2beta</build.version2>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
 	<dependencies>
 		<dependency>
@@ -29,7 +30,7 @@
 		<dependency>
 			<groupId>org.neuroml.model.injectingplugin</groupId>
 			<artifactId>org.neuroml.model.injectingplugin</artifactId>
-			<version>1.0.0</version>
+			<version>1.0.1</version>
 		</dependency>
 	</dependencies>
 	<build>

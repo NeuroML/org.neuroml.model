@@ -3,10 +3,7 @@ package org.neuroml.model.test;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 
-import junit.framework.Assert;
 
 import org.junit.Test;
 import org.neuroml.model.ExpOneSynapse;
@@ -16,7 +13,6 @@ import org.neuroml.model.IaFCell;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.IzhikevichCell;
-import org.neuroml.model.Morphology;
 import org.neuroml.model.Network;
 import org.neuroml.model.Neuroml;
 import org.neuroml.model.Population;
@@ -24,7 +20,6 @@ import org.neuroml.model.PulseGenerator;
 import org.neuroml.model.SynapticConnection;
 import org.neuroml.model.util.NeuroML2Validator;
 import org.neuroml.model.util.NeuroMLConverter;
-import org.xml.sax.SAXException;
 
 public class NeuroML2Test {
 
