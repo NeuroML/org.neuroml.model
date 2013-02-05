@@ -12,7 +12,7 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.neuroml.model.Cell;
-import org.neuroml.model.Neuroml;
+import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Segment;
 import org.xml.sax.SAXException;
 
@@ -35,7 +35,7 @@ public class NeuroML2Validator {
 	{
 		testValidity(xmlFile, "src/main/resources/Schemas/NeuroML2/NeuroML_v2beta.xsd");
 		NeuroMLConverter conv = new NeuroMLConverter();
-		Neuroml nml2 = conv.loadNeuroML(xmlFile);
+		NeuroMLDocument nml2 = conv.loadNeuroML(xmlFile);
 		return validateWithTests(nml2);
 		
 	}
@@ -43,7 +43,7 @@ public class NeuroML2Validator {
 	/*
 	 * TODO: Needs to be moved to a separate package for validation!
 	 */
-	public boolean validateWithTests(Neuroml nml2) throws Exception
+	public boolean validateWithTests(NeuroMLDocument nml2) throws Exception
 	{
 		
 		// Checks the areas the Schema just can't reach...
