@@ -8,6 +8,7 @@ import java.net.URL;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
@@ -29,7 +30,7 @@ public class NeuroMLConverter
     public static String DEFAULT_SCHEMA_FILENAME_VERSION_2_BETA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta.xsd";
 	
 	
-	public NeuroMLConverter() throws Exception
+	public NeuroMLConverter() throws JAXBException
 	{
 		jaxb = JAXBContext.newInstance("org.neuroml.model");
 		
@@ -56,7 +57,7 @@ public class NeuroMLConverter
 	}
 
 	
-	public NeuroMLDocument loadNeuroML(File xmlFile) throws Exception
+	public NeuroMLDocument loadNeuroML(File xmlFile) throws FileNotFoundException, JAXBException
 	{
 		if (!xmlFile.exists()) throw new FileNotFoundException(xmlFile.getAbsolutePath());
 		
