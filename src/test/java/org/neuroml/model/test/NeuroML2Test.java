@@ -3,10 +3,7 @@ package org.neuroml.model.test;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-import java.io.IOException;
-import java.net.URL;
 
-import junit.framework.Assert;
 
 import org.junit.Test;
 import org.neuroml.model.ExpOneSynapse;
@@ -16,21 +13,19 @@ import org.neuroml.model.IaFCell;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.IzhikevichCell;
-import org.neuroml.model.Morphology;
 import org.neuroml.model.Network;
-import org.neuroml.model.Neuroml;
+import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.PulseGenerator;
 import org.neuroml.model.SynapticConnection;
 import org.neuroml.model.util.NeuroML2Validator;
 import org.neuroml.model.util.NeuroMLConverter;
-import org.xml.sax.SAXException;
 
 public class NeuroML2Test {
 
     @Test
     public void testCellSave() throws Exception {
-        Neuroml nml2 = new Neuroml();
+    	NeuroMLDocument nml2 = new NeuroMLDocument();
         nml2.setId("SomeCells");
 
         IzhikevichCell iz1 = new IzhikevichCell();
@@ -60,7 +55,7 @@ public class NeuroML2Test {
 
     @Test
     public void testNetworkSave() throws Exception {
-        Neuroml nml2 = new Neuroml();
+    	NeuroMLDocument nml2 = new NeuroMLDocument();
         nml2.setId("InstanceBasedNet");
         
         IaFCell iaf = new IaFCell();
@@ -151,7 +146,7 @@ public class NeuroML2Test {
         
     }
     
-    private void neuroml2ToXml(Neuroml nml2, String name, boolean validate) throws Exception 
+    private void neuroml2ToXml(NeuroMLDocument nml2, String name, boolean validate) throws Exception 
     {
         String wdir = System.getProperty("user.dir");
         String tempdirname = wdir + File.separator + "src/test/resources/tmp";

@@ -1,57 +1,35 @@
+
 <Lems>
 
-        <!-- Example with instances of cells in populations having different parameters... -->
-
-
-             <!-- NOT YET FULLY TESTED!!!! -->
+<!-- Example with instances of cells in populations having different parameters... -->
 
 
 <!-- Specify which component to run -->
-<Target component="sim1"/>
+    <Target component="sim1"/>
 
 <!-- Include core NeuroML2 ComponentType definitions -->
-<Include file="Cells.xml"/>
-<Include file="Networks.xml"/>
-<Include file="Simulation.xml"/>
+    <Include file="Cells.xml"/>
+    <Include file="Networks.xml"/>
+    <Include file="Simulation.xml"/>
 
 
-        <!-- Main NeuroML2 content. Based on http://www.izhikevich.org/publications/figure1.m -->
+    <!-- Main NeuroML2 content. -->
 
-<izhikevichCell id="izMixed" v0 = "-90mV" thresh = "30mV" a ="0.02" b = "0.2" c = "-55.0" d = "4"/>
-<pulseGeneratorDL id="i0" delay="22ms" duration="2000ms" amplitude="15" />
+    <!-- Including file with a <neuroml> root, a "real" NeuroML 2 file -->
+    <Include file="../examples/NML2_InstanceBasedNetwork.nml"/>
 
-<network id="net1">
-        
-    <populationList id="ipop" component="izMixed" size="3">
-        <instance id="0"/>
-        <instance id="1"/>
-        <instance id="2"/>
-        <!-- Ideally:
-        
-                <instance id="0"><location x="0" y="0" z="0"/></instance>
-                
-                and this sets these parameters on the network component instance 
-                (or adds a Location child to the component?)
-         -->
-        
-    </populationList>
-
-    <!--
-    <explicitInput target="ipop[0]" input="i0" destination="synapses"/>
-    <explicitInput target="ipop[1]" input="i0" destination="synapses"/>
-    <explicitInput target="ipop[2]" input="i0" destination="synapses"/> -->
-</network>
-
-        <!-- End of NeuroML2 content -->
+    <!-- End of NeuroML2 content -->
 
 
-<Simulation id="sim1" length="200ms" step="0.05ms" target="net1">
-    <Display id="d1" title="Ex13: Differences in cell instances in LEMS" timeScale="1ms"  xmin="0" xmax="200" ymin="-90" ymax="60">
-        <Line id ="iz0" quantity="ipop/izMixed/v" scale="1mV"  color="#ee40FF" timeScale="1ms"/>
-        <!-- <Line id ="iz1" quantity="ipop[1]/v" scale="1mV"  color="#eeffFF" timeScale="1ms"/>
-        <Line id ="iz2" quantity="ipop[2]/v" scale="1mV"  color="#40eeFF" timeScale="1ms"/> -->
-    </Display>
-</Simulation>
+    <Simulation id="sim1" length="300ms" step="0.05ms" target="InstanceBasedNetwork">
 
+        <Display id="d1" title="Ex13: Instance Based Network in LEMS" timeScale="1ms" xmin="0" xmax="300" ymin="-65" ymax="-52">
+            <Line id ="iaf0" quantity="iafCells/0/iaf/v" scale="1mV"  color="#ee0555" timeScale="1ms"/>
+            <Line id ="iaf1" quantity="iafCells/1/iaf/v" scale="1mV"  color="#999255" timeScale="1ms"/>
+            <Line id ="iaf2" quantity="iafCells/2/iaf/v" scale="1mV"  color="#911155" timeScale="1ms"/>
+        </Display>
+
+
+    </Simulation>
 
 </Lems>

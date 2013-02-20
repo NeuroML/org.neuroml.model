@@ -2,9 +2,11 @@ package org.neuroml.model.util;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 
 import javax.xml.XMLConstants;
+import javax.xml.bind.JAXBException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -12,7 +14,7 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.neuroml.model.Cell;
-import org.neuroml.model.Neuroml;
+import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Segment;
 import org.xml.sax.SAXException;
 
@@ -31,11 +33,12 @@ public class NeuroML2Validator {
 	}
 	
 
-	public boolean validateWithTests(File xmlFile) throws Exception
+	public boolean validateWithTests(File xmlFile) throws SAXException, IOException, JAXBException
 	{
-		testValidity(xmlFile, "src/main/resources/Schemas/NeuroML2/NeuroML_v2beta.xsd");
+		InputStream in = getClass().getResourceAsStream("/Schemas/NeuroML2/NeuroML_v2beta.xsd");
+		testValidity(xmlFile, new StreamSource(in));
 		NeuroMLConverter conv = new NeuroMLConverter();
-		Neuroml nml2 = conv.loadNeuroML(xmlFile);
+		NeuroMLDocument nml2 = conv.loadNeuroML(xmlFile);
 		return validateWithTests(nml2);
 		
 	}
@@ -43,7 +46,7 @@ public class NeuroML2Validator {
 	/*
 	 * TODO: Needs to be moved to a separate package for validation!
 	 */
-	public boolean validateWithTests(Neuroml nml2) throws Exception
+	public boolean validateWithTests(NeuroMLDocument nml2)
 	{
 		
 		// Checks the areas the Schema just can't reach...
@@ -88,15 +91,19 @@ public class NeuroML2Validator {
 	        //System.out.println("Test: "+id+" ("+testName+") succeeded! "+info);
 		}
 	}
-	
+
 
 	public static void testValidity(File xmlFile, String xsdFile) throws SAXException, IOException {
-		System.out.println("Testing validity of: "+ xmlFile.getAbsolutePath()+" against: "+ xsdFile);
+		StreamSource schemaFileSource = new StreamSource(xsdFile);
+		testValidity(xmlFile, schemaFileSource);
+	}
+
+    public static void testValidity(File xmlFile, StreamSource schemaFileSource) throws SAXException, IOException {
+		System.out.println("Testing validity of: "+ xmlFile.getAbsolutePath());
 
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
 
-        Source schemaFileSource = new StreamSource(xsdFile);
         Schema schema = factory.newSchema(schemaFileSource);
 
         Validator validator = schema.newValidator();

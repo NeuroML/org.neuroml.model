@@ -5,18 +5,16 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.net.URL;
-import java.util.ArrayList;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
 
-import org.neuroml.model.Cell;
 import org.neuroml.model.Morphology;
-import org.neuroml.model.Neuroml;
-import org.neuroml.model.Segment;
+import org.neuroml.model.NeuroMLDocument;
 
 public class NeuroMLConverter
 {
@@ -32,7 +30,7 @@ public class NeuroMLConverter
     public static String DEFAULT_SCHEMA_FILENAME_VERSION_2_BETA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta.xsd";
 	
 	
-	public NeuroMLConverter() throws Exception
+	public NeuroMLConverter() throws JAXBException
 	{
 		jaxb = JAXBContext.newInstance("org.neuroml.model");
 		
@@ -52,24 +50,27 @@ public class NeuroMLConverter
 		File f = new File(xmlFile);
 		if (!f.exists()) throw new FileNotFoundException(f.getAbsolutePath());
 		
+		@SuppressWarnings("unchecked")
 		JAXBElement<Morphology> jbe = (JAXBElement<Morphology>) unmarshaller.unmarshal(f);
 		
 		return jbe.getValue();		
 	}
 
 	
-	public Neuroml loadNeuroML(File xmlFile) throws Exception
+	public NeuroMLDocument loadNeuroML(File xmlFile) throws FileNotFoundException, JAXBException
 	{
 		if (!xmlFile.exists()) throw new FileNotFoundException(xmlFile.getAbsolutePath());
 		
-		JAXBElement<Neuroml> jbe = (JAXBElement<Neuroml>) unmarshaller.unmarshal(xmlFile);
+		@SuppressWarnings("unchecked")
+		JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(xmlFile);
 		
 		return jbe.getValue();		
 	}
 	
-	public Neuroml urlToNeuroML(URL url) throws Exception
+	public NeuroMLDocument urlToNeuroML(URL url) throws Exception
 	{
-		JAXBElement<Neuroml> jbe = (JAXBElement<Neuroml>) unmarshaller.unmarshal(url);
+		@SuppressWarnings("unchecked")
+		JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(url);
 		return jbe.getValue();		
 	}
 	
@@ -78,11 +79,11 @@ public class NeuroMLConverter
     /*
      * TODO: Needs to be made much more efficient
      */
-	public File neuroml2ToXml(Neuroml nml2, String filename) throws Exception
+	public File neuroml2ToXml(NeuroMLDocument nml2, String filename) throws Exception
 	{
-		JAXBElement<Neuroml> jbc =
-			new JAXBElement<Neuroml>(new QName("neuroml"),
-					                    Neuroml.class,
+		JAXBElement<NeuroMLDocument> jbc =
+			new JAXBElement<NeuroMLDocument>(new QName("neuroml"),
+					NeuroMLDocument.class,
 					                    nml2);
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
