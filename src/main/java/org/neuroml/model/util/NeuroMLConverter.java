@@ -101,7 +101,36 @@ public class NeuroMLConverter
 		return f;
 	}
 	
+    /*
+     * Convert a string of XML in NeuroML2 (i.e. root element <neuroml>) to LEMS
+     * i.e. roor element <Lems>
+     */
+    public static String convertNeuroML2ToLems(String nml2string)
+    {
+        if (nml2string.startsWith("<?xml")) {
+            int index = nml2string.indexOf(">");
+            nml2string = nml2string.substring(index + 1).trim();
+        }
+        
+        if (nml2string.startsWith("<neuroml")) {
 
+            int index = nml2string.indexOf(">");
+            nml2string = nml2string.substring(index + 1);
+            // Assume </neuroml> at end...
+            nml2string = nml2string.replace("</neuroml>", "");
+
+            nml2string = "<Lems>\n\n"
+                    + "    <Include file=\"NeuroML2CoreTypes/NeuroMLCoreDimensions.xml\"/>\n"
+                    + "    <Include file=\"NeuroML2CoreTypes/Cells.xml\"/>\n"
+                    + "    <Include file=\"NeuroML2CoreTypes/Networks.xml\"/>\n"
+                    + "    <Include file=\"NeuroML2CoreTypes/Simulation.xml\"/>\n\n"
+                    + nml2string + "\n"
+                    + "</Lems>";
+
+
+        }
+        return nml2string;
+    }
 
 
 }
