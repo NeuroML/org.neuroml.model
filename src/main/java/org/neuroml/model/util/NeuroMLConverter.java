@@ -23,11 +23,6 @@ public class NeuroMLConverter
 	protected static Marshaller marshaller;
 	
 	protected static Unmarshaller unmarshaller;	
-
-    public static String NAMESPACE_URI_VERSION_2 = "http://www.neuroml.org/schema/neuroml2";
-
-    public static String DEFAULT_SCHEMA_FILENAME_VERSION_2_ALPHA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2alpha.xsd";
-    public static String DEFAULT_SCHEMA_FILENAME_VERSION_2_BETA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta.xsd";
 	
 	
 	public NeuroMLConverter() throws JAXBException
@@ -38,7 +33,7 @@ public class NeuroMLConverter
 		//marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",new NeuroMLNamespacePrefixMapper());
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
 		marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
-				NAMESPACE_URI_VERSION_2+" "+DEFAULT_SCHEMA_FILENAME_VERSION_2_BETA);
+				NeuroMLElements.NAMESPACE_URI_VERSION_2+" "+NeuroMLElements.DEFAULT_SCHEMA_FILENAME_VERSION_2_BETA);
 		
 		unmarshaller = jaxb.createUnmarshaller();
 	}
