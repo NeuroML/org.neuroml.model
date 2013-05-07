@@ -27,28 +27,38 @@ import org.xml.sax.SAXException;
 public class NeuroML2Validator {
 
 	boolean allTestsPassed = true;
+
+	public static final String VALID_AGAINST_SCHEMA = "Valid against schema";
+	public static final String VALID_AGAINST_TESTS = "Valid against all tests";
+	public static final String VALID_AGAINST_SCHEMA_AND_TESTS = "Valid against schema and all tests";
 	
 	public NeuroML2Validator() {
 		
 	}
 	
 
-	public boolean validateWithTests(File xmlFile) throws SAXException, IOException, JAXBException
+	public String validateWithTests(File xmlFile) throws SAXException, IOException, JAXBException
 	{
 		InputStream in = getClass().getResourceAsStream("/Schemas/NeuroML2/NeuroML_v2beta.xsd");
-		testValidity(xmlFile, new StreamSource(in));
+		String val = testValidity(xmlFile, new StreamSource(in));
+		if (!val.equals(VALID_AGAINST_SCHEMA)) 
+			return val;
 		NeuroMLConverter conv = new NeuroMLConverter();
 		NeuroMLDocument nml2 = conv.loadNeuroML(xmlFile);
-		return validateWithTests(nml2);
+		val = validateWithTests(nml2);
+		if (!val.equals(VALID_AGAINST_TESTS)) 
+			return val;
+		
+		return VALID_AGAINST_SCHEMA_AND_TESTS;
 		
 	}
 	
 	/*
 	 * TODO: Needs to be moved to a separate package for validation!
 	 */
-	public boolean validateWithTests(NeuroMLDocument nml2)
+	public String validateWithTests(NeuroMLDocument nml2)
 	{
-		
+		StringBuilder validity = new StringBuilder();
 		// Checks the areas the Schema just can't reach...
 		
 		//////////////////////////////////////////////////////////////////
@@ -79,40 +89,47 @@ public class NeuroML2Validator {
 			
 		}
 		
-		return allTestsPassed;
+		if (validity.length()==0)
+			validity.append(VALID_AGAINST_TESTS);
+		
+		return validity.toString();
 		
 	}
 	
-	private void test(int id, String testName, String info, boolean test) {
+	private String test(int id, String testName, String info, boolean test) {
 		if (!test) {
-	        System.out.println("Test: "+id+" ("+testName+") failed! .. "+info);
 	        allTestsPassed = false;
+	        return "Test: "+id+" ("+testName+") failed! .. "+info;
 		} else {
 	        //System.out.println("Test: "+id+" ("+testName+") succeeded! "+info);
+			return "";
 		}
 	}
 
 
-	public static void testValidity(File xmlFile, String xsdFile) throws SAXException, IOException {
+	public static String testValidity(File xmlFile, String xsdFile) throws SAXException, IOException {
 		StreamSource schemaFileSource = new StreamSource(xsdFile);
-		testValidity(xmlFile, schemaFileSource);
+		return testValidity(xmlFile, schemaFileSource);
 	}
 
-    public static void testValidity(File xmlFile, StreamSource schemaFileSource) throws SAXException, IOException {
-		System.out.println("Testing validity of: "+ xmlFile.getAbsolutePath());
+    public static String testValidity(File xmlFile, StreamSource schemaFileSource){
+		//System.out.println("Testing validity of: "+ xmlFile.getAbsolutePath());
 
         SchemaFactory factory = SchemaFactory.newInstance(XMLConstants.W3C_XML_SCHEMA_NS_URI);
 
+		try {
+			Schema schema = factory.newSchema(schemaFileSource);
 
-        Schema schema = factory.newSchema(schemaFileSource);
+	        Validator validator = schema.newValidator();
 
-        Validator validator = schema.newValidator();
+	        Source xmlFileSource = new StreamSource(xmlFile);
 
-        Source xmlFileSource = new StreamSource(xmlFile);
+	        validator.validate(xmlFileSource);
 
-        validator.validate(xmlFileSource);
-
-        System.out.println("File: "+ xmlFile.getAbsolutePath()+" is valid!!");
+	        return VALID_AGAINST_SCHEMA;
+		} catch (Exception e) {
+			return "File: "+ xmlFile.getAbsolutePath()+" is not valid!!\n"+e.getMessage();
+		} 
 	}
 	
 

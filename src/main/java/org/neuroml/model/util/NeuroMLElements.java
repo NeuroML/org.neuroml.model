@@ -3,6 +3,8 @@ package org.neuroml.model.util;
 public class NeuroMLElements {
 
 
+    public static String ORG_NEUROML_MODEL_VERSION = "1.0.4";
+    
     public static String NAMESPACE_URI_VERSION_2 = "http://www.neuroml.org/schema/neuroml2";
 
     public static String DEFAULT_SCHEMA_FILENAME_VERSION_2_ALPHA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2alpha.xsd";

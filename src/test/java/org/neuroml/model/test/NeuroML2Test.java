@@ -2,10 +2,17 @@ package org.neuroml.model.test;
 
 import static org.junit.Assert.assertTrue;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.util.zip.GZIPInputStream;
 
 
 import org.junit.Test;
+
 import org.neuroml.model.ExpOneSynapse;
 import org.neuroml.model.ExpTwoSynapse;
 import org.neuroml.model.ExplicitInput;
@@ -20,6 +27,7 @@ import org.neuroml.model.PulseGenerator;
 import org.neuroml.model.SynapticConnection;
 import org.neuroml.model.util.NeuroML2Validator;
 import org.neuroml.model.util.NeuroMLConverter;
+import org.neuroml.model.util.NeuroMLElements;
 
 public class NeuroML2Test {
 
@@ -146,6 +154,44 @@ public class NeuroML2Test {
         
     }
     
+
+    public void testVersions() throws IOException
+    {
+    	System.out.println("Running a test on version usage, making all references to versions are: v"+NeuroMLElements.ORG_NEUROML_MODEL_VERSION+"...");
+
+    	
+    	String jnmlPom = readStringFromFile(new File("pom.xml"));
+    	
+    	
+    	assert(jnmlPom.contains("<version>"+NeuroMLElements.ORG_NEUROML_MODEL_VERSION+"</version>"));
+    	
+    }
+    
+
+	private static String readStringFromFile(File f) throws IOException
+	{
+		String sdat = "null";
+		if (f != null)
+		{
+
+			InputStream ins = new FileInputStream(f);
+		
+			InputStreamReader insr = new InputStreamReader(ins);
+			BufferedReader fr = new BufferedReader(insr);
+
+			StringBuilder sb = new StringBuilder();
+			while (fr.ready())
+			{
+				sb.append(fr.readLine());
+				sb.append("\n");
+			}
+			fr.close();
+			sdat = sb.toString();
+
+		}
+		return sdat;
+	}
+    
     private void neuroml2ToXml(NeuroMLDocument nml2, String name, boolean validate) throws Exception 
     {
         String wdir = System.getProperty("user.dir");
@@ -187,7 +233,7 @@ public class NeuroML2Test {
 	@Test public void testLocalExamples() throws Exception
 	{
 		String wdir = System.getProperty("user.dir");
-        String tempdirname = wdir + File.separator + "src/test/resources/examples";
+        String tempdirname = wdir + File.separator + "src/main/resources/examples";
         File tempdir = new File(tempdirname);
         for (File f: tempdir.listFiles())
         {
@@ -195,7 +241,7 @@ public class NeuroML2Test {
         	{
                 System.out.println("---  Testing: " + f);
                 NeuroML2Validator nmlv = new NeuroML2Validator();
-                assertTrue(nmlv.validateWithTests(f));
+                assertTrue(nmlv.validateWithTests(f).equals(NeuroML2Validator.VALID_AGAINST_SCHEMA_AND_TESTS));
         	}
         }
 		

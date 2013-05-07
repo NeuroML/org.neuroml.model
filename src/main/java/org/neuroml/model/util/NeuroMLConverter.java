@@ -116,10 +116,10 @@ public class NeuroMLConverter
             nml2string = nml2string.replace("</neuroml>", "");
 
             nml2string = "<Lems>\n\n"
-                    + "    <Include file=\"NeuroML2CoreTypes/NeuroMLCoreDimensions.xml\"/>\n"
-                    + "    <Include file=\"NeuroML2CoreTypes/Cells.xml\"/>\n"
-                    + "    <Include file=\"NeuroML2CoreTypes/Networks.xml\"/>\n"
-                    + "    <Include file=\"NeuroML2CoreTypes/Simulation.xml\"/>\n\n"
+                    + "    <Include file=\"NeuroMLCoreDimensions.xml\"/>\n"
+                    + "    <Include file=\"Cells.xml\"/>\n"
+                    + "    <Include file=\"Networks.xml\"/>\n"
+                    + "    <Include file=\"Simulation.xml\"/>\n\n"
                     + nml2string + "\n"
                     + "</Lems>";
 
