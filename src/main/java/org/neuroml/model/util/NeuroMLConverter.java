@@ -4,6 +4,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.StringReader;
 import java.net.URL;
 
 import javax.xml.bind.JAXBContext;
@@ -62,6 +63,15 @@ public class NeuroMLConverter
 		return jbe.getValue();		
 	}
 	
+	public NeuroMLDocument loadNeuroML(String nml2Contents) throws JAXBException
+	{	
+		StringReader sr = new StringReader(nml2Contents);
+		@SuppressWarnings("unchecked")
+		JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(sr);
+		
+		return jbe.getValue();		
+	}
+	
 	public NeuroMLDocument urlToNeuroML(URL url) throws Exception
 	{
 		@SuppressWarnings("unchecked")
@@ -99,7 +109,7 @@ public class NeuroMLConverter
 	
     /*
      * Convert a string of XML in NeuroML2 (i.e. root element <neuroml>) to LEMS
-     * i.e. roor element <Lems>
+     * i.e. root element <Lems>
      */
     public static String convertNeuroML2ToLems(String nml2string)
     {

@@ -8,7 +8,6 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.util.zip.GZIPInputStream;
 
 
 import org.junit.Test;
@@ -159,9 +158,7 @@ public class NeuroML2Test {
     {
     	System.out.println("Running a test on version usage, making all references to versions are: v"+NeuroMLElements.ORG_NEUROML_MODEL_VERSION+"...");
 
-    	
     	String jnmlPom = readStringFromFile(new File("pom.xml"));
-    	
     	
     	assert(jnmlPom.contains("<version>"+NeuroMLElements.ORG_NEUROML_MODEL_VERSION+"</version>"));
     	
@@ -173,7 +170,6 @@ public class NeuroML2Test {
 		String sdat = "null";
 		if (f != null)
 		{
-
 			InputStream ins = new FileInputStream(f);
 		
 			InputStreamReader insr = new InputStreamReader(ins);
@@ -207,7 +203,7 @@ public class NeuroML2Test {
         	throw new Exception("Not successfully saved to: "+tempFilename);
         
         if (validate) {
-        	NeuroML2Validator.testValidity(tempFile, "src/main/resources/Schemas/NeuroML2/NeuroML_v2beta.xsd");
+    		testFile(tempFile);
         }
         
     }
@@ -232,6 +228,7 @@ public class NeuroML2Test {
 	
 	@Test public void testLocalExamples() throws Exception
 	{
+        System.out.println("---  Testing local examples... ");
 		String wdir = System.getProperty("user.dir");
         String tempdirname = wdir + File.separator + "src/main/resources/examples";
         File tempdir = new File(tempdirname);
@@ -239,13 +236,20 @@ public class NeuroML2Test {
         {
         	if (f.getName().endsWith(".nml"))
         	{
-                System.out.println("---  Testing: " + f);
-                NeuroML2Validator nmlv = new NeuroML2Validator();
-                assertTrue(nmlv.validateWithTests(f).equals(NeuroML2Validator.VALID_AGAINST_SCHEMA_AND_TESTS));
+        		testFile(f);
         	}
         }
-		
+	}
+	
+	private void testFile(File f) throws Exception {
 
+        System.out.println("---  Testing: " + f);
+        NeuroML2Validator nmlv = new NeuroML2Validator();
+        nmlv.validateWithTests(f);
+        System.out.println("       "+nmlv.getValidity());
+        System.out.println("       "+nmlv.getWarnings());
+        assertTrue(nmlv.isValid());
+        assertTrue(!nmlv.hasWarnings());
 	}
 
 }
