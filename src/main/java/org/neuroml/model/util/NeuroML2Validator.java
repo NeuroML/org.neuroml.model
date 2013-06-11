@@ -15,8 +15,10 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.neuroml.model.Cell;
+import org.neuroml.model.Member;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Segment;
+import org.neuroml.model.SegmentGroup;
 import org.xml.sax.SAXException;
 
 /*
@@ -37,6 +39,8 @@ public class NeuroML2Validator {
 
 	public StandardTest TEST_REPEATED_IDS =           new StandardTest(10000, "No repeated segment Ids allowed within a cell");
 	public StandardTest TEST_ONE_SEG_MISSING_PARENT = new StandardTest(10002, "Only one segment should have no parent");
+	public StandardTest TEST_MEMBER_SEGMENT_EXISTS =  new StandardTest(10003, "Segment Id used in the member element of segmentGroup should exist");
+	public StandardTest TEST_REPEATED_GROUPS =        new StandardTest(10004, "No repeated segmentGroup Ids allowed within a cell");
 	
 	
 	public StandardTest WARN_ROOT_ID_0 =              new StandardTest(100001, "Root segment has id == 0", StandardTest.LEVEL.WARNING);
@@ -97,6 +101,8 @@ public class NeuroML2Validator {
 			
 			// Morphologies
 			ArrayList<Integer> segIds = new ArrayList<Integer>();
+			ArrayList<String> segGroups = new ArrayList<String>();
+			
 			boolean rootFound = false;
 			int numParentless = 0;
 			if (cell.getMorphology() != null) {
@@ -115,8 +121,17 @@ public class NeuroML2Validator {
 				}
 
 				test(WARN_ROOT_ID_0, "", rootFound);
-
 				test(TEST_ONE_SEG_MISSING_PARENT, "", (numParentless==1));
+
+				for(SegmentGroup segmentGroup: cell.getMorphology().getSegmentGroup()) {
+					
+					test(TEST_REPEATED_GROUPS, "SegmentGroup: "+segmentGroup.getId(), !segGroups.contains(segmentGroup.getId()));
+					
+					segGroups.add(segmentGroup.getId());
+					for (Member member: segmentGroup.getMember()) {
+						test(TEST_MEMBER_SEGMENT_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", member: "+member.getSegment(), segIds.contains(new Integer(member.getSegment().intValue())));
+					}
+				}
 				
 			} else {
 				//TODO: test for morphology attribute!

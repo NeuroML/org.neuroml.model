@@ -8,10 +8,12 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.math.BigInteger;
 
 
 import org.junit.Test;
 
+import org.neuroml.model.Cell;
 import org.neuroml.model.ExpOneSynapse;
 import org.neuroml.model.ExpTwoSynapse;
 import org.neuroml.model.ExplicitInput;
@@ -19,10 +21,16 @@ import org.neuroml.model.IaFCell;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.IzhikevichCell;
+import org.neuroml.model.Member;
+import org.neuroml.model.Morphology;
 import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
+import org.neuroml.model.Point3DWithDiam;
 import org.neuroml.model.Population;
 import org.neuroml.model.PulseGenerator;
+import org.neuroml.model.Segment;
+import org.neuroml.model.SegmentGroup;
+import org.neuroml.model.SegmentParent;
 import org.neuroml.model.SynapticConnection;
 import org.neuroml.model.util.NeuroML2Validator;
 import org.neuroml.model.util.NeuroMLConverter;
@@ -30,6 +38,9 @@ import org.neuroml.model.util.NeuroMLElements;
 
 public class NeuroML2Test {
 
+    String wdir = System.getProperty("user.dir");
+    String tempdirname = wdir + File.separator + "src/test/resources/tmp";
+    
     @Test
     public void testCellSave() throws Exception {
     	NeuroMLDocument nml2 = new NeuroMLDocument();
@@ -58,6 +69,117 @@ public class NeuroML2Test {
         
         neuroml2ToXml(nml2, nml2.getId()+ ".xml", true);
 
+    }
+
+    private NeuroMLDocument getValidDoc() throws Exception {
+    	NeuroMLDocument nml2 = new NeuroMLDocument();
+        nml2.setId("SomeNML");
+        Cell cell = new Cell();
+        nml2.getCell().add(cell);
+        cell.setId("aCell");
+        Morphology morph = new Morphology();
+        cell.setMorphology(morph);
+        Segment soma = new Segment();
+        soma.setId("0");
+        soma.setName("Soma");
+        morph.getSegment().add(soma);
+        Point3DWithDiam prox = new Point3DWithDiam();
+        prox.setX(0);
+        prox.setY(0);
+        prox.setZ(0);
+        prox.setDiameter(10);
+        soma.setProximal(prox);
+        soma.setDistal(prox);
+        
+        Segment dend1 = new Segment();
+        dend1.setId("1");
+        dend1.setName("dend1");
+        morph.getSegment().add(dend1);
+        SegmentParent par = new SegmentParent();
+        dend1.setParent(par);
+        par.setSegment(new BigInteger((soma.getId())));
+        Point3DWithDiam dist = new Point3DWithDiam();
+        dist.setX(10);
+        dist.setY(0);
+        dist.setZ(0);
+        dist.setDiameter(3);
+        dend1.setDistal(dist);
+        
+        
+        /*
+        Segment dend2 = new Segment();
+        dend2.setId("2");
+        dend2.setName("dend2");
+        morph.getSegment().add(dend2);*/
+
+        SegmentGroup segGroupS = new SegmentGroup();
+        morph.getSegmentGroup().add(segGroupS);
+        segGroupS.setId("soma_group");
+        Member membS = new Member();
+        membS.setSegment(new BigInteger((soma.getId())));
+        segGroupS.getMember().add(membS);
+
+        SegmentGroup segGroupD = new SegmentGroup();
+        morph.getSegmentGroup().add(segGroupD);
+        segGroupD.setId("dendrite_group");
+        Member membD = new Member();
+        membD.setSegment(new BigInteger((dend1.getId())));
+        segGroupD.getMember().add(membD);
+        
+        return nml2;
+    }
+
+    @Test
+    public void testValidDoc() throws Exception {
+
+    	System.out.println("Testing a typical valid doc...");
+    	
+    	NeuroMLDocument nml2 = getValidDoc();
+
+        neuroml2ToXml(nml2, "SomeValidDoc.xml", true);
+    }
+    
+    @Test
+    public void testInvalidDoc() throws Exception {
+
+    	System.out.println("Taking typical valid doc & breaking it...");
+    	
+    	// TEST_REPEATED_IDS
+    	NeuroMLDocument nml2 = getValidDoc();
+    	
+    	nml2.getCell().get(0).getMorphology().getSegment().get(1).setId("0");
+
+        NeuroML2Validator nmlv = new NeuroML2Validator();
+        nmlv.validateWithTests(nml2);
+        assertTrue(nmlv.getValidity().contains(nmlv.TEST_REPEATED_IDS.description));
+        
+        // TEST_ONE_SEG_MISSING_PARENT
+        nml2 = getValidDoc();
+
+    	nml2.getCell().get(0).getMorphology().getSegment().get(1).setParent(null);
+        nmlv = new NeuroML2Validator();
+    	
+        nmlv.validateWithTests(nml2);
+        assertTrue(nmlv.getValidity().contains(nmlv.TEST_ONE_SEG_MISSING_PARENT.description));
+
+        // TEST_MEMBER_SEGMENT_EXISTS
+        nml2 = getValidDoc();
+
+    	nml2.getCell().get(0).getMorphology().getSegmentGroup().get(1).getMember().get(0).setSegment(new BigInteger("3000"));
+        nmlv = new NeuroML2Validator();
+    	
+        nmlv.validateWithTests(nml2);
+        assertTrue(nmlv.getValidity().contains(nmlv.TEST_MEMBER_SEGMENT_EXISTS.description));
+
+        // TEST_REPEATED_GROUPS
+        nml2 = getValidDoc();
+
+    	nml2.getCell().get(0).getMorphology().getSegmentGroup().get(1).setId("soma_group");
+        nmlv = new NeuroML2Validator();
+    	
+        nmlv.validateWithTests(nml2);
+        assertTrue(nmlv.getValidity().contains(nmlv.TEST_REPEATED_GROUPS.description));
+        
     }
 
     @Test
@@ -190,8 +312,6 @@ public class NeuroML2Test {
     
     private void neuroml2ToXml(NeuroMLDocument nml2, String name, boolean validate) throws Exception 
     {
-        String wdir = System.getProperty("user.dir");
-        String tempdirname = wdir + File.separator + "src/test/resources/tmp";
         File tempdir = new File(tempdirname);
         if (!tempdir.exists()) tempdir.mkdir();
         
@@ -203,7 +323,7 @@ public class NeuroML2Test {
         	throw new Exception("Not successfully saved to: "+tempFilename);
         
         if (validate) {
-    		testFile(tempFile);
+        	validateFile(tempFile);
         }
         
     }
@@ -236,12 +356,12 @@ public class NeuroML2Test {
         {
         	if (f.getName().endsWith(".nml"))
         	{
-        		testFile(f);
+        		validateFile(f);
         	}
         }
 	}
 	
-	private void testFile(File f) throws Exception {
+	private void validateFile(File f) throws Exception {
 
         System.out.println("---  Testing: " + f);
         NeuroML2Validator nmlv = new NeuroML2Validator();
