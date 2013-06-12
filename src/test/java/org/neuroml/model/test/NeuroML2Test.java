@@ -79,6 +79,7 @@ public class NeuroML2Test {
         cell.setId("aCell");
         Morphology morph = new Morphology();
         cell.setMorphology(morph);
+        morph.setId("themorph");
         Segment soma = new Segment();
         soma.setId("0");
         soma.setName("Soma");
