@@ -16,6 +16,7 @@ import javax.xml.namespace.QName;
 
 import org.neuroml.model.Morphology;
 import org.neuroml.model.NeuroMLDocument;
+import org.neuroml.model.ObjectFactory;
 
 public class NeuroMLConverter
 {
@@ -28,7 +29,8 @@ public class NeuroMLConverter
 	
 	public NeuroMLConverter() throws JAXBException
 	{
-		jaxb = JAXBContext.newInstance("org.neuroml.model");
+		ClassLoader cl = ObjectFactory.class.getClassLoader();
+		jaxb = JAXBContext.newInstance("org.neuroml.model",cl);
 		
 		marshaller = jaxb.createMarshaller();		
 		//marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",new NeuroMLNamespacePrefixMapper());
