@@ -130,6 +130,7 @@ public class NeuroMLConverter
             nml2string = "<Lems>\n\n"
                     + "    <Include file=\"NeuroMLCoreDimensions.xml\"/>\n"
                     + "    <Include file=\"Cells.xml\"/>\n"
+                    + "    <Include file=\"PyNN.xml\"/>\n"
                     + "    <Include file=\"Networks.xml\"/>\n"
                     + "    <Include file=\"Simulation.xml\"/>\n\n"
                     + nml2string + "\n"
