@@ -1,6 +1,6 @@
-<Lems xmlns="http://www.neuroml.org/lems/0.7"
+<Lems xmlns="http://www.neuroml.org/lems/0.7.1"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-      xsi:schemaLocation="http://www.neuroml.org/lems/0.7 ../../LEMS/Schemas/LEMS/LEMS_v0.7.xsd"
+      xsi:schemaLocation="http://www.neuroml.org/lems/0.7.1 ../../LEMS/Schemas/LEMS/LEMS_v0.7.1.xsd"
       description="Defines both abstract cell models (e.g. _izhikevichCell_, adaptive exponential integrate and fire cell, _adExIaFCell_), point conductance based cell models (_pointCellCondBased_, _pointCellCondBasedCa_) and cells models (_cell_) which specify the _morphology_ (containing _segment_s) and _biophysicalProperties_ separately.">
 
     <!-- A number of cell types for use in NeuroML 2 documents  -->
@@ -13,7 +13,7 @@
 
     <ComponentType name="baseCell"
         description="Base type of any cell which can be used in a population">
-
+        <Child name="notes" type="notes"/>
     </ComponentType>
 
 
@@ -720,8 +720,6 @@
     <ComponentType name="cell"
         extends="baseCellMembPot"
         description="Cell with _segment_s specified in a _morphology_ element along with details on its _biophysicalProperties_. NOTE: this can only be correctly simulated using LEMS when there is a single segment in the cell, and _v of this cell represents the membrane potential in that isopotential segment!!!">
-
-        <Child name="notes" type="notes"/>
 
         <Child name="morphology" type="morphology"/>
 
