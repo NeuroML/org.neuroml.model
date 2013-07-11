@@ -39,6 +39,7 @@ public class NeuroMLElements {
     // Synapses
     public final static String BASE_POINT_CURR_COMP_TYPE = "basePointCurrent";
     public final static String BASE_SYNAPSE_COMP_TYPE = "baseSynapse";
+    public final static String BASE_PLASTICITY_MECHANISM_COMP_TYPE = "basePlasticityMechanism"; 
     
     public final static String SYNAPSE_PORT_IN = "in";
 
