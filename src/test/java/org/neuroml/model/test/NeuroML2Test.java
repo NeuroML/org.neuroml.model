@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
+import java.net.URL;
 
 
 import org.junit.Test;
@@ -39,6 +40,7 @@ import org.neuroml.model.util.NeuroMLElements;
 public class NeuroML2Test {
 
     String wdir = System.getProperty("user.dir");
+    String exampledirname = wdir + File.separator + "src/main/resources/examples";
     String tempdirname = wdir + File.separator + "src/test/resources/tmp";
     
     @Test
@@ -238,7 +240,7 @@ public class NeuroML2Test {
             pg.setId("pulseGen"+i);
             pg.setDelay("100ms");
             pg.setDuration("800ms");
-            pg.setAmplitude(0.5*Math.random()+ "nA");
+            pg.setAmplitude((float)(0.5*Math.random())+ "nA");
             nml2.getPulseGenerator().add(pg);
             
             ExplicitInput ei = new ExplicitInput();
@@ -350,21 +352,28 @@ public class NeuroML2Test {
 	@Test public void testLocalExamples() throws Exception
 	{
         System.out.println("---  Testing local examples... ");
-		String wdir = System.getProperty("user.dir");
-        String tempdirname = wdir + File.separator + "src/main/resources/examples";
-        File tempdir = new File(tempdirname);
-        for (File f: tempdir.listFiles())
+        File exdir = new File(exampledirname);
+		NeuroMLConverter neuromlConverter=new NeuroMLConverter();
+        for (File f: exdir.listFiles())
         {
         	if (f.getName().endsWith(".nml"))
         	{
         		validateFile(f);
+        		String url = "file://"+f.getAbsolutePath();
+
+                System.out.println("      Trying to load: "+url);
+        		NeuroMLDocument neuroml = neuromlConverter.urlToNeuroML(new URL(url));
+        		//neuroml.
+                System.out.println("      Success: "+neuroml.getId());
+                
         	}
         }
+
 	}
 	
 	private void validateFile(File f) throws Exception {
 
-        System.out.println("---  Testing: " + f);
+        System.out.println("---  Validating: " + f);
         NeuroML2Validator nmlv = new NeuroML2Validator();
         nmlv.validateWithTests(f);
         System.out.println("       "+nmlv.getValidity());

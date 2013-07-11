@@ -74,7 +74,7 @@ public class NeuroMLConverter
 		return jbe.getValue();		
 	}
 	
-	public NeuroMLDocument urlToNeuroML(URL url) throws Exception
+	public NeuroMLDocument urlToNeuroML(URL url) throws JAXBException
 	{
 		@SuppressWarnings("unchecked")
 		JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(url);
