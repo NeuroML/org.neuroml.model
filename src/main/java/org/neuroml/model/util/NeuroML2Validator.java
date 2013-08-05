@@ -107,7 +107,7 @@ public class NeuroML2Validator {
 			int numParentless = 0;
 			if (cell.getMorphology() != null) {
 				for(Segment segment: cell.getMorphology().getSegment()) {
-					int segId = Integer.parseInt(segment.getId());
+					int segId = segment.getId();
 					
 					test(TEST_REPEATED_IDS, "Current segment ID: "+segId, !segIds.contains(segId));
 					segIds.add(segId);
