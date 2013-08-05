@@ -359,10 +359,12 @@ public class NeuroML2Test {
         	if (f.getName().endsWith(".nml"))
         	{
         		validateFile(f);
-        		String url = "file://"+f.getAbsolutePath();
+        		String url = f.getAbsolutePath();
 
                 System.out.println("      Trying to load: "+url);
-        		NeuroMLDocument neuroml = neuromlConverter.urlToNeuroML(new URL(url));
+                URL newURL = f.toURI().toURL();
+  
+        		NeuroMLDocument neuroml = neuromlConverter.urlToNeuroML(newURL);
         		//neuroml.
                 System.out.println("      Success: "+neuroml.getId());
                 
