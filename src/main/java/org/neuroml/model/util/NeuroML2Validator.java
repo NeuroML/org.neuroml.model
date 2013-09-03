@@ -107,7 +107,7 @@ public class NeuroML2Validator {
 			int numParentless = 0;
 			if (cell.getMorphology() != null) {
 				for(Segment segment: cell.getMorphology().getSegment()) {
-					int segId = Integer.parseInt(segment.getId());
+					int segId = segment.getId();
 					
 					test(TEST_REPEATED_IDS, "Current segment ID: "+segId, !segIds.contains(segId));
 					segIds.add(segId);
@@ -164,14 +164,13 @@ public class NeuroML2Validator {
 	
 
 	public void testValidityAgainstNeuroML2Schema(File xmlFile) throws SAXException, IOException {
-		String schema = "/Schemas/NeuroML2/NeuroML_v2beta.xsd";
-		InputStream in = getClass().getResourceAsStream(schema);
+		InputStream in = getClass().getResourceAsStream(NeuroMLElements.TARGET_SCHEMA);
 
 		try {
 			testValidity(xmlFile, new StreamSource(in));
 			validity.append(VALID_AGAINST_SCHEMA);
 		} catch (Exception e) {
-			validity.append("File: "+ xmlFile.getAbsolutePath()+" is not valid against the schema: "+schema+"!!\n"+e.getMessage());
+			validity.append("File: "+ xmlFile.getAbsolutePath()+" is not valid against the schema: "+NeuroMLElements.TARGET_SCHEMA+"!!\n"+e.getMessage());
 		}
 	}
 
