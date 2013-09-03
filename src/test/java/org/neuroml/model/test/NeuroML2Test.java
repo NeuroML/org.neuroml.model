@@ -83,7 +83,7 @@ public class NeuroML2Test {
         cell.setMorphology(morph);
         morph.setId("themorph");
         Segment soma = new Segment();
-        soma.setId("0");
+        soma.setId(0);
         soma.setName("Soma");
         morph.getSegment().add(soma);
         Point3DWithDiam prox = new Point3DWithDiam();
@@ -95,12 +95,12 @@ public class NeuroML2Test {
         soma.setDistal(prox);
         
         Segment dend1 = new Segment();
-        dend1.setId("1");
+        dend1.setId(1);
         dend1.setName("dend1");
         morph.getSegment().add(dend1);
         SegmentParent par = new SegmentParent();
         dend1.setParent(par);
-        par.setSegment(new BigInteger((soma.getId())));
+        par.setSegment(soma.getId());
         Point3DWithDiam dist = new Point3DWithDiam();
         dist.setX(10);
         dist.setY(0);
@@ -119,14 +119,14 @@ public class NeuroML2Test {
         morph.getSegmentGroup().add(segGroupS);
         segGroupS.setId("soma_group");
         Member membS = new Member();
-        membS.setSegment(new BigInteger((soma.getId())));
+        membS.setSegment(soma.getId());
         segGroupS.getMember().add(membS);
 
         SegmentGroup segGroupD = new SegmentGroup();
         morph.getSegmentGroup().add(segGroupD);
         segGroupD.setId("dendrite_group");
         Member membD = new Member();
-        membD.setSegment(new BigInteger((dend1.getId())));
+        membD.setSegment(dend1.getId());
         segGroupD.getMember().add(membD);
         
         return nml2;
@@ -150,7 +150,7 @@ public class NeuroML2Test {
     	// TEST_REPEATED_IDS
     	NeuroMLDocument nml2 = getValidDoc();
     	
-    	nml2.getCell().get(0).getMorphology().getSegment().get(1).setId("0");
+    	nml2.getCell().get(0).getMorphology().getSegment().get(1).setId(0);
 
         NeuroML2Validator nmlv = new NeuroML2Validator();
         nmlv.validateWithTests(nml2);
@@ -168,7 +168,7 @@ public class NeuroML2Test {
         // TEST_MEMBER_SEGMENT_EXISTS
         nml2 = getValidDoc();
 
-    	nml2.getCell().get(0).getMorphology().getSegmentGroup().get(1).getMember().get(0).setSegment(new BigInteger("3000"));
+    	nml2.getCell().get(0).getMorphology().getSegmentGroup().get(1).getMember().get(0).setSegment(3000);
         nmlv = new NeuroML2Validator();
     	
         nmlv.validateWithTests(nml2);
@@ -359,10 +359,12 @@ public class NeuroML2Test {
         	if (f.getName().endsWith(".nml"))
         	{
         		validateFile(f);
-        		String url = "file://"+f.getAbsolutePath();
+        		String url = f.getAbsolutePath();
 
                 System.out.println("      Trying to load: "+url);
-        		NeuroMLDocument neuroml = neuromlConverter.urlToNeuroML(new URL(url));
+                URL newURL = f.toURI().toURL();
+  
+        		NeuroMLDocument neuroml = neuromlConverter.urlToNeuroML(newURL);
         		//neuroml.
                 System.out.println("      Success: "+neuroml.getId());
                 
@@ -378,8 +380,8 @@ public class NeuroML2Test {
         nmlv.validateWithTests(f);
         System.out.println("       "+nmlv.getValidity());
         System.out.println("       "+nmlv.getWarnings());
-        assertTrue(nmlv.isValid());
-        assertTrue(!nmlv.hasWarnings());
+        assertTrue("---  Validating: " + f, nmlv.isValid());
+        assertTrue("---  Validating: " + f, !nmlv.hasWarnings());
 	}
 
 }

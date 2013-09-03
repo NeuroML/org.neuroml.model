@@ -2,13 +2,19 @@ package org.neuroml.model.util;
 
 public class NeuroMLElements {
 
-
     public static String ORG_NEUROML_MODEL_VERSION = "1.0.7";
     
     public static String NAMESPACE_URI_VERSION_2 = "http://www.neuroml.org/schema/neuroml2";
 
-    public static String DEFAULT_SCHEMA_FILENAME_VERSION_2_ALPHA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2alpha.xsd";
-    public static String DEFAULT_SCHEMA_FILENAME_VERSION_2_BETA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta.xsd";
+    public static String DEFAULT_SCHEMA_LOCATION_VERSION_2_ALPHA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2alpha.xsd";
+    public static String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA =  "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta.xsd";
+    public static String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA1 = "https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta1.xsd";
+    
+
+    public static String TARGET_SCHEMA = "/Schemas/NeuroML2/NeuroML_v2beta1.xsd";
+    public static String TARGET_SCHEMA_LOCATION = DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA1;
+	
+
     
     // Ion channels
     public final static String ION_CHANNEL_COMP_TYPE = "baseIonChannel";

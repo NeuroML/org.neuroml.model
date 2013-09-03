@@ -36,7 +36,7 @@ public class NeuroMLConverter
 		//marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",new NeuroMLNamespacePrefixMapper());
 		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
 		marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
-				NeuroMLElements.NAMESPACE_URI_VERSION_2+" "+NeuroMLElements.DEFAULT_SCHEMA_FILENAME_VERSION_2_BETA);
+				NeuroMLElements.NAMESPACE_URI_VERSION_2+" "+NeuroMLElements.TARGET_SCHEMA_LOCATION);
 		
 		unmarshaller = jaxb.createUnmarshaller();
 	}
