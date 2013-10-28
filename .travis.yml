@@ -4,6 +4,7 @@ install:
     - git clone https://github.com/NeuroML/org.neuroml.model.injectingplugin.git
     - cd org.neuroml.model.injectingplugin
     - mvn install
+    - cd ..
     
     
  
