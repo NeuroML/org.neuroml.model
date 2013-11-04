@@ -51,5 +51,13 @@ public class NeuroMLElements {
     public final static String BASE_PLASTICITY_MECHANISM_COMP_TYPE = "basePlasticityMechanism"; 
     
     public final static String SYNAPSE_PORT_IN = "in";
+    
+    // Networks
+    public final static String NETWORK = "network";
+    public final static String POPULATION = "population";
+    public final static String INSTANCE = "instance";
+    
+    public final static String POPULATION_LIST = "populationList";
+    public final static String PROJECTION = "projection";
 
 }

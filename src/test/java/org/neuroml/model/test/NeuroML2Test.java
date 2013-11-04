@@ -19,6 +19,7 @@ import org.neuroml.model.ExpOneSynapse;
 import org.neuroml.model.ExpTwoSynapse;
 import org.neuroml.model.ExplicitInput;
 import org.neuroml.model.IaFCell;
+import org.neuroml.model.Include;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.IzhikevichCell;
@@ -129,6 +130,17 @@ public class NeuroML2Test {
         membD.setSegment(dend1.getId());
         segGroupD.getMember().add(membD);
         
+        
+        SegmentGroup segGroupDS = new SegmentGroup();
+        morph.getSegmentGroup().add(segGroupDS);
+        segGroupDS.setId("dendrite_soma_group");
+        Include inc1 = new Include();
+        inc1.setSegmentGroup("soma_group");
+        segGroupDS.getInclude().add(inc1);
+        Include inc2 = new Include();
+        inc2.setSegmentGroup("dendrite_group");
+        segGroupDS.getInclude().add(inc2);
+        
         return nml2;
     }
 
@@ -183,6 +195,12 @@ public class NeuroML2Test {
         nmlv.validateWithTests(nml2);
         assertTrue(nmlv.getValidity().contains(nmlv.TEST_REPEATED_GROUPS.description));
         
+        
+        // TEST_INCLUDE_SEGMENT_GROUP_EXISTS
+        nml2 = getValidDoc();
+        nml2.getCell().get(0).getMorphology().getSegmentGroup().get(2).getInclude().get(0).setSegmentGroup("vvv");
+        nmlv.validateWithTests(nml2);
+        assertTrue(nmlv.getValidity().contains(nmlv.TEST_INCLUDE_SEGMENT_GROUP_EXISTS.description));
     }
 
     @Test
@@ -276,7 +294,7 @@ public class NeuroML2Test {
         
         neuroml2ToXml(nml2, nml2.getId()+ ".xml", true);
         
-    }
+    }    
     
 
     public void testVersions() throws IOException

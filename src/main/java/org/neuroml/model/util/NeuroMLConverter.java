@@ -5,7 +5,13 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -17,6 +23,7 @@ import javax.xml.namespace.QName;
 import org.neuroml.model.Morphology;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.ObjectFactory;
+import org.neuroml.model.Standalone;
 
 public class NeuroMLConverter
 {
@@ -81,7 +88,41 @@ public class NeuroMLConverter
 		return jbe.getValue();		
 	}
 	
-	
+	public static ArrayList<Standalone> getAllStandaloneElements(NeuroMLDocument nmlDocument)
+    {
+        ArrayList<Standalone> elements = new ArrayList<Standalone>();
+        Class<?> c = NeuroMLDocument.class;
+        
+        //System.out.println("Checking: "+c.getDeclaredMethods());
+        for (Method m: c.getDeclaredMethods()) {
+            //System.out.println("M: "+m.toString());
+            
+            try {
+                m.setAccessible(true);
+                Object o = m.invoke(nmlDocument, null);
+                //System.out.format("%s() returned %s\n", m, o.toString());
+                if (o instanceof List)
+                {
+                    elements.addAll((List)o);
+                }
+
+            // Handle any exceptions thrown by method to be invoked.
+            } catch (InvocationTargetException ex) {
+                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (IllegalAccessException ex)
+            {
+                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (IllegalArgumentException ex)
+            {
+                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+	    
+        return elements;
+    }
 
     /*
      * TODO: Needs to be made much more efficient
@@ -139,6 +180,19 @@ public class NeuroMLConverter
 
         }
         return nml2string;
+    }
+    
+    
+	public static void main(String[] args) throws Exception {
+        String fileName = "../NeuroML2/examples/NML2_SingleCompHHCell.nml";
+		NeuroMLConverter nmlc = new NeuroMLConverter();
+    	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName));
+        System.out.println("Loaded: "+nmlDocument.getId());
+        ArrayList<Standalone> els = getAllStandaloneElements(nmlDocument);
+        for (Standalone el: els) {
+            System.out.println("Found: "+el.getId());
+        }
+        
     }
 
 
