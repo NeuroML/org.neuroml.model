@@ -19,6 +19,7 @@ import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.namespace.QName;
+import org.neuroml.model.IaFTauCell;
 
 import org.neuroml.model.Morphology;
 import org.neuroml.model.NeuroMLDocument;
@@ -123,11 +124,49 @@ public class NeuroMLConverter
 	    
         return elements;
     }
+    
+	public static void addElementToDocument(NeuroMLDocument nmlDocument, Standalone nmlElement)
+    {
+        Class<?> c = NeuroMLDocument.class;
+        
+        String elType = nmlElement.getClass().getSimpleName();
+        System.out.println("Checking: "+c.getDeclaredMethods()+", adding: "+elType);
+        for (Method m: c.getDeclaredMethods()) {
+            System.out.println("M: "+m.toString());
+            
+            try {
+                m.setAccessible(true);
+                Object o = m.invoke(nmlDocument, null);
+                System.out.format("%s returned %s, %s, %s\n", m, o.toString(), o.getClass(), m.getName());
+                String expected = "get"+elType;
+                if (m.getName().equalsIgnoreCase(expected)) {
+                    System.out.println("Adding...");
+                    ArrayList list = (ArrayList)o;
+                    list.add(nmlElement);
+                }
+                
+
+            // Handle any exceptions thrown by method to be invoked.
+            } catch (InvocationTargetException ex) {
+                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (IllegalAccessException ex)
+            {
+                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            catch (IllegalArgumentException ex)
+            {
+                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
+            }
+            
+        }
+	    
+    }
 
     /*
      * TODO: Needs to be made much more efficient
      */
-	public File neuroml2ToXml(NeuroMLDocument nml2, String filename) throws Exception
+	public String neuroml2ToXml(NeuroMLDocument nml2) throws Exception
 	{
 		JAXBElement<NeuroMLDocument> jbc =
 			new JAXBElement<NeuroMLDocument>(new QName("neuroml"),
@@ -141,6 +180,16 @@ public class NeuroMLConverter
         String withNs = baos.toString();
         String correctNs = withNs.replaceAll(NeuroMLNamespacePrefixMapper.TEMP_NAMESPACE+":", "");
         correctNs = correctNs.replaceAll(":"+NeuroMLNamespacePrefixMapper.TEMP_NAMESPACE, "");
+
+		return correctNs;
+	}
+    
+    /*
+     * TODO: Needs to be made much more efficient
+     */
+	public File neuroml2ToXml(NeuroMLDocument nml2, String filename) throws Exception
+	{
+        String correctNs = neuroml2ToXml(nml2);
 
 		File f = new File(filename);
 		FileOutputStream fos = new FileOutputStream(f);
@@ -188,10 +237,18 @@ public class NeuroMLConverter
 		NeuroMLConverter nmlc = new NeuroMLConverter();
     	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName));
         System.out.println("Loaded: "+nmlDocument.getId());
+        
+        
+        IaFTauCell iaf = new IaFTauCell();
+        iaf.setTau("10ms");
+        iaf.setId("iaf00");
+        addElementToDocument(nmlDocument, iaf);
+        
         ArrayList<Standalone> els = getAllStandaloneElements(nmlDocument);
         for (Standalone el: els) {
             System.out.println("Found: "+el.getId());
         }
+        
         
     }
 

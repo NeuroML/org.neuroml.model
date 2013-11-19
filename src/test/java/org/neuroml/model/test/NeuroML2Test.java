@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.URL;
+import java.util.ArrayList;
 
 
 import org.junit.Test;
@@ -33,6 +34,7 @@ import org.neuroml.model.PulseGenerator;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
 import org.neuroml.model.SegmentParent;
+import org.neuroml.model.Standalone;
 import org.neuroml.model.SynapticConnection;
 import org.neuroml.model.util.NeuroML2Validator;
 import org.neuroml.model.util.NeuroMLConverter;
@@ -201,6 +203,23 @@ public class NeuroML2Test {
         nml2.getCell().get(0).getMorphology().getSegmentGroup().get(2).getInclude().get(0).setSegmentGroup("vvv");
         nmlv.validateWithTests(nml2);
         assertTrue(nmlv.getValidity().contains(nmlv.TEST_INCLUDE_SEGMENT_GROUP_EXISTS.description));
+    }
+    
+    @Test 
+    public void testGetStandaloneAndAdd() throws Exception {
+    	NeuroMLDocument nml2 = new NeuroMLDocument();
+        nml2.setId("CopiedNML2Doc");
+        
+    	NeuroMLDocument nml2_old = getValidDoc();
+        
+        ArrayList<Standalone> stands = NeuroMLConverter.getAllStandaloneElements(nml2_old);
+        for (Standalone stand: stands) {
+            System.out.println("Adding "+stand+" to new doc...");
+            NeuroMLConverter.addElementToDocument(nml2_old, stand);
+        }
+        
+        neuroml2ToXml(nml2, nml2.getId()+".xml", true);
+        
     }
 
     @Test
