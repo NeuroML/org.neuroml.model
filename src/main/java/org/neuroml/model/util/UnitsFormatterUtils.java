@@ -23,7 +23,7 @@ public class UnitsFormatterUtils
 		formattedUnit=formattedUnit.replace("u","μ");
 		formattedUnit=formattedUnit.replace("_"," ");
         
-        System.out.println(unformattedUnit+" -> "+ formattedUnit);
+        //System.out.println(unformattedUnit+" -> "+ formattedUnit);
 		return formattedUnit;
 	}
 
