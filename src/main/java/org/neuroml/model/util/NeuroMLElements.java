@@ -33,7 +33,7 @@ public class NeuroMLElements {
 
     public final static String CONC_MODEL_COMP_TYPE = "concentrationModel";
     public final static String CONC_MODEL_SURF_AREA = "surfaceArea";
-    public final static String CONC_MODEL_CA_CURR_DENS = "iCa";
+    public final static String CONC_MODEL_CA_TOT_CURR = "iCa";
     public final static String CONC_MODEL_INIT_CONC = "initialConcentration";
     public final static String CONC_MODEL_INIT_EXT_CONC = "initialExtConcentration";
     public final static String CONC_MODEL_CONC_STATE_VAR = "concentration";
