@@ -166,7 +166,7 @@ public class NeuroMLConverter
     /*
      * TODO: Needs to be made much more efficient
      */
-	public String neuroml2ToXml(NeuroMLDocument nml2) throws Exception
+	public String neuroml2ToXml(NeuroMLDocument nml2) throws NeuroMLException
 	{
 		JAXBElement<NeuroMLDocument> jbc =
 			new JAXBElement<NeuroMLDocument>(new QName("neuroml"),
@@ -175,7 +175,11 @@ public class NeuroMLConverter
 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
 
-		marshaller.marshal(jbc, baos);
+		try {
+			marshaller.marshal(jbc, baos);
+		} catch (JAXBException e) {
+			throw new NeuroMLException(e);
+		}
 
         String withNs = baos.toString();
         String correctNs = withNs.replaceAll(NeuroMLNamespacePrefixMapper.TEMP_NAMESPACE+":", "");
