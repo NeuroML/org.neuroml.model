@@ -130,17 +130,16 @@ public class NeuroMLConverter
         Class<?> c = NeuroMLDocument.class;
         
         String elType = nmlElement.getClass().getSimpleName();
-        System.out.println("Checking: "+c.getDeclaredMethods()+", adding: "+elType);
+        //System.out.println("Checking: "+c.getDeclaredMethods()+", adding: "+elType);
         for (Method m: c.getDeclaredMethods()) {
-            System.out.println("M: "+m.toString());
             
             try {
                 m.setAccessible(true);
                 Object o = m.invoke(nmlDocument, null);
-                System.out.format("%s returned %s, %s, %s\n", m, o.toString(), o.getClass(), m.getName());
+                //System.out.format("%s returned %s, %s, %s\n", m, o.toString(), o.getClass(), m.getName());
                 String expected = "get"+elType;
                 if (m.getName().equalsIgnoreCase(expected)) {
-                    System.out.println("Adding...");
+                    //System.out.println("Adding...");
                     ArrayList list = (ArrayList)o;
                     list.add(nmlElement);
                 }
