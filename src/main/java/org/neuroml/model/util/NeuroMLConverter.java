@@ -5,10 +5,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.StringReader;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Level;
@@ -19,6 +21,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import org.neuroml.model.IaFTauCell;
 
@@ -95,26 +98,27 @@ public class NeuroMLConverter
         LinkedHashMap<String,Standalone> elements = new LinkedHashMap<String,Standalone>();
         Class<?> c = NeuroMLDocument.class;
         
-        //System.out.println("Checking: "+c.getDeclaredMethods());
+        XmlType annot = c.getAnnotation(XmlType.class);
+        
+        //System.out.println("Checking: "+annot);
+        HashMap<String, List<Standalone>> output = new HashMap<String, List<Standalone>>();
         for (Method m: c.getDeclaredMethods()) {
-            //System.out.println("M: "+m.toString());
-            
+            String elementName = m.getName().substring(3,4).toLowerCase()+m.getName().substring(4);
+            //System.out.println("M: "+m.toString()+", "+elementName);
             try {
                 m.setAccessible(true);
                 Object o = m.invoke(nmlDocument, null);
                 //System.out.format("%s() returned %s\n", m, o.toString());
-                if (o instanceof List)
+                if (o instanceof List && !elementName.equals("include"))
                 {
                     try {
                         List<Standalone> list = (List<Standalone>)o;
-                        for (Standalone s: list) {
-                            elements.put(s.getId(), s);
-                        }
+                        output.put(elementName, list);
+                        
                     } catch (ClassCastException cce) {
                         //
                     }
                 }
-
             // Handle any exceptions thrown by method to be invoked.
             } catch (InvocationTargetException ex) {
                 Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
@@ -128,6 +132,15 @@ public class NeuroMLConverter
                 Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
             }
             
+        }
+        for (String element: annot.propOrder()) {
+            if (output.containsKey(element))
+            {
+                List<Standalone> list = output.get(element);
+                for (Standalone s: list) {
+                    elements.put(s.getId(), s);
+                }
+            }
         }
 	    
         return elements;
