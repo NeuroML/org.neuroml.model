@@ -11,6 +11,7 @@ import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 
 import org.junit.Test;
@@ -38,6 +39,7 @@ import org.neuroml.model.Standalone;
 import org.neuroml.model.SynapticConnection;
 import org.neuroml.model.util.NeuroML2Validator;
 import org.neuroml.model.util.NeuroMLConverter;
+import static org.neuroml.model.util.NeuroMLConverter.getAllStandaloneElements;
 import org.neuroml.model.util.NeuroMLElements;
 
 public class NeuroML2Test {
@@ -212,8 +214,9 @@ public class NeuroML2Test {
         
     	NeuroMLDocument nml2_old = getValidDoc();
         
-        ArrayList<Standalone> stands = NeuroMLConverter.getAllStandaloneElements(nml2_old);
-        for (Standalone stand: stands) {
+        LinkedHashMap<String,Standalone> els = getAllStandaloneElements(nml2_old);
+        for (String el: els.keySet()) {
+            Standalone stand = els.get(el);
             System.out.println("Adding "+stand+" to new doc...");
             NeuroMLConverter.addElementToDocument(nml2_old, stand);
         }

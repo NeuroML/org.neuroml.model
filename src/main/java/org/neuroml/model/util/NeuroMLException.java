@@ -10,5 +10,9 @@ public class NeuroMLException extends Exception {
 	public NeuroMLException(Throwable cause) {
 		super(cause);
 	}
+    
+	public NeuroMLException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
 }

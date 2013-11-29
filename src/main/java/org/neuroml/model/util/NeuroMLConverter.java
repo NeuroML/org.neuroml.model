@@ -9,6 +9,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -89,9 +90,9 @@ public class NeuroMLConverter
 		return jbe.getValue();		
 	}
 	
-	public static ArrayList<Standalone> getAllStandaloneElements(NeuroMLDocument nmlDocument)
+	public static LinkedHashMap<String,Standalone> getAllStandaloneElements(NeuroMLDocument nmlDocument)
     {
-        ArrayList<Standalone> elements = new ArrayList<Standalone>();
+        LinkedHashMap<String,Standalone> elements = new LinkedHashMap<String,Standalone>();
         Class<?> c = NeuroMLDocument.class;
         
         //System.out.println("Checking: "+c.getDeclaredMethods());
@@ -104,7 +105,14 @@ public class NeuroMLConverter
                 //System.out.format("%s() returned %s\n", m, o.toString());
                 if (o instanceof List)
                 {
-                    elements.addAll((List)o);
+                    try {
+                        List<Standalone> list = (List<Standalone>)o;
+                        for (Standalone s: list) {
+                            elements.put(s.getId(), s);
+                        }
+                    } catch (ClassCastException cce) {
+                        //
+                    }
                 }
 
             // Handle any exceptions thrown by method to be invoked.
@@ -247,9 +255,9 @@ public class NeuroMLConverter
         iaf.setId("iaf00");
         addElementToDocument(nmlDocument, iaf);
         
-        ArrayList<Standalone> els = getAllStandaloneElements(nmlDocument);
-        for (Standalone el: els) {
-            System.out.println("Found: "+el.getId());
+        LinkedHashMap<String,Standalone> els = getAllStandaloneElements(nmlDocument);
+        for (String el: els.keySet()) {
+            System.out.println("Found: "+ els.get(el));
         }
         
         
