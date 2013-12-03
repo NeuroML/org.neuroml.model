@@ -109,7 +109,7 @@ public class NeuroMLConverter
                 m.setAccessible(true);
                 Object o = m.invoke(nmlDocument, null);
                 //System.out.format("%s() returned %s\n", m, o.toString());
-                if (o instanceof List && !elementName.equals("include"))
+                if (o instanceof List && !elementName.equals("include") && !elementName.equals("componentType"))
                 {
                     try {
                         List<Standalone> list = (List<Standalone>)o;
