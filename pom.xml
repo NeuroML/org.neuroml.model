@@ -3,10 +3,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.neuroml.model</groupId>
     <artifactId>org.neuroml.model</artifactId>
-    <version>1.0.8</version>
+    <version>1.2.1</version>
     <packaging>bundle</packaging>
     <properties>
-        <build.version2>2beta1</build.version2>
+        <build.version2>2beta2</build.version2>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>

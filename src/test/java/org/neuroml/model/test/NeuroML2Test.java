@@ -10,6 +10,8 @@ import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.math.BigInteger;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 
 
 import org.junit.Test;
@@ -19,6 +21,7 @@ import org.neuroml.model.ExpOneSynapse;
 import org.neuroml.model.ExpTwoSynapse;
 import org.neuroml.model.ExplicitInput;
 import org.neuroml.model.IaFCell;
+import org.neuroml.model.Include;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.IzhikevichCell;
@@ -32,9 +35,11 @@ import org.neuroml.model.PulseGenerator;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
 import org.neuroml.model.SegmentParent;
+import org.neuroml.model.Standalone;
 import org.neuroml.model.SynapticConnection;
 import org.neuroml.model.util.NeuroML2Validator;
 import org.neuroml.model.util.NeuroMLConverter;
+import static org.neuroml.model.util.NeuroMLConverter.getAllStandaloneElements;
 import org.neuroml.model.util.NeuroMLElements;
 
 public class NeuroML2Test {
@@ -129,6 +134,17 @@ public class NeuroML2Test {
         membD.setSegment(dend1.getId());
         segGroupD.getMember().add(membD);
         
+        
+        SegmentGroup segGroupDS = new SegmentGroup();
+        morph.getSegmentGroup().add(segGroupDS);
+        segGroupDS.setId("dendrite_soma_group");
+        Include inc1 = new Include();
+        inc1.setSegmentGroup("soma_group");
+        segGroupDS.getInclude().add(inc1);
+        Include inc2 = new Include();
+        inc2.setSegmentGroup("dendrite_group");
+        segGroupDS.getInclude().add(inc2);
+        
         return nml2;
     }
 
@@ -182,6 +198,30 @@ public class NeuroML2Test {
     	
         nmlv.validateWithTests(nml2);
         assertTrue(nmlv.getValidity().contains(nmlv.TEST_REPEATED_GROUPS.description));
+        
+        
+        // TEST_INCLUDE_SEGMENT_GROUP_EXISTS
+        nml2 = getValidDoc();
+        nml2.getCell().get(0).getMorphology().getSegmentGroup().get(2).getInclude().get(0).setSegmentGroup("vvv");
+        nmlv.validateWithTests(nml2);
+        assertTrue(nmlv.getValidity().contains(nmlv.TEST_INCLUDE_SEGMENT_GROUP_EXISTS.description));
+    }
+    
+    @Test 
+    public void testGetStandaloneAndAdd() throws Exception {
+    	NeuroMLDocument nml2 = new NeuroMLDocument();
+        nml2.setId("CopiedNML2Doc");
+        
+    	NeuroMLDocument nml2_old = getValidDoc();
+        
+        LinkedHashMap<String,Standalone> els = getAllStandaloneElements(nml2_old);
+        for (String el: els.keySet()) {
+            Standalone stand = els.get(el);
+            System.out.println("Adding "+stand+" to new doc...");
+            NeuroMLConverter.addElementToDocument(nml2_old, stand);
+        }
+        
+        neuroml2ToXml(nml2, nml2.getId()+".xml", true);
         
     }
 
@@ -276,7 +316,7 @@ public class NeuroML2Test {
         
         neuroml2ToXml(nml2, nml2.getId()+ ".xml", true);
         
-    }
+    }    
     
 
     public void testVersions() throws IOException

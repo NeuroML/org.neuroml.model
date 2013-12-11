@@ -9,10 +9,6 @@
     <Include file="Channels.xml"/>
     <Include file="Synapses.xml"/>
     <Include file="Inputs.xml"/>
-     
-    <!-- These dimensions/units are added here since it's unlikely that the units for phi in fixedFactorConcentrationModel will be needed anywhere else-->
-    <Dimension name="phi_factor" l="-3" n="1" i="-1" t="-1"/>
-    <Unit symbol="mol_per_m3_per_A_per_s" dimension="phi_factor" power="0"/> <!-- SI -->
 
 
     <ComponentType name="baseCell"
@@ -708,14 +704,16 @@
 
     <ComponentType name="fixedFactorConcentrationModel"
         extends="concentrationModel"
-        description="Model of buffering of concentration of an ion (currently hard coded to be calcium, due to requirement for _iCa) which has a baseline level _restingConc and tends to this value with time course _decayConstant. A fixed factor _phi is used to scale the incoming current INDEPENDENTLY OF THE SIZE OF THE COMPARTMENT to produce a concentration change.">
+        description="Model of buffering of concentration of an ion (currently hard coded to be calcium, due to requirement for _iCa) which has a baseline level _restingConc and tends to this value with time course _decayConstant. A fixed factor _rho is used to scale the incoming current INDEPENDENTLY OF THE SIZE OF THE COMPARTMENT to produce a concentration change.">
 
         <Parameter name="restingConc" dimension="concentration"/>
         <Parameter name="decayConstant" dimension="time"/>
         
-        <Parameter name="phi" dimension="phi_factor"/>
+        <Parameter name="rho" dimension="rho_factor"/>
         
         <Requirement name="iCa" dimension="current"/>
+        <Requirement name="surfaceArea" dimension="area"/>
+        
 
         <Text name="species"/> <!-- TODO: check why this isn't inherited from concentrationModel -->
 
@@ -724,7 +722,7 @@
             <StateVariable name="concentration" exposure="concentration" dimension="concentration"/>
             <StateVariable name="extConcentration" exposure="extConcentration" dimension="concentration"/>
             
-            <TimeDerivative variable="concentration" value="iCa * phi - ((concentration - restingConc) / decayConstant)"/>
+            <TimeDerivative variable="concentration" value="(iCa/surfaceArea) * rho - ((concentration - restingConc) / decayConstant)"/>
             
             <OnStart>
                 <StateAssignment variable="concentration" value="initialConcentration"/>
@@ -1144,7 +1142,7 @@
             <StateVariable name="V" dimension="none" exposure="V"/>
             <StateVariable name="W" dimension="none" exposure="W"/>
 
-            <TimeDerivative variable="V" value="(V - (V^3) / 3 - W + I) / SEC"/>
+            <TimeDerivative variable="V" value="( (V - ((V^3) / 3)) - W + I) / SEC"/>
             <TimeDerivative variable="W" value="(0.08 * (V + 0.7 - 0.8 * W)) / SEC"/>
 
         </Dynamics>
