@@ -23,7 +23,7 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
-import org.neuroml.model.IaFTauCell;
+import org.neuroml.model.IafTauCell;
 
 import org.neuroml.model.Morphology;
 import org.neuroml.model.NeuroMLDocument;
@@ -263,7 +263,7 @@ public class NeuroMLConverter
         System.out.println("Loaded: "+nmlDocument.getId());
         
         
-        IaFTauCell iaf = new IaFTauCell();
+        IafTauCell iaf = new IafTauCell();
         iaf.setTau("10ms");
         iaf.setId("iaf00");
         addElementToDocument(nmlDocument, iaf);

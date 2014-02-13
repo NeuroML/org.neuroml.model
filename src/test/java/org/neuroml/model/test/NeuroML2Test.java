@@ -20,7 +20,7 @@ import org.neuroml.model.Cell;
 import org.neuroml.model.ExpOneSynapse;
 import org.neuroml.model.ExpTwoSynapse;
 import org.neuroml.model.ExplicitInput;
-import org.neuroml.model.IaFCell;
+import org.neuroml.model.IafCell;
 import org.neuroml.model.Include;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
@@ -230,7 +230,7 @@ public class NeuroML2Test {
     	NeuroMLDocument nml2 = new NeuroMLDocument();
         nml2.setId("InstanceBasedNet");
         
-        IaFCell iaf = new IaFCell();
+        IafCell iaf = new IafCell();
         iaf.setId("iaf0");
         iaf.setLeakReversal("-60mV");
         iaf.setThresh("-55mV");
