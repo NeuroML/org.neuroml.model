@@ -15,6 +15,7 @@ import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
 
 import org.neuroml.model.Cell;
+import org.neuroml.model.Include;
 import org.neuroml.model.Member;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Segment;
@@ -41,6 +42,7 @@ public class NeuroML2Validator {
 	public StandardTest TEST_ONE_SEG_MISSING_PARENT = new StandardTest(10002, "Only one segment should have no parent");
 	public StandardTest TEST_MEMBER_SEGMENT_EXISTS =  new StandardTest(10003, "Segment Id used in the member element of segmentGroup should exist");
 	public StandardTest TEST_REPEATED_GROUPS =        new StandardTest(10004, "No repeated segmentGroup Ids allowed within a cell");
+	public StandardTest TEST_INCLUDE_SEGMENT_GROUP_EXISTS =  new StandardTest(10005, "Segment Group used in the include element of segmentGroup should exist");
 	
 	
 	public StandardTest WARN_ROOT_ID_0 =              new StandardTest(100001, "Root segment has id == 0", StandardTest.LEVEL.WARNING);
@@ -131,6 +133,9 @@ public class NeuroML2Validator {
 					for (Member member: segmentGroup.getMember()) {
 						test(TEST_MEMBER_SEGMENT_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", member: "+member.getSegment(), segIds.contains(new Integer(member.getSegment().intValue())));
 					}
+					for (Include inc: segmentGroup.getInclude()) {
+						test(TEST_INCLUDE_SEGMENT_GROUP_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", includes: "+inc.getSegmentGroup(), segGroups.contains(inc.getSegmentGroup()));
+					}
 				}
 				
 			} else {
@@ -153,9 +158,9 @@ public class NeuroML2Validator {
 	private void test(StandardTest st, String info, boolean test) {
 		if (!test) {
 			if (!st.isWarning()) {
-				validity.append("Test: "+st.id+" ("+st.description+") failed! ... "+info);
+				validity.append("\n  Test: "+st.id+" ("+st.description+") failed! ... "+info);
 			} else {
-				warnings.append("Warning, check: "+st.id+" ("+st.description+") failed! ... "+info);
+				warnings.append("\n  Warning, check: "+st.id+" ("+st.description+") failed! ... "+info);
 			}
 		} else {
 	        //System.out.println("Test: "+id+" ("+testName+") succeeded! "+info);
