@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import javax.tools.StandardLocation;
 import javax.xml.XMLConstants;
 import javax.xml.bind.JAXBException;
 import javax.xml.transform.Source;
