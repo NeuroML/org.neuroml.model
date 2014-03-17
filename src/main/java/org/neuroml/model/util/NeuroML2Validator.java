@@ -168,13 +168,13 @@ public class NeuroML2Validator {
 	
 
 	public void testValidityAgainstNeuroML2Schema(File xmlFile) throws SAXException, IOException {
-		InputStream in = getClass().getResourceAsStream(NeuroMLElements.TARGET_SCHEMA);
+		InputStream in = getClass().getResourceAsStream(NeuroMLElements.LATEST_SCHEMA);
 
 		try {
 			testValidity(xmlFile, new StreamSource(in));
 			validity.append(VALID_AGAINST_SCHEMA);
 		} catch (Exception e) {
-			validity.append("File: "+ xmlFile.getAbsolutePath()+" is not valid against the schema: "+NeuroMLElements.TARGET_SCHEMA+"!!\n"+e.getMessage());
+			validity.append("File: "+ xmlFile.getAbsolutePath()+" is not valid against the schema: "+NeuroMLElements.LATEST_SCHEMA+"!!\n"+e.getMessage());
 		}
 	}
 
