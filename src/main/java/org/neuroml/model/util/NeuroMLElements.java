@@ -24,6 +24,8 @@ public class NeuroMLElements {
     // Cells
     public static final String BASE_CELL_COMP_TYPE = "baseCell";
     public static final String BASE_CELL_CAP_COMP_TYPE = "baseCellMembPotCap";
+    public static final String BASE_IAF_CELL = "baseIaf";
+    public static final String BASE_IAF_CAP_CELL = "baseIafCapCell";
     public static final String CELL_COMP_TYPE = "cell";
     
     public static final String BASE_GATE_COMP_TYPE = "baseGate";
