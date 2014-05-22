@@ -227,15 +227,18 @@ public class NeuroML2Test {
         nml2.setId("CopiedNML2Doc");
 
         NeuroMLDocument nml2_old = getValidDoc();
+        System.out.println("---- Creating: "+nml2.getId());
 
         LinkedHashMap<String, Standalone> els = getAllStandaloneElements(nml2_old);
         for (String el : els.keySet()) {
             Standalone stand = els.get(el);
             System.out.println("Adding " + stand + " to new doc...");
-            NeuroMLConverter.addElementToDocument(nml2_old, stand);
+            NeuroMLConverter.addElementToDocument(nml2, stand);
         }
-
-        neuroml2ToXml(nml2, nml2.getId() + ".xml", true);
+        
+        String newFilename = nml2.getId() + ".xml";
+        File f = neuroml2ToXml(nml2, newFilename, true);
+        System.out.println("---- Created: "+f.getAbsolutePath());
 
     }
 
@@ -371,7 +374,7 @@ public class NeuroML2Test {
         return sdat;
     }
 
-    private void neuroml2ToXml(NeuroMLDocument nml2, String name, boolean validate) throws Exception {
+    private File neuroml2ToXml(NeuroMLDocument nml2, String name, boolean validate) throws Exception {
         File tempdir = new File(tempdirname);
         if (!tempdir.exists()) {
             tempdir.mkdir();
@@ -388,6 +391,7 @@ public class NeuroML2Test {
         if (validate) {
             validateFile(tempFile);
         }
+        return tempFile;
 
     }
 
