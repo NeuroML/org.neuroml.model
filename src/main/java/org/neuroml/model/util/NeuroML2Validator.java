@@ -6,7 +6,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -73,7 +72,7 @@ public class NeuroML2Validator {
 		return (!getWarnings().equals(NO_WARNINGS));
 	}
 
-	public void validateWithTests(File xmlFile) throws SAXException, IOException, JAXBException
+	public void validateWithTests(File xmlFile) throws SAXException, IOException, NeuroMLException
 	{
 		reset();
 		testValidityAgainstNeuroML2Schema(xmlFile);
