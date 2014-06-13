@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
@@ -137,9 +138,10 @@ public class NeuroMLConverter
                         //
                     }
                 }
-            // Handle any exceptions thrown by method to be invoked.
-            } catch (ReflectiveOperationException ex)
-            {
+
+            } catch (IllegalAccessException ex) {
+                throw new NeuroMLException("Error getting standalone elements in NeuroML", ex);
+            } catch (InvocationTargetException ex) {
                 throw new NeuroMLException("Error getting standalone elements in NeuroML", ex);
             }
             
@@ -176,8 +178,9 @@ public class NeuroMLConverter
                     list.add(nmlElement);
                 }
                 
-            } catch (ReflectiveOperationException ex)
-            {
+            } catch (IllegalAccessException ex) {
+                throw new NeuroMLException("Error getting standalone elements in NeuroML", ex);
+            } catch (InvocationTargetException ex) {
                 throw new NeuroMLException("Error getting standalone elements in NeuroML", ex);
             }
             
