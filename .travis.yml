@@ -1,5 +1,10 @@
 language: java
 
+jdk:
+  - openjdk7
+  - openjdk6
+  - oraclejdk7
+
 install:
     - git clone https://github.com/NeuroML/org.neuroml.model.injectingplugin.git
     - cd org.neuroml.model.injectingplugin
