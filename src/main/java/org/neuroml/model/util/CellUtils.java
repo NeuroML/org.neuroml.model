@@ -82,7 +82,7 @@ public class CellUtils {
         LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups = getNamesVsSegmentGroups(cell);
         
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
-            System.out.println("sggg: "+sg);
+            //System.out.println("sggg: "+sg);
             ArrayList<Integer> segsHere = getSegmentsInGroup(namesVsSegmentGroups, sg);
             sgVsSegId.put(sg, segsHere);
         }
