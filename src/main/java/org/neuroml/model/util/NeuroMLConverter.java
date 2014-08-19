@@ -126,16 +126,18 @@ public class NeuroMLConverter
             //System.out.println("M: "+m.toString()+", "+elementName);
             try {
                 m.setAccessible(true);
-                Object o = m.invoke(nmlDocument, null);
-                //System.out.format("%s() returned %s\n", m, o.toString());
-                if (o instanceof List && !elementName.equals("include") && !elementName.equals("componentType"))
-                {
-                    try {
-                        List<Standalone> list = (List<Standalone>)o;
-                        output.put(elementName, list);
-                        
-                    } catch (ClassCastException cce) {
-                        //
+                if (m.toString().contains("List")) {
+                    Object o = m.invoke(nmlDocument, (Object[])null);
+                    //System.out.format("%s() returned %s\n", m, o.toString());
+                    if (o instanceof List && !elementName.equals("include") && !elementName.equals("componentType"))
+                    {
+                        try {
+                            List<Standalone> list = (List<Standalone>)o;
+                            output.put(elementName, list);
+
+                        } catch (ClassCastException cce) {
+                            //
+                        }
                     }
                 }
 
@@ -166,16 +168,17 @@ public class NeuroMLConverter
         String elType = nmlElement.getClass().getSimpleName();
         //System.out.println("Checking: "+c.getDeclaredMethods()+", adding: "+elType);
         for (Method m: c.getDeclaredMethods()) {
-            
             try {
-                m.setAccessible(true);
-                Object o = m.invoke(nmlDocument, null);
-                //System.out.format("%s returned %s, %s, %s\n", m, o.toString(), o.getClass(), m.getName());
-                String expected = "get"+elType;
-                if (m.getName().equalsIgnoreCase(expected)) {
-                    //System.out.println("Adding...");
-                    ArrayList list = (ArrayList)o;
-                    list.add(nmlElement);
+                if (m.getName().startsWith("get")) {
+                    m.setAccessible(true);
+                    Object o = m.invoke(nmlDocument, (Object[])null);
+                    //System.out.format("%s returned %s, %s, %s\n", m, o.toString(), o.getClass(), m.getName());
+                    String expected = "get"+elType;
+                    if (m.getName().equalsIgnoreCase(expected)) {
+                        //System.out.println("Adding...");
+                        ArrayList list = (ArrayList)o;
+                        list.add(nmlElement);
+                    }
                 }
                 
             } catch (IllegalAccessException ex) {

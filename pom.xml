@@ -92,7 +92,8 @@
                         </goals>
                         <configuration>
                             <args>
-                                <arg>-Xneuromlcodeinjector</arg>
+                                <arg>-Xneuromlcodeinjector</arg>            
+                                <arg>-XtoString</arg>
                             </args>
                             <bindingDirectory>src/main/resources/Schemas/NeuroML2/bindings/</bindingDirectory>
                             <bindingIncludes>
