@@ -5,6 +5,7 @@ package org.neuroml.model.util;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
+import java.util.List;
 import org.neuroml.model.Cell;
 import org.neuroml.model.Include;
 import org.neuroml.model.Member;
@@ -37,6 +38,18 @@ public class CellUtils {
             idsVsSegments.put(seg.getId(), seg);
         }
         return idsVsSegments;
+    }
+    
+    public static Segment getSegmentWithId(Cell cell, int segmentId) throws NeuroMLException {
+        List<Segment> segments = cell.getMorphology().getSegment();
+        Segment guess = segments.get(segmentId);
+        if (guess.getId()==segmentId)
+            return guess;
+        for (Segment seg : segments) {
+            if (seg.getId()==segmentId)
+                return seg;
+        }
+        throw new NeuroMLException("No Segment with id: "+segmentId+" in cell with id: "+cell.getId());
     }
     
     public static LinkedHashMap<String, SegmentGroup> getNamesVsSegmentGroups(Cell cell) {
