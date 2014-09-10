@@ -6,8 +6,10 @@ jdk:
   - oraclejdk7
 
 install:
+    - export main_repo_branch=$TRAVIS_BRANCH
     - git clone https://github.com/NeuroML/org.neuroml.model.injectingplugin.git
     - cd org.neuroml.model.injectingplugin
+    - git checkout $main_repo_branch
     - mvn install
     - cd ..
     
