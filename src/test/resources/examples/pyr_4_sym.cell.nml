@@ -172,6 +172,13 @@ These segmentGroups correspond to the 'cables' of NeuroML v1.8.1-->
                 <include segmentGroup="basal1"/>
                 <include segmentGroup="basal2"/>
             </segmentGroup>
+            
+            <segmentGroup id="some_apicals">
+                <include segmentGroup="apical0"/>
+                <include segmentGroup="apical2"/>
+                <include segmentGroup="apical3"/>
+                <include segmentGroup="apical4"/>
+            </segmentGroup>
 
             
         </morphology>

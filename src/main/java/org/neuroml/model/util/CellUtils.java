@@ -10,6 +10,7 @@ import org.neuroml.model.Cell;
 import org.neuroml.model.Include;
 import org.neuroml.model.Member;
 import org.neuroml.model.NeuroMLDocument;
+import org.neuroml.model.Point3DWithDiam;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
 
@@ -40,6 +41,14 @@ public class CellUtils {
         return idsVsSegments;
     }
     
+    public static SegmentGroup getSegmentGroup(Cell cell, String id) throws NeuroMLException {
+        for (SegmentGroup sg: cell.getMorphology().getSegmentGroup()) {
+            if (sg.getId().equals(id))
+                return sg;
+        }
+        throw new NeuroMLException("No SegmentGroup with id: "+id+" in cell with id: "+cell.getId());
+    }
+    
     public static Segment getSegmentWithId(Cell cell, int segmentId) throws NeuroMLException {
         List<Segment> segments = cell.getMorphology().getSegment();
         Segment guess = segments.get(segmentId);
@@ -61,18 +70,18 @@ public class CellUtils {
         return namesVsSegmentGroups;
     }
     
-    public static ArrayList<Integer> getSegmentsInGroup(Cell cell, String segmentGroup) throws NeuroMLException {
+    public static ArrayList<Integer> getSegmentIdsInGroup(Cell cell, String segmentGroup) throws NeuroMLException {
         
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
             if (sg.getId().equals(segmentGroup)) {
                 LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups = getNamesVsSegmentGroups(cell);
-                return getSegmentsInGroup(namesVsSegmentGroups, sg);
+                return getSegmentIdsInGroup(namesVsSegmentGroups, sg);
             }
         }
         throw new NeuroMLException("No SegmentGroup: "+segmentGroup+" in cell with id: "+cell.getId());
     }
     
-    public static ArrayList<Integer> getSegmentsInGroup(LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups, SegmentGroup segmentGroup) {
+    public static ArrayList<Integer> getSegmentIdsInGroup(LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups, SegmentGroup segmentGroup) {
 
         ArrayList<Integer> segsHere = new ArrayList<Integer>();
         
@@ -81,7 +90,34 @@ public class CellUtils {
         }
         for (Include inc : segmentGroup.getInclude()) {
             String sg = inc.getSegmentGroup();
-            ArrayList<Integer> segs = getSegmentsInGroup(namesVsSegmentGroups, namesVsSegmentGroups.get(sg));
+            ArrayList<Integer> segs = getSegmentIdsInGroup(namesVsSegmentGroups, namesVsSegmentGroups.get(sg));
+            segsHere.addAll(segs);
+        }
+        
+        return segsHere;
+    }
+    
+    public static ArrayList<Segment> getSegmentsInGroup(Cell cell, String segmentGroup) throws NeuroMLException {
+        
+        for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
+            if (sg.getId().equals(segmentGroup)) {
+                LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups = getNamesVsSegmentGroups(cell);
+                return getSegmentsInGroup(cell, namesVsSegmentGroups, sg);
+            }
+        }
+        throw new NeuroMLException("No SegmentGroup: "+segmentGroup+" in cell with id: "+cell.getId());
+    }
+    
+    public static ArrayList<Segment> getSegmentsInGroup(Cell cell, LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups, SegmentGroup segmentGroup) throws NeuroMLException {
+
+        ArrayList<Segment> segsHere = new ArrayList<Segment>();
+        
+        for (Member memb : segmentGroup.getMember()) {
+            segsHere.add(getSegmentWithId(cell, memb.getSegment()));
+        }
+        for (Include inc : segmentGroup.getInclude()) {
+            String sg = inc.getSegmentGroup();
+            ArrayList<Segment> segs = getSegmentsInGroup(cell, namesVsSegmentGroups, namesVsSegmentGroups.get(sg));
             segsHere.addAll(segs);
         }
         
@@ -96,11 +132,74 @@ public class CellUtils {
         
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
             //System.out.println("sggg: "+sg);
-            ArrayList<Integer> segsHere = getSegmentsInGroup(namesVsSegmentGroups, sg);
+            ArrayList<Integer> segsHere = getSegmentIdsInGroup(namesVsSegmentGroups, sg);
             sgVsSegId.put(sg, segsHere);
         }
         
         return sgVsSegId;
+    }
+    
+    public static double distance(Point3DWithDiam p, Point3DWithDiam d) {
+        return Math.sqrt( Math.pow(p.getX()-d.getX(),2) + Math.pow(p.getY()-d.getY(),2) + Math.pow(p.getZ()-d.getZ(),2) );
+    }
+    
+    public static double getFractionAlongSegGroupLength(Cell cell, String segmentGroup, int segmentId, float fractAlongSegment) throws NeuroMLException {
+
+        ArrayList<Segment> segs = getSegmentsInGroup(cell, segmentGroup);
+        double totalLength = 0;
+        
+        Segment lastSeg = null;
+        for(Segment seg: segs) {
+            Point3DWithDiam p;
+            if (lastSeg==null && seg.getProximal()!=null) {
+                p = seg.getProximal();
+            } else {
+                int parId = seg.getParent().getSegment();
+                if (lastSeg.getId()==parId) {
+                    p = lastSeg.getDistal();
+                } else {
+                    throw new NeuroMLException("Getting length along a disjoint segment group!");
+                }
+            }
+            double dist = distance(p, seg.getDistal());
+            //System.out.println("Length of "+seg.getId()+": "+dist);
+            totalLength += dist;
+            lastSeg = seg;
+        }
+        //System.out.println("Total length of "+segs.size()+" segments: "+totalLength);
+        double segGrpLength = 0;
+        
+        lastSeg = null;
+        boolean foundSeg = false;
+        for(Segment seg: segs) {
+            Point3DWithDiam p;
+            if (!foundSeg) {
+                if (lastSeg==null && seg.getProximal()!=null) {
+                    p = seg.getProximal();
+                } else {
+                    int parId = seg.getParent().getSegment();
+                    if (lastSeg.getId()==parId) {
+                        p = lastSeg.getDistal();
+                    } else {
+                        throw new NeuroMLException("Getting length along a disjoint segment group!");
+                    }
+                }
+                double lenSeg = distance(p, seg.getDistal());
+                if (seg.getId()==segmentId) {
+                    segGrpLength += fractAlongSegment*lenSeg;
+                    foundSeg = true;
+                }
+                else {
+                    segGrpLength += lenSeg;
+                }
+                //System.out.println("sg length so far: "+segGrpLength);
+                lastSeg = seg;
+            }
+        }
+        if (!foundSeg)
+            throw new NeuroMLException("Segment "+segmentId+" not found in "+segmentGroup);
+        
+        return segGrpLength/totalLength;
     }
 
     public static void main(String[] args) throws Exception {
