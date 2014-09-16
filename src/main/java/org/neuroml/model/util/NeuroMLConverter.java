@@ -4,8 +4,8 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.IOException;
 import java.io.StringReader;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -13,8 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
@@ -39,61 +37,82 @@ public class NeuroMLConverter
 	protected static Unmarshaller unmarshaller;	
 	
 	
-	public NeuroMLConverter() throws JAXBException
+	public NeuroMLConverter() throws NeuroMLException
 	{
 		ClassLoader cl = ObjectFactory.class.getClassLoader();
-		jaxb = JAXBContext.newInstance("org.neuroml.model",cl);
-		
-		marshaller = jaxb.createMarshaller();		
-		//marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",new NeuroMLNamespacePrefixMapper());
-		marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
-		marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
-				NeuroMLElements.NAMESPACE_URI_VERSION_2+" "+NeuroMLElements.TARGET_SCHEMA_LOCATION);
-		
-		unmarshaller = jaxb.createUnmarshaller();
+        try {
+            jaxb = JAXBContext.newInstance("org.neuroml.model",cl);
+
+            marshaller = jaxb.createMarshaller();		
+            //marshaller.setProperty("com.sun.xml.bind.namespacePrefixMapper",new NeuroMLNamespacePrefixMapper());
+            marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,Boolean.TRUE);
+            marshaller.setProperty(Marshaller.JAXB_SCHEMA_LOCATION,
+                    NeuroMLElements.NAMESPACE_URI_VERSION_2+" "+NeuroMLElements.LATEST_SCHEMA_LOCATION);
+
+            unmarshaller = jaxb.createUnmarshaller();
+        } catch (JAXBException ex) {
+            throw new NeuroMLException("Problem creating NeuroMLConverter", ex);
+        }
 	}
 	
 
 	
-	public Morphology xmlToMorphology(String xmlFile) throws Exception
+	public Morphology xmlToMorphology(String xmlFile) throws FileNotFoundException, NeuroMLException
 	{
 		File f = new File(xmlFile);
 		if (!f.exists()) throw new FileNotFoundException(f.getAbsolutePath());
 		
-		@SuppressWarnings("unchecked")
-		JAXBElement<Morphology> jbe = (JAXBElement<Morphology>) unmarshaller.unmarshal(f);
-		
-		return jbe.getValue();		
+        try {
+            @SuppressWarnings("unchecked")
+            JAXBElement<Morphology> jbe = (JAXBElement<Morphology>) unmarshaller.unmarshal(f);
+
+            return jbe.getValue();	
+        } catch (JAXBException ex) {
+            throw new NeuroMLException("Problem converting XML to Morphology in NeuroML", ex);
+        }
 	}
 
 	
-	public NeuroMLDocument loadNeuroML(File xmlFile) throws FileNotFoundException, JAXBException
+	public NeuroMLDocument loadNeuroML(File xmlFile) throws FileNotFoundException, NeuroMLException
 	{
 		if (!xmlFile.exists()) throw new FileNotFoundException(xmlFile.getAbsolutePath());
 		
-		@SuppressWarnings("unchecked")
-		JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(xmlFile);
-		
-		return jbe.getValue();		
+        
+        try {
+            @SuppressWarnings("unchecked")
+            JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(xmlFile);
+            return jbe.getValue();	
+		} catch (JAXBException ex) {
+            throw new NeuroMLException("Problem loading NeuroML document", ex);
+        }	
 	}
 	
-	public NeuroMLDocument loadNeuroML(String nml2Contents) throws JAXBException
+	public NeuroMLDocument loadNeuroML(String nml2Contents) throws NeuroMLException
 	{	
 		StringReader sr = new StringReader(nml2Contents);
-		@SuppressWarnings("unchecked")
-		JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(sr);
+        
+        try {
+            @SuppressWarnings("unchecked")
+            JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(sr);
+            return jbe.getValue();		
+        } catch (JAXBException ex) {
+            throw new NeuroMLException("Problem loading NeuroML document", ex);
+        }
 		
-		return jbe.getValue();		
 	}
 	
-	public NeuroMLDocument urlToNeuroML(URL url) throws JAXBException
+	public NeuroMLDocument urlToNeuroML(URL url) throws NeuroMLException
 	{
-		@SuppressWarnings("unchecked")
-		JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(url);
-		return jbe.getValue();		
+        try {
+            @SuppressWarnings("unchecked")
+            JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(url);
+            return jbe.getValue();	
+        } catch (JAXBException ex) {
+            throw new NeuroMLException("Problem loading NeuroML document from URL", ex);
+        }
 	}
 	
-	public static LinkedHashMap<String,Standalone> getAllStandaloneElements(NeuroMLDocument nmlDocument)
+	public static LinkedHashMap<String,Standalone> getAllStandaloneElements(NeuroMLDocument nmlDocument) throws NeuroMLException
     {
         LinkedHashMap<String,Standalone> elements = new LinkedHashMap<String,Standalone>();
         Class<?> c = NeuroMLDocument.class;
@@ -107,29 +126,25 @@ public class NeuroMLConverter
             //System.out.println("M: "+m.toString()+", "+elementName);
             try {
                 m.setAccessible(true);
-                Object o = m.invoke(nmlDocument, null);
-                //System.out.format("%s() returned %s\n", m, o.toString());
-                if (o instanceof List && !elementName.equals("include") && !elementName.equals("componentType"))
-                {
-                    try {
-                        List<Standalone> list = (List<Standalone>)o;
-                        output.put(elementName, list);
-                        
-                    } catch (ClassCastException cce) {
-                        //
+                if (m.toString().contains("List")) {
+                    Object o = m.invoke(nmlDocument, (Object[])null);
+                    //System.out.format("%s() returned %s\n", m, o.toString());
+                    if (o instanceof List && !elementName.equals("include") && !elementName.equals("componentType"))
+                    {
+                        try {
+                            List<Standalone> list = (List<Standalone>)o;
+                            output.put(elementName, list);
+
+                        } catch (ClassCastException cce) {
+                            //
+                        }
                     }
                 }
-            // Handle any exceptions thrown by method to be invoked.
+
+            } catch (IllegalAccessException ex) {
+                throw new NeuroMLException("Error getting standalone elements in NeuroML", ex);
             } catch (InvocationTargetException ex) {
-                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (IllegalAccessException ex)
-            {
-                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (IllegalArgumentException ex)
-            {
-                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
+                throw new NeuroMLException("Error getting standalone elements in NeuroML", ex);
             }
             
         }
@@ -146,37 +161,30 @@ public class NeuroMLConverter
         return elements;
     }
     
-	public static void addElementToDocument(NeuroMLDocument nmlDocument, Standalone nmlElement)
+	public static void addElementToDocument(NeuroMLDocument nmlDocument, Standalone nmlElement) throws NeuroMLException
     {
         Class<?> c = NeuroMLDocument.class;
         
         String elType = nmlElement.getClass().getSimpleName();
         //System.out.println("Checking: "+c.getDeclaredMethods()+", adding: "+elType);
         for (Method m: c.getDeclaredMethods()) {
-            
             try {
-                m.setAccessible(true);
-                Object o = m.invoke(nmlDocument, null);
-                //System.out.format("%s returned %s, %s, %s\n", m, o.toString(), o.getClass(), m.getName());
-                String expected = "get"+elType;
-                if (m.getName().equalsIgnoreCase(expected)) {
-                    //System.out.println("Adding...");
-                    ArrayList list = (ArrayList)o;
-                    list.add(nmlElement);
+                if (m.getName().startsWith("get")) {
+                    m.setAccessible(true);
+                    Object o = m.invoke(nmlDocument, (Object[])null);
+                    //System.out.format("%s returned %s, %s, %s\n", m, o.toString(), o.getClass(), m.getName());
+                    String expected = "get"+elType;
+                    if (m.getName().equalsIgnoreCase(expected)) {
+                        //System.out.println("Adding...");
+                        ArrayList list = (ArrayList)o;
+                        list.add(nmlElement);
+                    }
                 }
                 
-
-            // Handle any exceptions thrown by method to be invoked.
+            } catch (IllegalAccessException ex) {
+                throw new NeuroMLException("Error getting standalone elements in NeuroML", ex);
             } catch (InvocationTargetException ex) {
-                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (IllegalAccessException ex)
-            {
-                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            catch (IllegalArgumentException ex)
-            {
-                Logger.getLogger(NeuroMLConverter.class.getName()).log(Level.SEVERE, null, ex);
+                throw new NeuroMLException("Error getting standalone elements in NeuroML", ex);
             }
             
         }
@@ -211,7 +219,7 @@ public class NeuroMLConverter
     /*
      * TODO: Needs to be made much more efficient
      */
-	public File neuroml2ToXml(NeuroMLDocument nml2, String filename) throws Exception
+	public File neuroml2ToXml(NeuroMLDocument nml2, String filename) throws NeuroMLException, IOException
 	{
         String correctNs = neuroml2ToXml(nml2);
 

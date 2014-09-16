@@ -5,9 +5,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 
-import javax.tools.StandardLocation;
 import javax.xml.XMLConstants;
-import javax.xml.bind.JAXBException;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
@@ -74,7 +72,7 @@ public class NeuroML2Validator {
 		return (!getWarnings().equals(NO_WARNINGS));
 	}
 
-	public void validateWithTests(File xmlFile) throws SAXException, IOException, JAXBException
+	public void validateWithTests(File xmlFile) throws SAXException, IOException, NeuroMLException
 	{
 		reset();
 		testValidityAgainstNeuroML2Schema(xmlFile);
@@ -169,13 +167,13 @@ public class NeuroML2Validator {
 	
 
 	public void testValidityAgainstNeuroML2Schema(File xmlFile) throws SAXException, IOException {
-		InputStream in = getClass().getResourceAsStream(NeuroMLElements.TARGET_SCHEMA);
+		InputStream in = getClass().getResourceAsStream(NeuroMLElements.LATEST_SCHEMA);
 
 		try {
 			testValidity(xmlFile, new StreamSource(in));
 			validity.append(VALID_AGAINST_SCHEMA);
 		} catch (Exception e) {
-			validity.append("File: "+ xmlFile.getAbsolutePath()+" is not valid against the schema: "+NeuroMLElements.TARGET_SCHEMA+"!!\n"+e.getMessage());
+			validity.append("File: "+ xmlFile.getAbsolutePath()+" is not valid against the schema: "+NeuroMLElements.LATEST_SCHEMA+"!!\n"+e.getMessage());
 		}
 	}
 

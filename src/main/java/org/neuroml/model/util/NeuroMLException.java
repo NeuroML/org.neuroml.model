@@ -7,6 +7,10 @@ public class NeuroMLException extends Exception {
 	 */
 	private static final long serialVersionUID = 1L;
 
+	public NeuroMLException(String message) {
+        super(message);
+	}
+    
 	public NeuroMLException(Throwable cause) {
 		super(cause);
 	}

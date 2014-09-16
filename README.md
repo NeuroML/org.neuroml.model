@@ -1,7 +1,8 @@
 NeuroML v2 Model Java API
 =========================
 
-NeuroML is an international, collaborative initiative to develop standards for the exchange of models of neuronal systems and to allow for greater transparency and accessibility of these complex models.
+NeuroML is an international, collaborative initiative to develop standards for the exchange of models of neuronal 
+systems and to allow for greater transparency and accessibility of these complex models.
 
 This Java library is  aimed at providing a programmatic way to access models stored in NeuroML version 2.
 
@@ -13,3 +14,4 @@ A collection of models in NeuroML can be found on the [Open Source Brain](http:/
 
 [![Build Status](https://travis-ci.org/NeuroML/org.neuroml.model.png)](https://travis-ci.org/NeuroML/org.neuroml.model)
 
+This code is distributed under the terms of the GNU Lesser General Public License.

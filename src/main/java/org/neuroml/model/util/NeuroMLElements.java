@@ -2,27 +2,34 @@ package org.neuroml.model.util;
 
 public class NeuroMLElements {
 
-    public static final String ORG_NEUROML_MODEL_VERSION = "1.1.0";
+    public static final String ORG_NEUROML_MODEL_VERSION = "1.3.1";
     
     public static final String NAMESPACE_URI_VERSION_2 = "http://www.neuroml.org/schema/neuroml2";
 
-    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_ALPHA = "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2alpha.xsd";
-    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA =  "https://raw.github.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta.xsd";
-    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA1 = "https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta1.xsd";
-    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA2 = "https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta2.xsd";
+    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_ALPHA = "https://raw.githubusercontent.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2alpha.xsd";
+    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA =  "https://raw.githubusercontent.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta.xsd";
+    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA1 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta1.xsd";
+    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA2 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta2.xsd";
+    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA3 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta3.xsd";
     
 
-    public static final String TARGET_SCHEMA = "/Schemas/NeuroML2/NeuroML_v2beta2.xsd";
-    public static final String TARGET_SCHEMA_LOCATION = DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA2;
+    public static final String LATEST_SCHEMA = "/Schemas/NeuroML2/NeuroML_v2beta3.xsd";
+    public static final String LATEST_SCHEMA_LOCATION = DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA3;
 	
 
     
     // Ion channels
-    public static final String ION_CHANNEL_COMP_TYPE = "baseIonChannel";
+    public static final String BASE_ION_CHANNEL_COMP_TYPE = "baseIonChannel";
+    public static final String ION_CHANNEL_HH_COMP_TYPE = "ionChannelHH";
+    public static final String ION_CHANNEL_KS_COMP_TYPE = "ionChannelKS";
     
     // Cells
     public static final String BASE_CELL_COMP_TYPE = "baseCell";
     public static final String BASE_CELL_CAP_COMP_TYPE = "baseCellMembPotCap";
+    public static final String BASE_CELL_CAP_POINT_COND_BASED = "pointCellCondBased";
+    public static final String BASE_CELL_CAP_POINT_COND_BASED_CA = "pointCellCondBasedCa";
+    public static final String BASE_IAF_CELL = "baseIaf";
+    public static final String BASE_IAF_CAP_CELL = "baseIafCapCell";
     public static final String CELL_COMP_TYPE = "cell";
     
     public static final String BASE_GATE_COMP_TYPE = "baseGate";

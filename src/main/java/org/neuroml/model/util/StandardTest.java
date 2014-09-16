@@ -2,7 +2,7 @@ package org.neuroml.model.util;
 
 public class StandardTest {
 	
-	enum LEVEL {ERROR, WARNING};
+	public enum LEVEL {ERROR, WARNING};
 	public int id;
 	public String description;
 	public LEVEL level;
