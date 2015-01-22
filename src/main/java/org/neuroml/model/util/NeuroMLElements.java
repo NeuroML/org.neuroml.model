@@ -69,7 +69,11 @@ public class NeuroMLElements {
     public static final String INSTANCE = "instance";
     
     public static final String POPULATION_LIST = "populationList";
+    
     public static final String PROJECTION = "projection";
     public static final String CONNECTION = "connection";
+    
+    public static final String ELECTRICAL_PROJECTION = "electricalProjection";
+    public static final String ELECTRICAL_CONNECTION = "electricalConnection";
 
 }
