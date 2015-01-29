@@ -21,8 +21,8 @@
    
     
     <network id="net1">
-        <population id="iafPop1" component="iaf" size="2" />
-        <population id="iafPop2" component="iaf" size="2" />
+        <population id="iafPop1" component="iaf" size="1" />
+        <population id="iafPop2" component="iaf" size="1" />
         <!--
         
         <population id="iafPop1" type="populationList" component="iafSpont">
