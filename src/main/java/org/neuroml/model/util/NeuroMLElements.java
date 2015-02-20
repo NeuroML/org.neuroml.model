@@ -53,6 +53,9 @@ public class NeuroMLElements {
     // Currents
     public static final String POINT_CURR_CURRENT = "i";
     
+    // Spike sources
+    public static final String BASE_SPIKE_SOURCE_COMP_TYPE = "baseSpikeSource";
+    
     // Synapses
     public static final String BASE_POINT_CURR_COMP_TYPE = "basePointCurrent";
     public static final String BASE_SYNAPSE_COMP_TYPE = "baseSynapse";
