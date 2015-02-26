@@ -2,7 +2,7 @@ package org.neuroml.model.util;
 
 public class NeuroMLElements {
 
-    public static final String ORG_NEUROML_MODEL_VERSION = "1.4.1";
+    public static final String ORG_NEUROML_MODEL_VERSION = "1.4.2";
     
     public static final String NAMESPACE_URI_VERSION_2 = "http://www.neuroml.org/schema/neuroml2";
 
@@ -52,6 +52,9 @@ public class NeuroMLElements {
 
     // Currents
     public static final String POINT_CURR_CURRENT = "i";
+    
+    // Spike sources
+    public static final String BASE_SPIKE_SOURCE_COMP_TYPE = "baseSpikeSource";
     
     // Synapses
     public static final String BASE_POINT_CURR_COMP_TYPE = "basePointCurrent";
