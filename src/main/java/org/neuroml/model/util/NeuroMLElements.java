@@ -70,6 +70,10 @@ public class NeuroMLElements {
     public static final String POPULATION_COMPONENT = "component";
     public static final String POPULATION_SIZE = "size";
     public static final String INSTANCE = "instance";
+    public static final String LOCATION = "location";
+    public static final String LOCATION_X = "x";
+    public static final String LOCATION_Y = "y";
+    public static final String LOCATION_Z = "z";
     
     public static final String POPULATION_LIST = "populationList";
     
