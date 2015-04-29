@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -22,7 +21,8 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import org.neuroml.model.IafTauCell;
-
+import org.neuroml.model.Include;
+import org.neuroml.model.IncludeType;
 import org.neuroml.model.Morphology;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.ObjectFactory;
@@ -75,16 +75,35 @@ public class NeuroMLConverter
 	
 	public NeuroMLDocument loadNeuroML(File xmlFile) throws FileNotFoundException, NeuroMLException
 	{
+        return loadNeuroML(xmlFile, false);
+    }
+	
+	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes) throws FileNotFoundException, NeuroMLException
+	{
 		if (!xmlFile.exists()) throw new FileNotFoundException(xmlFile.getAbsolutePath());
 		
-        
+        NeuroMLDocument nmlDocument;
         try {
             @SuppressWarnings("unchecked")
             JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(xmlFile);
-            return jbe.getValue();	
+            nmlDocument = jbe.getValue();
 		} catch (JAXBException ex) {
             throw new NeuroMLException("Problem loading NeuroML document", ex);
         }	
+        if (includeIncludes) {
+            for (IncludeType include: nmlDocument.getInclude()) 
+            {
+                String relativeFileLocation = include.getHref();
+                NeuroMLDocument subDoc = loadNeuroML(new File(xmlFile.getAbsoluteFile().getParentFile(), relativeFileLocation), true);
+                LinkedHashMap<String,Standalone> saes = getAllStandaloneElements(subDoc);
+                for (Standalone sae: saes.values()) 
+                {
+                    addElementToDocument(nmlDocument, sae);
+                }
+            }
+        }
+            
+        return nmlDocument;	
 	}
 	
 	public NeuroMLDocument loadNeuroML(String nml2Contents) throws NeuroMLException
@@ -278,7 +297,19 @@ public class NeuroMLConverter
         
         LinkedHashMap<String,Standalone> els = getAllStandaloneElements(nmlDocument);
         for (String el: els.keySet()) {
-            System.out.println("Found: "+ els.get(el));
+            System.out.println("A Found: "+ els.get(el).getId()+" ("+els.get(el)+")");
+        }
+        
+        fileName = "../org.neuroml.export/src/test/resources/examples/TwoCell.net.nml";
+		nmlc = new NeuroMLConverter();
+    	nmlDocument = nmlc.loadNeuroML(new File(fileName), true);
+        System.out.println("Loaded: "+nmlDocument.getId());
+        
+        
+        
+        els = getAllStandaloneElements(nmlDocument);
+        for (String el: els.keySet()) {
+            System.out.println("B Found: "+ els.get(el).getId()+" ("+els.get(el)+")");
         }
         
         
