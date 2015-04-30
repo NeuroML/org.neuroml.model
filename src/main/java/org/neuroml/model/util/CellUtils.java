@@ -70,7 +70,7 @@ public class CellUtils {
         return namesVsSegmentGroups;
     }
     
-    public static ArrayList<Integer> getSegmentIdsInGroup(Cell cell, String segmentGroup) throws NeuroMLException {
+    public static ArrayList<Integer> getSegmentIdsInGroup(Cell cell, String segmentGroup) {
         
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
             if (sg.getId().equals(segmentGroup)) {
@@ -78,7 +78,7 @@ public class CellUtils {
                 return getSegmentIdsInGroup(namesVsSegmentGroups, sg);
             }
         }
-        throw new NeuroMLException("No SegmentGroup: "+segmentGroup+" in cell with id: "+cell.getId());
+        return new ArrayList<Integer>();
     }
     
     public static ArrayList<Integer> getSegmentIdsInGroup(LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups, SegmentGroup segmentGroup) {
