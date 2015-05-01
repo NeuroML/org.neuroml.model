@@ -75,12 +75,18 @@ public class NeuroMLConverter
 	
 	public NeuroMLDocument loadNeuroML(File xmlFile) throws FileNotFoundException, NeuroMLException
 	{
-        return loadNeuroML(xmlFile, false);
+        return loadNeuroML(xmlFile, false, false);
     }
 	
 	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes) throws FileNotFoundException, NeuroMLException
 	{
-		if (!xmlFile.exists()) throw new FileNotFoundException(xmlFile.getAbsolutePath());
+        return loadNeuroML(xmlFile, includeIncludes, true);
+    }
+	
+	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes, boolean failOnMissingIncludes) throws FileNotFoundException, NeuroMLException
+	{
+		if (!xmlFile.exists()) 
+            throw new FileNotFoundException(xmlFile.getAbsolutePath());
 		
         NeuroMLDocument nmlDocument;
         try {
@@ -94,11 +100,18 @@ public class NeuroMLConverter
             for (IncludeType include: nmlDocument.getInclude()) 
             {
                 String relativeFileLocation = include.getHref();
-                NeuroMLDocument subDoc = loadNeuroML(new File(xmlFile.getAbsoluteFile().getParentFile(), relativeFileLocation), true);
-                LinkedHashMap<String,Standalone> saes = getAllStandaloneElements(subDoc);
-                for (Standalone sae: saes.values()) 
+                File subFile = new File(xmlFile.getAbsoluteFile().getParentFile(), relativeFileLocation);
+                if (failOnMissingIncludes && !subFile.exists()) 
                 {
-                    addElementToDocument(nmlDocument, sae);
+                    throw new NeuroMLException("Missing file included by "+xmlFile.getAbsolutePath()+": "+relativeFileLocation);
+                }
+                if (subFile.exists()) {
+                    NeuroMLDocument subDoc = loadNeuroML(subFile, includeIncludes, failOnMissingIncludes);
+                    LinkedHashMap<String,Standalone> saes = getAllStandaloneElements(subDoc);
+                    for (Standalone sae: saes.values()) 
+                    {
+                        addElementToDocument(nmlDocument, sae);
+                    }
                 }
             }
         }
