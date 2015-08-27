@@ -32,6 +32,7 @@ import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Point3DWithDiam;
 import org.neuroml.model.Population;
+import org.neuroml.model.PopulationTypes;
 import org.neuroml.model.PulseGenerator;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
@@ -275,6 +276,11 @@ public class NeuroML2Test {
 
         Population pop = new Population();
         pop.setId("pop1");
+        pop.setType(PopulationTypes.POPULATION_LIST);
+        
+        int popSize = 5;
+        pop.setSize(popSize);
+        
         Annotation annot = new Annotation();
         pop.setAnnotation(annot);
 
@@ -294,12 +300,11 @@ public class NeuroML2Test {
 
         nml2.getExpOneSynapse().add(e1);
 
-        int size = 5;
         float maxX = 100;
         float maxY = 100;
         float maxZ = 100;
 
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < popSize; i++) {
             Instance instance = new Instance();
             Location loc = new Location();
             instance.setLocation(loc);
@@ -323,9 +328,9 @@ public class NeuroML2Test {
 
         float probConn = 0.5f;
 
-        for (int pre = 0; pre < size; pre++) {
+        for (int pre = 0; pre < popSize; pre++) {
 
-            for (int post = 0; post < size; post++) {
+            for (int post = 0; post < popSize; post++) {
                 if (pre != post) {
                     if (Math.random() < probConn) {
                         //<synapticConnection from="iafCells[0]" to="iafCells[1]" synapse="syn1"/>

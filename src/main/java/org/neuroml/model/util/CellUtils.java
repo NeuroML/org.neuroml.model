@@ -97,6 +97,16 @@ public class CellUtils {
         return segsHere;
     }
     
+    public static boolean hasSegmentGroup(Cell cell, String segmentGroup) {
+        
+        for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
+            if (sg.getId().equals(segmentGroup)) {
+                return true;
+            }
+        }
+        return false;
+    }
+    
     public static ArrayList<Segment> getSegmentsInGroup(Cell cell, String segmentGroup) throws NeuroMLException {
         
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {

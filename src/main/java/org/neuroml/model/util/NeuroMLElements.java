@@ -45,6 +45,9 @@ public class NeuroMLElements {
     public static final String CONC_MODEL_INIT_CONC = "initialConcentration";
     public static final String CONC_MODEL_INIT_EXT_CONC = "initialExtConcentration";
     public static final String CONC_MODEL_CONC_STATE_VAR = "concentration";
+    
+    
+    public static final String SEGMENT_GROUP_ALL = "all";
 
     // External props
     public static final String TEMPERATURE = "temperature";
