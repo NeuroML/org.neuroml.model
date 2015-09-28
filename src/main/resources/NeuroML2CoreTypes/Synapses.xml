@@ -311,7 +311,7 @@
     
     <ComponentType name="gapJunction"
                    extends="baseSynapse"
-                   description="Gap junction/single electrical connection, NOTE: STILL IN DEVELOPMENT!!!!">
+                   description="Gap junction/single electrical connection">
         
         <Parameter name="conductance" dimension="conductance"/>
         
@@ -327,10 +327,37 @@
         </Dynamics>
     </ComponentType>
     
-    <!--
-    <ComponentType name="silentEndpoint"
+
+
+    
+    <ComponentType name="baseGradedSynapse"
                    extends="baseSynapse"
                    description="STILL IN DEVELOPMENT!!!!">
+    </ComponentType>
+    
+    <ComponentType name="silentSynapse"
+                   extends="baseGradedSynapse"
+                   description="Dummy synapse which emits no current. Used as presynaptic endpoint for analog synaptic connection. STILL IN DEVELOPMENT!!!!">
+        
+        <Exposure name="i" dimension="current"/>
+        
+        <Requirement name="v" dimension="voltage"/>
+
+        <InstanceRequirement name="peer" type="baseGradedSynapse"/>
+
+        <Dynamics>
+            <DerivedVariable name="vpeer" dimension="voltage" select="peer/v"/>
+            <DerivedVariable name="i" exposure="i"  value="0"/>
+        </Dynamics>
+        
+    </ComponentType>
+    
+    
+    <ComponentType name="linearGradedSynapse"
+                   extends="baseGradedSynapse"
+                   description="Behaves just like a one way gap junction. STILL IN DEVELOPMENT!!!!">
+        
+        <Parameter name="conductance" dimension="conductance"/>
         
         <Exposure name="i" dimension="current"/>
         
@@ -340,29 +367,53 @@
 
         <Dynamics>
             <DerivedVariable name="vpeer" dimension="voltage" select="peer/v"/>
-            <DerivedVariable name="i" exposure="i"  value="v-v"/>
+            <DerivedVariable name="i" exposure="i"  value="conductance * (vpeer - v)"/>
         </Dynamics>
-        
     </ComponentType>
-    
     
     <ComponentType name="gradedSynapse"
-                   extends="baseSynapse"
-                   description="STILL IN DEVELOPMENT!!!!">
+                   extends="baseGradedSynapse"
+                   description="STILL IN DEVELOPMENT!!!! Based on synapse in Methods of http://www.nature.com/neuro/journal/v7/n12/abs/nn1352.html">
         
         <Parameter name="conductance" dimension="conductance"/>
         
+        <Parameter name="delta" dimension="voltage" description="Slope of the activation curve"/>
+        <Parameter name="k" dimension="per_time" description="Rate constant for transmitter-receptor dissociation rate"/>
+        <Parameter name="Vth" dimension="voltage" description="The half-activation voltage of the synapse"/>
+        <Parameter name="erev" dimension="voltage" description="The reversal potential of the synapse"/>
+        
         <Exposure name="i" dimension="current"/>
+        <Exposure name="inf" dimension="none"/>
+        <Exposure name="tau" dimension="time"/>
         
         <Requirement name="v" dimension="voltage"/>
 
         <InstanceRequirement name="peer" type="gapJunction"/>
 
         <Dynamics>
+            <StateVariable name="s" dimension="none"/>
+            
             <DerivedVariable name="vpeer" dimension="voltage" select="peer/v"/>
-            <DerivedVariable name="i" exposure="i"  value="conductance * (vpeer - v)"/>
+            
+            <DerivedVariable name="inf" dimension="none" value="1/(1 + exp((Vth - vpeer)/delta))" exposure="inf"/>
+            <DerivedVariable name="tau" dimension="time" value="(1-inf)/k" exposure="tau"/>
+            
+            <DerivedVariable name="i" exposure="i"  value="conductance * s * (erev-v)"/>
+            
+            <!-- To catch case where tau ~ 0 => too fast a change in s => numerical instability -->
+            <ConditionalDerivedVariable name="s_rate" dimension="per_time">
+                <Case condition="(1-inf) .gt. 1e-4" value="(inf - s)/tau"/>
+                <Case value="0"/>
+            </ConditionalDerivedVariable>
+            
+            <TimeDerivative variable="s" value="s_rate" />
+            
+            <!-- To catch case where tau ~ 0 => too fast a change in s => numerical instability -->
+            <OnCondition test="(1-inf) .lt. 1e-4">
+                <StateAssignment variable="s" value="inf"/>
+            </OnCondition>
+            
         </Dynamics>
-    </ComponentType>-->
-
+    </ComponentType>
 
 </Lems>
