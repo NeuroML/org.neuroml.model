@@ -33,6 +33,7 @@ public class NeuroMLElements {
     public static final String BASE_IAF_CAP_CELL = "baseIafCapCell";
     public static final String CELL_COMP_TYPE = "cell";
     
+    public static final String BASE_COND_SCALING_CA = "baseConductanceScalingCaDependent";
     public static final String BASE_GATE_COMP_TYPE = "baseGate";
     public static final String BASE_CONC_DEP_RATE_COMP_TYPE = "baseVoltageConcDepRate";
     public static final String BASE_CONC_DEP_VAR_COMP_TYPE = "baseVoltageConcDepVariable";
