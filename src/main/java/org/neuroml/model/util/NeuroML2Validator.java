@@ -291,7 +291,7 @@ public class NeuroML2Validator {
                     }
                     if (postCellSegs!=null) {
                         test(TEST_SEGMENT_ID_IN_CONNECTION,
-                            "Segment id "+conn.getPostCellId()+" in connection "+conn.getId()+" of "+proj.getId()+" not present in target cell",
+                            "Segment id "+conn.getPostSegmentId()+" in connection "+conn.getId()+" of "+proj.getId()+" not present in target cell",
                             postCellSegs.contains(conn.getPostSegmentId()));
                     }
                 }
