@@ -49,8 +49,8 @@ import org.w3c.dom.Element;
 public class NeuroML2Test {
 
     String wdir = System.getProperty("user.dir");
-    String exampledirname = wdir + File.separator + "src/main/resources/examples";
-    String tempdirname = wdir + File.separator + "src/test/resources/tmp";
+    String exampledirname = wdir + File.separator + "target/maven-shared-archive-resources/examples/";
+    String tempdirname = wdir + File.separator + "target/maven-shared-archive-resources/examples/";
 
     //TODO: Move to Utility class
     static final DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
