@@ -1,6 +1,0 @@
-Note the primary source of these files is the repository:
-https://github.com/NeuroML/NeuroML2
-
-There should be some way to automatically pull/sync these from there, but for now they
-will be manually updated and so will be available for use/testing here and in the 
-other Maven based NeuroML/LEMS Java projects 

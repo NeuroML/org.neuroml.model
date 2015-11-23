@@ -32,6 +32,11 @@
             <artifactId>org.neuroml.model.injectingplugin</artifactId>
             <version>1.4.0</version>
         </dependency>
+        <dependency>
+            <groupId>org.neuroml.core</groupId>
+            <artifactId>neuroml2-base-definitions</artifactId>
+            <version>0.1-SNAPSHOT</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -61,6 +66,48 @@
                     </execution>
                 </executions>
             </plugin>
+            <plugin>
+              <artifactId>maven-remote-resources-plugin</artifactId>
+              <version>1.5</version>
+              <executions>
+                <execution>
+                  <id>fetch-remote-resources</id>
+                  <phase>generate-sources</phase>
+                  <goals>
+                    <goal>process</goal>
+                  </goals>
+                  <configuration>
+                    <resourceBundles>
+                      <resourcebundle>org.neuroml.core:neuroml2-base-definitions:0.1-SNAPSHOT</resourcebundle>
+                    </resourceBundles>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+
+           <plugin>
+              <artifactId>maven-resources-plugin</artifactId>
+              <version>2.6</version>
+              <executions>
+                <execution>
+                  <id>copy-resources</id>
+                  <phase>generate-sources</phase>
+                  <goals>
+                    <goal>copy-resources</goal>
+                  </goals>
+                  <configuration>
+                    <outputDirectory>${project.build.directory}/maven-shared-archive-resources/Schemas/NeuroML2/bindings/</outputDirectory>
+                    <resources>
+                      <resource>
+                          <directory>${project.basedir}/src/main/resources/bindings/</directory>
+                          <filtering>false</filtering>
+                      </resource>
+                    </resources>
+                  </configuration>
+                </execution>
+              </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
@@ -100,19 +147,19 @@
                         </goals>
                         <configuration>
                             <args>
-                                <arg>-Xneuromlcodeinjector</arg>            
+                                <arg>-Xneuromlcodeinjector</arg>
                                 <arg>-XtoString</arg>
                             </args>
-                            <bindingDirectory>src/main/resources/Schemas/NeuroML2/bindings/</bindingDirectory>
+                            <bindingDirectory>${project.build.directory}/maven-shared-archive-resources/Schemas/NeuroML2/bindings</bindingDirectory>
                             <bindingIncludes>
                                 <include>NeuroML_v${build.version2}.xjb</include>
                             </bindingIncludes>
-                            <forceRegenerate>true</forceRegenerate>
-                            <schemaDirectory>src/main/resources/Schemas/NeuroML2</schemaDirectory>
-                            <generateDirectory>${project.build.directory}/generated-sources/NeuroML2</generateDirectory>
+                            <!--<forceRegenerate>true</forceRegenerate>-->
+                            <schemaDirectory>${project.build.directory}/maven-shared-archive-resources/Schemas/NeuroML2</schemaDirectory>
                             <schemaIncludes>
                                 <include>NeuroML_v${build.version2}.xsd</include>
                             </schemaIncludes>
+                            <generateDirectory>${project.build.directory}/generated-sources/NeuroML2</generateDirectory>
                             <plugins>
                                 <plugin>
                                     <groupId>org.neuroml.model.injectingplugin</groupId>
