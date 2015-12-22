@@ -11,6 +11,7 @@ import javax.xml.transform.stream.StreamSource;
 import javax.xml.validation.Schema;
 import javax.xml.validation.SchemaFactory;
 import javax.xml.validation.Validator;
+import org.neuroml.model.Annotation;
 import org.neuroml.model.Cell;
 import org.neuroml.model.ChannelDensity;
 import org.neuroml.model.Connection;
@@ -23,8 +24,10 @@ import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.Projection;
+import org.neuroml.model.Property;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
+import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
 /*
@@ -51,6 +54,8 @@ public class NeuroML2Validator {
 	public StandardTest TEST_REPEATED_GROUPS =        new StandardTest(10004, "No repeated segmentGroup Ids allowed within a cell");
 	public StandardTest TEST_INCLUDE_SEGMENT_GROUP_EXISTS =  new StandardTest(10005, "Segment Group used in the include element of segmentGroup should exist");
 	public StandardTest TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS =  new StandardTest(10006, "Segment Groups used in biophysicalProperties should exist");
+    
+	public StandardTest TEST_NUM_INT_DIVS_SEGMENT_GROUP =  new StandardTest(10007, "Segment Groups should specify numberInternalDivisions in a <property> element as a child of <segmentGroup>", StandardTest.LEVEL.WARNING);
 	
     public StandardTest TEST_INCLUDED_FILES_EXIST =  new StandardTest(10010, "Included files should exist");
     
@@ -63,6 +68,8 @@ public class NeuroML2Validator {
     public StandardTest TEST_SEGMENT_ID_IN_CONNECTION =  new StandardTest(10050, "Segment id used in connection should exist in target cell");
 	
     public StandardTest TEST_FORMATTING_CELL_ID_IN_CONNECTION =  new StandardTest(10060, "Pre/post cell id in connection should be correctly formatted");
+    
+    //public StandardTest TEST_SYNAPSE_IN_PROJECTION =  new StandardTest(10070, "Synapse referred to in a projection should exist");
 	
 	
 	public StandardTest WARN_ROOT_ID_0 =              new StandardTest(100001, "Root segment has id == 0", StandardTest.LEVEL.WARNING);
@@ -169,6 +176,24 @@ public class NeuroML2Validator {
 					for (Include inc: segmentGroup.getInclude()) {
 						test(TEST_INCLUDE_SEGMENT_GROUP_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", includes: "+inc.getSegmentGroup(), segGroups.contains(inc.getSegmentGroup()));
 					}
+                    int numIntDiv = 1;
+                    for (Property p: segmentGroup.getProperty())
+                    {
+                        if (p.getTag().equals("numberInternalDivisions")) 
+                        {
+                            numIntDiv = Integer.parseInt(p.getValue());
+                        }
+                    }
+                    Annotation ann = segmentGroup.getAnnotation();
+                    if (ann!=null) {
+                        for(Element el: ann.getAny()) {
+                            if (el.getTagName().equals("property") && 
+                                (el.hasAttribute("tag") && el.getAttribute("tag").equals("numberInternalDivisions"))) {
+
+                                test(TEST_NUM_INT_DIVS_SEGMENT_GROUP, "SegmentGroup: "+segmentGroup.getId()+", has incorrect location for <property> for numberInternalDivisions (should be child of <segmentGroup>)", false);
+                            }
+                        }
+                    }
 				}
 				
 			} else {
@@ -188,6 +213,7 @@ public class NeuroML2Validator {
             cellidsVsSegs.put(cell.getId(), segIds);
 			
 		}
+        
         
         for (Network network: nml2.getNetwork()) {
             
