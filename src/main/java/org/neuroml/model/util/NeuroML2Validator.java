@@ -5,6 +5,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Set;
 import javax.xml.XMLConstants;
 import javax.xml.transform.Source;
 import javax.xml.transform.stream.StreamSource;
@@ -14,7 +16,12 @@ import javax.xml.validation.Validator;
 import org.neuroml.model.Annotation;
 import org.neuroml.model.Cell;
 import org.neuroml.model.ChannelDensity;
+import org.neuroml.model.ChannelDensityGHK;
+import org.neuroml.model.ChannelDensityNernst;
+import org.neuroml.model.ChannelDensityNonUniform;
+import org.neuroml.model.ChannelDensityNonUniformNernst;
 import org.neuroml.model.Connection;
+import org.neuroml.model.ElectricalConnection;
 import org.neuroml.model.ElectricalProjection;
 import org.neuroml.model.Include;
 import org.neuroml.model.IncludeType;
@@ -27,6 +34,7 @@ import org.neuroml.model.Projection;
 import org.neuroml.model.Property;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
+import org.neuroml.model.Standalone;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -59,7 +67,9 @@ public class NeuroML2Validator {
 	
     public StandardTest TEST_INCLUDED_FILES_EXIST =  new StandardTest(10010, "Included files should exist");
     
-	//public StandardTest TEST_POPULATION_COMPONENT_EXISTS =  new StandardTest(10020, "Component in population should exist");
+	public StandardTest TEST_POPULATION_COMPONENT_EXISTS =  new StandardTest(10020, "Component in population should exist");
+    
+	public StandardTest TEST_ION_CHANNEL_EXISTS =  new StandardTest(10025, "Ion channel in channelDensity should exist");
     
     public StandardTest TEST_POPULATION_SIZE_MATCHES_INSTANCES =  new StandardTest(10030, "Size attribute in population should match instance number");
 	
@@ -69,7 +79,7 @@ public class NeuroML2Validator {
 	
     public StandardTest TEST_FORMATTING_CELL_ID_IN_CONNECTION =  new StandardTest(10060, "Pre/post cell id in connection should be correctly formatted");
     
-    //public StandardTest TEST_SYNAPSE_IN_PROJECTION =  new StandardTest(10070, "Synapse referred to in a projection should exist");
+    public StandardTest TEST_SYNAPSE_IN_PROJECTION =  new StandardTest(10070, "Synapse referred to in a projection should exist");
 	
 	
 	public StandardTest WARN_ROOT_ID_0 =              new StandardTest(100001, "Root segment has id == 0", StandardTest.LEVEL.WARNING);
@@ -120,7 +130,7 @@ public class NeuroML2Validator {
 	/*
 	 * TODO: Needs to be moved to a separate package for validation!
 	 */
-	public void validateWithTests(NeuroMLDocument nml2)
+	public void validateWithTests(NeuroMLDocument nml2) throws NeuroMLException
 	{
 		// Checks the areas the Schema just can't reach...
         
@@ -133,6 +143,9 @@ public class NeuroML2Validator {
 		    test(TEST_INCLUDED_FILES_EXIST, "Included file: "+include.getHref()
                 +" could not be found relative to path: "+baseDirectory, inclFile.exists());
         }
+        
+        LinkedHashMap<String,Standalone> standalones = NeuroMLConverter.getAllStandaloneElements(nml2);
+        Set<String> standaloneIds = standalones.keySet();
 		
 		//////////////////////////////////////////////////////////////////
 		// <cell>
@@ -176,14 +189,15 @@ public class NeuroML2Validator {
 					for (Include inc: segmentGroup.getInclude()) {
 						test(TEST_INCLUDE_SEGMENT_GROUP_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", includes: "+inc.getSegmentGroup(), segGroups.contains(inc.getSegmentGroup()));
 					}
-                    int numIntDiv = 1;
+                    /*
+                    int numIntDiv;
                     for (Property p: segmentGroup.getProperty())
                     {
                         if (p.getTag().equals("numberInternalDivisions")) 
                         {
                             numIntDiv = Integer.parseInt(p.getValue());
                         }
-                    }
+                    }*/
                     Annotation ann = segmentGroup.getAnnotation();
                     if (ann!=null) {
                         for(Element el: ann.getAny()) {
@@ -202,12 +216,37 @@ public class NeuroML2Validator {
             
             if (cell.getBiophysicalProperties()!=null) {
                 MembraneProperties mp = cell.getBiophysicalProperties().getMembraneProperties();
+                
+                //TODO: consolidate!
                 for (ChannelDensity cd: mp.getChannelDensity()) {
                     if (cd.getSegmentGroup()!=null) {
                         test(TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS, 
                             "ChannelDensity: "+cd.getId()+" specifies: "+cd.getSegmentGroup()+" which doesn't exist", 
                             segGroups.contains(cd.getSegmentGroup()) || cd.getSegmentGroup().equals(NeuroMLElements.SEGMENT_GROUP_ALL));
                     }
+                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
+                }
+                for (ChannelDensityGHK cd: mp.getChannelDensityGHK()) {
+                    if (cd.getSegmentGroup()!=null) {
+                        test(TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS, 
+                            "ChannelDensity: "+cd.getId()+" specifies: "+cd.getSegmentGroup()+" which doesn't exist", 
+                            segGroups.contains(cd.getSegmentGroup()) || cd.getSegmentGroup().equals(NeuroMLElements.SEGMENT_GROUP_ALL));
+                    }
+                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
+                }
+                for (ChannelDensityNernst cd: mp.getChannelDensityNernst()) {
+                    if (cd.getSegmentGroup()!=null) {
+                        test(TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS, 
+                            "ChannelDensity: "+cd.getId()+" specifies: "+cd.getSegmentGroup()+" which doesn't exist", 
+                            segGroups.contains(cd.getSegmentGroup()) || cd.getSegmentGroup().equals(NeuroMLElements.SEGMENT_GROUP_ALL));
+                    }
+                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
+                }
+                for (ChannelDensityNonUniform cd: mp.getChannelDensityNonUniform()) {
+                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
+                }
+                for (ChannelDensityNonUniformNernst cd: mp.getChannelDensityNonUniformNernst()) {
+                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
                 }
             }
             cellidsVsSegs.put(cell.getId(), segIds);
@@ -238,6 +277,8 @@ public class NeuroML2Validator {
                             pop.getSize()!=null && numInstances==pop.getSize());
                     }
                 }
+                
+                test(TEST_POPULATION_COMPONENT_EXISTS, "Component: "+pop.getComponent()+" in "+pop.getId()+" not found!", standaloneIds.contains(pop.getComponent()));
             }
             
             //////////////////////////////////////////////////////////////////
@@ -255,6 +296,8 @@ public class NeuroML2Validator {
                 
                 ArrayList<Integer> preCellSegs = cellidsVsSegs.get(popVsComponent.get(proj.getPresynapticPopulation()));
                 ArrayList<Integer> postCellSegs = cellidsVsSegs.get(popVsComponent.get(proj.getPostsynapticPopulation()));
+                
+                test(TEST_SYNAPSE_IN_PROJECTION, "Synapse: "+proj.getSynapse()+" in "+proj.getId()+" not found!", standaloneIds.contains(proj.getSynapse()));
                
                 for (Connection conn: proj.getConnection()) {
                     
@@ -330,6 +373,10 @@ public class NeuroML2Validator {
                 test(TEST_POPULATIONS_IN_PROJECTIONS,
                         "Post population id: "+proj.getPostsynapticPopulation()+" in projection "+proj.getId()+" not found",
                         popIds.contains(proj.getPostsynapticPopulation()));
+                for(ElectricalConnection ec: proj.getElectricalConnection())
+                {
+                    test(TEST_SYNAPSE_IN_PROJECTION, "Synapse: "+ec.getSynapse()+" in "+proj.getId()+" not found!", standaloneIds.contains(ec.getSynapse()));
+                }
             }
             
             
