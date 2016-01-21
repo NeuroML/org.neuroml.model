@@ -23,6 +23,7 @@ public class NeuroMLElements {
     public static final String BASE_ION_CHANNEL_COMP_TYPE = "baseIonChannel";
     public static final String ION_CHANNEL_HH_COMP_TYPE = "ionChannelHH";
     public static final String ION_CHANNEL_KS_COMP_TYPE = "ionChannelKS";
+    public static final String KS_STATE_COMP_TYPE = "KSState";
     
     // Cells
     public static final String BASE_CELL_COMP_TYPE = "baseCell";
