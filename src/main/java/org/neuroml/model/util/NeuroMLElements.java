@@ -89,6 +89,7 @@ public class NeuroMLElements {
     
     public static final String ELECTRICAL_PROJECTION = "electricalProjection";
     public static final String ELECTRICAL_CONNECTION = "electricalConnection";
+    public static final String ELECTRICAL_CONNECTION_INSTANCE = "electricalConnectionInstance";
     
     public static final String CONTINUOUS_PROJECTION = "continuousProjection";
     public static final String CONTINUOUS_CONNECTION = "continuousConnection";
