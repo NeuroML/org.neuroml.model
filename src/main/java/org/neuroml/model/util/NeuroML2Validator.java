@@ -31,7 +31,6 @@ import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.Projection;
-import org.neuroml.model.Property;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
 import org.neuroml.model.Standalone;
@@ -278,7 +277,7 @@ public class NeuroML2Validator {
                     }
                 }
                 
-                test(TEST_POPULATION_COMPONENT_EXISTS, "Component: "+pop.getComponent()+" in "+pop.getId()+" not found!", standaloneIds.contains(pop.getComponent()));
+                test(TEST_POPULATION_COMPONENT_EXISTS, "Component: "+pop.getComponent()+" in "+pop.getId()+" not found! Existing: "+standaloneIds, standaloneIds.contains(pop.getComponent()));
             }
             
             //////////////////////////////////////////////////////////////////
