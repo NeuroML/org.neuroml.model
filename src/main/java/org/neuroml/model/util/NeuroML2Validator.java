@@ -83,7 +83,7 @@ public class NeuroML2Validator {
 	}
 	
 	public boolean isValid() {
-		return getValidity().equals(VALID_AGAINST_SCHEMA) || getValidity().equals(VALID_AGAINST_SCHEMA_AND_TESTS);
+		return getValidity().equals(VALID_AGAINST_SCHEMA) || getValidity().equals(VALID_AGAINST_SCHEMA_AND_TESTS) || getValidity().equals(VALID_AGAINST_TESTS);
 	}
 	
 	public String getWarnings() {
