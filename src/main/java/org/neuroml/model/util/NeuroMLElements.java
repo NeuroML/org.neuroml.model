@@ -86,6 +86,7 @@ public class NeuroMLElements {
     
     public static final String PROJECTION = "projection";
     public static final String CONNECTION = "connection";
+    public static final String CONNECTION_WEIGHT_DELAY = "connectionWD";
     
     public static final String ELECTRICAL_PROJECTION = "electricalProjection";
     public static final String ELECTRICAL_CONNECTION = "electricalConnection";

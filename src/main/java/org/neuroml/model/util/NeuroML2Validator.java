@@ -25,6 +25,7 @@ import org.neuroml.model.ElectricalConnection;
 import org.neuroml.model.ElectricalProjection;
 import org.neuroml.model.Include;
 import org.neuroml.model.IncludeType;
+import org.neuroml.model.IntracellularProperties;
 import org.neuroml.model.Member;
 import org.neuroml.model.MembraneProperties;
 import org.neuroml.model.Network;
@@ -33,6 +34,7 @@ import org.neuroml.model.Population;
 import org.neuroml.model.Projection;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
+import org.neuroml.model.Species;
 import org.neuroml.model.Standalone;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
@@ -69,6 +71,8 @@ public class NeuroML2Validator {
 	public StandardTest TEST_POPULATION_COMPONENT_EXISTS =  new StandardTest(10020, "Component in population should exist");
     
 	public StandardTest TEST_ION_CHANNEL_EXISTS =  new StandardTest(10025, "Ion channel in channelDensity should exist");
+    
+	public StandardTest TEST_CONC_MODEL_EXISTS =  new StandardTest(10026, "Concentration model in species should exist");
     
     public StandardTest TEST_POPULATION_SIZE_MATCHES_INSTANCES =  new StandardTest(10030, "Size attribute in population should match instance number");
 	
@@ -246,6 +250,15 @@ public class NeuroML2Validator {
                 }
                 for (ChannelDensityNonUniformNernst cd: mp.getChannelDensityNonUniformNernst()) {
                     test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
+                }
+                
+                IntracellularProperties ip = cell.getBiophysicalProperties().getIntracellularProperties();
+                
+                for (Species sp: ip.getSpecies()) {
+                    /* See PospischilEtAl2008/NeuroML2/cells/LTS/LTS.cell.nml for example.
+                       Note included nml files needs to be pure NML2 => can be read by API as standalone...
+                    */
+                    //test(TEST_CONC_MODEL_EXISTS, "Concentration model: "+sp.getConcentrationModel()+" for species "+sp.getIon()+" not found!", standaloneIds.contains(sp.getConcentrationModel()));
                 }
             }
             cellidsVsSegs.put(cell.getId(), segIds);
@@ -442,7 +455,8 @@ public class NeuroML2Validator {
 	public static void main(String[] args) throws Exception {
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/pyr_4_sym.cell.nml");
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/MediumNet.net.nml");
-        File f = new File("../git/GPUShowcase/NeuroML2/simplenet.nml");
+        File f = new File("../neuroConstruct/osb/cerebral_cortex/multiple/PospischilEtAl2008/NeuroML2/cells/LTS/LTS.cell.nml");
+        
         NeuroML2Validator nv = new NeuroML2Validator();
         nv.validateWithTests(f);
         System.out.println("Validity: "+nv.getValidity());
