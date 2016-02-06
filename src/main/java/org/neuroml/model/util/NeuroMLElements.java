@@ -23,6 +23,7 @@ public class NeuroMLElements {
     public static final String BASE_ION_CHANNEL_COMP_TYPE = "baseIonChannel";
     public static final String ION_CHANNEL_HH_COMP_TYPE = "ionChannelHH";
     public static final String ION_CHANNEL_KS_COMP_TYPE = "ionChannelKS";
+    public static final String KS_STATE_COMP_TYPE = "KSState";
     
     // Cells
     public static final String BASE_CELL_COMP_TYPE = "baseCell";
@@ -42,7 +43,7 @@ public class NeuroMLElements {
 
     public static final String CONC_MODEL_COMP_TYPE = "concentrationModel";
     public static final String CONC_MODEL_SURF_AREA = "surfaceArea";
-    public static final String CONC_MODEL_CA_TOT_CURR = "iCa";
+    //public static final String CONC_MODEL_CA_TOT_CURR = "iCa";
     public static final String CONC_MODEL_INIT_CONC = "initialConcentration";
     public static final String CONC_MODEL_INIT_EXT_CONC = "initialExtConcentration";
     public static final String CONC_MODEL_CONC_STATE_VAR = "concentration";
@@ -85,9 +86,11 @@ public class NeuroMLElements {
     
     public static final String PROJECTION = "projection";
     public static final String CONNECTION = "connection";
+    public static final String CONNECTION_WEIGHT_DELAY = "connectionWD";
     
     public static final String ELECTRICAL_PROJECTION = "electricalProjection";
     public static final String ELECTRICAL_CONNECTION = "electricalConnection";
+    public static final String ELECTRICAL_CONNECTION_INSTANCE = "electricalConnectionInstance";
     
     public static final String CONTINUOUS_PROJECTION = "continuousProjection";
     public static final String CONTINUOUS_CONNECTION = "continuousConnection";

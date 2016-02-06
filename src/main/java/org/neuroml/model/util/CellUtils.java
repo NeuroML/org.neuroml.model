@@ -51,9 +51,11 @@ public class CellUtils {
     
     public static Segment getSegmentWithId(Cell cell, int segmentId) throws NeuroMLException {
         List<Segment> segments = cell.getMorphology().getSegment();
-        Segment guess = segments.get(segmentId);
-        if (guess.getId()==segmentId)
-            return guess;
+        if (segments.size()>segmentId) {
+            Segment guess = segments.get(segmentId);
+            if (guess.getId()==segmentId)
+                return guess;
+        }
         for (Segment seg : segments) {
             if (seg.getId()==segmentId)
                 return seg;

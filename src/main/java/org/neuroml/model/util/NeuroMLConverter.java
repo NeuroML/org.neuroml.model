@@ -155,7 +155,16 @@ public class NeuroMLConverter
         HashMap<String, List<Standalone>> output = new HashMap<String, List<Standalone>>();
         for (Method m: c.getDeclaredMethods()) {
             String elementName = m.getName().substring(3,4).toLowerCase()+m.getName().substring(4);
-            //System.out.println("M: "+m.toString()+", "+elementName);
+            
+            // TODO: investigate why these are needed...
+            if (elementName.startsWith("iF"))
+                elementName = "if"+elementName.substring(2);
+            if (elementName.startsWith("hH"))
+                elementName = "hh"+elementName.substring(2);
+            if (elementName.startsWith("eIF"))
+                elementName = "eif"+elementName.substring(3);
+            
+            //System.out.println("----\nM: "+m.toString()+", "+elementName);
             try {
                 m.setAccessible(true);
                 if (m.toString().contains("List")) {
@@ -165,11 +174,16 @@ public class NeuroMLConverter
                     {
                         try {
                             List<Standalone> list = (List<Standalone>)o;
+                            //System.out.println("Add it: "+elementName+", "+list.size());
                             output.put(elementName, list);
 
                         } catch (ClassCastException cce) {
-                            //
+                            //System.out.println("Failure: "+cce);
                         }
+                    }
+                    else
+                    {
+                        //System.out.println("Ignore it...");
                     }
                 }
 
@@ -180,7 +194,9 @@ public class NeuroMLConverter
             }
             
         }
+        //System.out.println("found: "+output.values());
         for (String element: annot.propOrder()) {
+            //System.out.println("el: "+element);
             if (output.containsKey(element))
             {
                 List<Standalone> list = output.get(element);
@@ -189,6 +205,7 @@ public class NeuroMLConverter
                 }
             }
         }
+        //System.out.println("found: "+elements.values());
 	    
         return elements;
     }
@@ -297,22 +314,22 @@ public class NeuroMLConverter
     
     
 	public static void main(String[] args) throws Exception {
-        String fileName = "../NeuroML2/examples/NML2_SingleCompHHCell.nml";
+        String fileName = "../NeuroML2/examples/NML2_PyNNCells.nml";
 		NeuroMLConverter nmlc = new NeuroMLConverter();
     	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName));
         System.out.println("Loaded: "+nmlDocument.getId());
         
-        
+        /*
         IafTauCell iaf = new IafTauCell();
         iaf.setTau("10ms");
         iaf.setId("iaf00");
-        addElementToDocument(nmlDocument, iaf);
+        addElementToDocument(nmlDocument, iaf);*/
         
         LinkedHashMap<String,Standalone> els = getAllStandaloneElements(nmlDocument);
         for (String el: els.keySet()) {
             System.out.println("A Found: "+ els.get(el).getId()+" ("+els.get(el)+")");
         }
-        
+        /*
         fileName = "../org.neuroml.export/src/test/resources/examples/TwoCell.net.nml";
 		nmlc = new NeuroMLConverter();
     	nmlDocument = nmlc.loadNeuroML(new File(fileName), true);
@@ -323,7 +340,7 @@ public class NeuroMLConverter
         els = getAllStandaloneElements(nmlDocument);
         for (String el: els.keySet()) {
             System.out.println("B Found: "+ els.get(el).getId()+" ("+els.get(el)+")");
-        }
+        }*/
         
         
     }
