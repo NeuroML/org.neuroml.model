@@ -1,5 +1,6 @@
 package org.neuroml.model.util;
 
+import com.sun.org.apache.bcel.internal.generic.AALOAD;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,10 +22,14 @@ import org.neuroml.model.ChannelDensityNernst;
 import org.neuroml.model.ChannelDensityNonUniform;
 import org.neuroml.model.ChannelDensityNonUniformNernst;
 import org.neuroml.model.Connection;
+import org.neuroml.model.ContinuousConnection;
+import org.neuroml.model.ContinuousProjection;
 import org.neuroml.model.ElectricalConnection;
 import org.neuroml.model.ElectricalProjection;
+import org.neuroml.model.ExplicitInput;
 import org.neuroml.model.Include;
 import org.neuroml.model.IncludeType;
+import org.neuroml.model.InputList;
 import org.neuroml.model.IntracellularProperties;
 import org.neuroml.model.Member;
 import org.neuroml.model.MembraneProperties;
@@ -57,6 +62,9 @@ public class NeuroML2Validator {
 	public static final String VALID_AGAINST_SCHEMA_AND_TESTS = "Valid against schema and all tests";
 	public static final String NO_WARNINGS = "No warnings";
 
+	public StandardTest TEST_TOP_LEVEL_REPEATED_IDS =           new StandardTest(5000, "No repeated Ids on elements at the top level");
+	public StandardTest TEST_NETWORK_REPEATED_IDS =           new StandardTest(5001, "No repeated Ids on elements inside <network>");
+    
 	public StandardTest TEST_REPEATED_IDS =           new StandardTest(10000, "No repeated segment Ids allowed within a cell");
 	public StandardTest TEST_ONE_SEG_MISSING_PARENT = new StandardTest(10002, "Only one segment should have no parent");
 	public StandardTest TEST_MEMBER_SEGMENT_EXISTS =  new StandardTest(10003, "Segment Id used in the member element of segmentGroup should exist");
@@ -147,252 +155,289 @@ public class NeuroML2Validator {
                 +" could not be found relative to path: "+baseDirectory, inclFile.exists());
         }
         
-        LinkedHashMap<String,Standalone> standalones = NeuroMLConverter.getAllStandaloneElements(nml2);
-        Set<String> standaloneIds = standalones.keySet();
-		
-		//////////////////////////////////////////////////////////////////
-		// <cell>
-		//////////////////////////////////////////////////////////////////
-		
-        HashMap<String, ArrayList<Integer>> cellidsVsSegs = new HashMap<String, ArrayList<Integer>>();
-		for (Cell cell: nml2.getCell()){
-			
-			// Morphologies
-			ArrayList<Integer> segIds = new ArrayList<Integer>();
-			ArrayList<String> segGroups = new ArrayList<String>();
-			
-			boolean rootFound = false;
-			int numParentless = 0;
-			if (cell.getMorphology() != null) {
-				for(Segment segment: cell.getMorphology().getSegment()) {
-					int segId = segment.getId();
-					
-					test(TEST_REPEATED_IDS, "Current segment ID: "+segId, !segIds.contains(segId));
-					segIds.add(segId);
-					
-					if (segId==0){
-						rootFound = true;
-					}
-					if (segment.getParent()==null) {
-						numParentless++;
-					}
-				}
+        LinkedHashMap<String,Standalone> standalones = null;
+        try 
+        {
+            standalones = NeuroMLConverter.getAllStandaloneElements(nml2);
+        }
+        catch (NeuroMLException ne) 
+        {
+            if (ne.getMessage().toLowerCase().contains("repeated id")){
+                
+				test(TEST_TOP_LEVEL_REPEATED_IDS, ne.getMessage(), false);
+            } else {
+                throw ne;
+            }
+        }
+        
+        if (standalones!=null)
+        {
 
-				test(WARN_ROOT_ID_0, "", rootFound);
-				test(TEST_ONE_SEG_MISSING_PARENT, "", (numParentless==1));
+            Set<String> standaloneIds = standalones.keySet();
 
-				for(SegmentGroup segmentGroup: cell.getMorphology().getSegmentGroup()) {
-					
-					test(TEST_REPEATED_GROUPS, "SegmentGroup: "+segmentGroup.getId(), !segGroups.contains(segmentGroup.getId()));
-					
-					segGroups.add(segmentGroup.getId());
-					for (Member member: segmentGroup.getMember()) {
-						test(TEST_MEMBER_SEGMENT_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", member: "+member.getSegment(), segIds.contains(new Integer(member.getSegment().intValue())));
-					}
-					for (Include inc: segmentGroup.getInclude()) {
-						test(TEST_INCLUDE_SEGMENT_GROUP_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", includes: "+inc.getSegmentGroup(), segGroups.contains(inc.getSegmentGroup()));
-					}
-                    /*
-                    int numIntDiv;
-                    for (Property p: segmentGroup.getProperty())
-                    {
-                        if (p.getTag().equals("numberInternalDivisions")) 
-                        {
-                            numIntDiv = Integer.parseInt(p.getValue());
+            //////////////////////////////////////////////////////////////////
+            // <cell>
+            //////////////////////////////////////////////////////////////////
+
+            HashMap<String, ArrayList<Integer>> cellidsVsSegs = new HashMap<String, ArrayList<Integer>>();
+            for (Cell cell: nml2.getCell()){
+
+                // Morphologies
+                ArrayList<Integer> segIds = new ArrayList<Integer>();
+                ArrayList<String> segGroups = new ArrayList<String>();
+
+                boolean rootFound = false;
+                int numParentless = 0;
+                if (cell.getMorphology() != null) {
+                    for(Segment segment: cell.getMorphology().getSegment()) {
+                        int segId = segment.getId();
+
+                        test(TEST_REPEATED_IDS, "Current segment ID: "+segId, !segIds.contains(segId));
+                        segIds.add(segId);
+
+                        if (segId==0){
+                            rootFound = true;
                         }
-                    }*/
-                    Annotation ann = segmentGroup.getAnnotation();
-                    if (ann!=null) {
-                        for(Element el: ann.getAny()) {
-                            if (el.getTagName().equals("property") && 
-                                (el.hasAttribute("tag") && el.getAttribute("tag").equals("numberInternalDivisions"))) {
+                        if (segment.getParent()==null) {
+                            numParentless++;
+                        }
+                    }
 
-                                test(TEST_NUM_INT_DIVS_SEGMENT_GROUP, "SegmentGroup: "+segmentGroup.getId()+", has incorrect location for <property> for numberInternalDivisions (should be child of <segmentGroup>)", false);
+                    test(WARN_ROOT_ID_0, "", rootFound);
+                    test(TEST_ONE_SEG_MISSING_PARENT, "", (numParentless==1));
+
+                    for(SegmentGroup segmentGroup: cell.getMorphology().getSegmentGroup()) {
+
+                        test(TEST_REPEATED_GROUPS, "SegmentGroup: "+segmentGroup.getId(), !segGroups.contains(segmentGroup.getId()));
+
+                        segGroups.add(segmentGroup.getId());
+                        for (Member member: segmentGroup.getMember()) {
+                            test(TEST_MEMBER_SEGMENT_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", member: "+member.getSegment(), segIds.contains(new Integer(member.getSegment().intValue())));
+                        }
+                        for (Include inc: segmentGroup.getInclude()) {
+                            test(TEST_INCLUDE_SEGMENT_GROUP_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", includes: "+inc.getSegmentGroup(), segGroups.contains(inc.getSegmentGroup()));
+                        }
+                        /*
+                        int numIntDiv;
+                        for (Property p: segmentGroup.getProperty())
+                        {
+                            if (p.getTag().equals("numberInternalDivisions")) 
+                            {
+                                numIntDiv = Integer.parseInt(p.getValue());
+                            }
+                        }*/
+                        Annotation ann = segmentGroup.getAnnotation();
+                        if (ann!=null) {
+                            for(Element el: ann.getAny()) {
+                                if (el.getTagName().equals("property") && 
+                                    (el.hasAttribute("tag") && el.getAttribute("tag").equals("numberInternalDivisions"))) {
+
+                                    test(TEST_NUM_INT_DIVS_SEGMENT_GROUP, "SegmentGroup: "+segmentGroup.getId()+", has incorrect location for <property> for numberInternalDivisions (should be child of <segmentGroup>)", false);
+                                }
                             }
                         }
                     }
-				}
-				
-			} else {
-				//TODO: test for morphology attribute!
-			}
-            
-            if (cell.getBiophysicalProperties()!=null) {
-                MembraneProperties mp = cell.getBiophysicalProperties().getMembraneProperties();
-                
-                //TODO: consolidate!
-                for (ChannelDensity cd: mp.getChannelDensity()) {
-                    if (cd.getSegmentGroup()!=null) {
-                        test(TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS, 
-                            "ChannelDensity: "+cd.getId()+" specifies: "+cd.getSegmentGroup()+" which doesn't exist", 
-                            segGroups.contains(cd.getSegmentGroup()) || cd.getSegmentGroup().equals(NeuroMLElements.SEGMENT_GROUP_ALL));
-                    }
-                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
-                }
-                for (ChannelDensityGHK cd: mp.getChannelDensityGHK()) {
-                    if (cd.getSegmentGroup()!=null) {
-                        test(TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS, 
-                            "ChannelDensity: "+cd.getId()+" specifies: "+cd.getSegmentGroup()+" which doesn't exist", 
-                            segGroups.contains(cd.getSegmentGroup()) || cd.getSegmentGroup().equals(NeuroMLElements.SEGMENT_GROUP_ALL));
-                    }
-                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
-                }
-                for (ChannelDensityNernst cd: mp.getChannelDensityNernst()) {
-                    if (cd.getSegmentGroup()!=null) {
-                        test(TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS, 
-                            "ChannelDensity: "+cd.getId()+" specifies: "+cd.getSegmentGroup()+" which doesn't exist", 
-                            segGroups.contains(cd.getSegmentGroup()) || cd.getSegmentGroup().equals(NeuroMLElements.SEGMENT_GROUP_ALL));
-                    }
-                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
-                }
-                for (ChannelDensityNonUniform cd: mp.getChannelDensityNonUniform()) {
-                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
-                }
-                for (ChannelDensityNonUniformNernst cd: mp.getChannelDensityNonUniformNernst()) {
-                    test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
-                }
-                
-                IntracellularProperties ip = cell.getBiophysicalProperties().getIntracellularProperties();
-                
-                for (Species sp: ip.getSpecies()) {
-                    /* See PospischilEtAl2008/NeuroML2/cells/LTS/LTS.cell.nml for example.
-                       Note included nml files needs to be pure NML2 => can be read by API as standalone...
-                    */
-                    //test(TEST_CONC_MODEL_EXISTS, "Concentration model: "+sp.getConcentrationModel()+" for species "+sp.getIon()+" not found!", standaloneIds.contains(sp.getConcentrationModel()));
-                }
-            }
-            cellidsVsSegs.put(cell.getId(), segIds);
-			
-		}
-        
-        
-        for (Network network: nml2.getNetwork()) {
-            
-            //////////////////////////////////////////////////////////////////
-            // <population>
-            //////////////////////////////////////////////////////////////////
 
-            ArrayList<String> popIds = new ArrayList<String>();
-            HashMap<String, String> popVsComponent = new HashMap<String, String>();
-            HashMap<String, Integer> popVsSize = new HashMap<String, Integer>();
-            
-            for (Population pop: network.getPopulation()) {
-                popIds.add(pop.getId());
-                popVsComponent.put(pop.getId(), pop.getComponent());
-                popVsSize.put(pop.getId(), pop.getSize());
-                
-                if (pop.getType()!=null && pop.getType().value().equals(NeuroMLElements.POPULATION_LIST)) {
-                    if (pop.getSize()!=null) {
-                        int numInstances = pop.getInstance().size();
-                        test(TEST_POPULATION_SIZE_MATCHES_INSTANCES,
-                            "Size of population "+pop.getId()+" is specified as "+pop.getSize()+", but there are "+numInstances+" instance elements",
-                            pop.getSize()!=null && numInstances==pop.getSize());
-                    }
+                } else {
+                    //TODO: test for morphology attribute!
                 }
-                
-                test(TEST_POPULATION_COMPONENT_EXISTS, "Component: "+pop.getComponent()+" in "+pop.getId()+" not found! Existing: "+standaloneIds, standaloneIds.contains(pop.getComponent()));
-            }
-            
-            //////////////////////////////////////////////////////////////////
-            // <projection>
-            //////////////////////////////////////////////////////////////////
 
-            
-            for (Projection proj: network.getProjection()) {
-                test(TEST_POPULATIONS_IN_PROJECTIONS,
-                        "Pre population id: "+proj.getPresynapticPopulation()+" in projection "+proj.getId()+" not found",
-                        popIds.contains(proj.getPresynapticPopulation()));
-                test(TEST_POPULATIONS_IN_PROJECTIONS,
-                        "Post population id: "+proj.getPostsynapticPopulation()+" in projection "+proj.getId()+" not found",
-                        popIds.contains(proj.getPostsynapticPopulation()));
-                
-                ArrayList<Integer> preCellSegs = cellidsVsSegs.get(popVsComponent.get(proj.getPresynapticPopulation()));
-                ArrayList<Integer> postCellSegs = cellidsVsSegs.get(popVsComponent.get(proj.getPostsynapticPopulation()));
-                
-                test(TEST_SYNAPSE_IN_PROJECTION, "Synapse: "+proj.getSynapse()+" in "+proj.getId()+" not found!", standaloneIds.contains(proj.getSynapse()));
-               
-                for (Connection conn: proj.getConnection()) {
-                    
-                    String p = proj.getPresynapticPopulation();
-                    String max = popVsSize.get(p)!=null ? (popVsSize.get(p)-1)+"" : "N";
-                    String form = null;
-                    boolean test = false;
-                    
-                    if (!conn.getPreCellId().contains("[")) {
-                        String[] split = conn.getPreCellId().split("/");
-                        test = split[0].equals("..") && 
-                                        split[1].equals(p) &&
-                                        (popVsSize.get(p)==null || Integer.parseInt(split[2])<popVsSize.get(p)) &&
-                                        split[3].equals(popVsComponent.get(p));
-                        form = "should be of form: ../"+p+"/0/"+popVsComponent.get(p)+" -> ../"+p+"/"+max+"/"+popVsComponent.get(p);
-                    } else {
-                        String[] split1 = conn.getPreCellId().split("/");
-                        String[] split2 = split1[1].split("\\[");
-                        String[] split3 = split2[1].split("\\]");
-                        test = split1[0].equals("..") && 
-                                        split2[0].equals(p) &&
-                                        Integer.parseInt(split3[0])<popVsSize.get(p);
-                        form = "should be of form: ../"+p+"[0] -> ../"+p+"["+max+"]";
-                        
+                if (cell.getBiophysicalProperties()!=null) {
+                    MembraneProperties mp = cell.getBiophysicalProperties().getMembraneProperties();
+
+                    //TODO: consolidate!
+                    for (ChannelDensity cd: mp.getChannelDensity()) {
+                        if (cd.getSegmentGroup()!=null) {
+                            test(TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS, 
+                                "ChannelDensity: "+cd.getId()+" specifies: "+cd.getSegmentGroup()+" which doesn't exist", 
+                                segGroups.contains(cd.getSegmentGroup()) || cd.getSegmentGroup().equals(NeuroMLElements.SEGMENT_GROUP_ALL));
+                        }
+                        test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
                     }
-                    test(TEST_FORMATTING_CELL_ID_IN_CONNECTION,
-                        "Badly formatted Cell Id attribute in connection "+conn.getId()+" of "+proj.getId()+": "+conn.getPreCellId()+
-                        "; "+form, test);
-                    
-                    p = proj.getPostsynapticPopulation();
-                    max = popVsSize.get(p)!=null ? (popVsSize.get(p)-1)+"" : "N";
-                    
-                    if (!conn.getPostCellId().contains("[")) {
-                        String[] split = conn.getPostCellId().split("/");
-                        test = split[0].equals("..") && 
-                                        split[1].equals(p) &&
-                                        (popVsSize.get(p)==null || Integer.parseInt(split[2])<popVsSize.get(p)) &&
-                                        split[3].equals(popVsComponent.get(p));
-                        form = "should be of form: ../"+p+"/0/"+popVsComponent.get(p)+" -> ../"+p+"/"+max+"/"+popVsComponent.get(p);
-                    } else {
-                        String[] split1 = conn.getPostCellId().split("/");
-                        String[] split2 = split1[1].split("\\[");
-                        String[] split3 = split2[1].split("\\]");
-                        test = split1[0].equals("..") && 
-                                        split2[0].equals(p) &&
-                                        Integer.parseInt(split3[0])<popVsSize.get(p);
-                        form = "should be of form: ../"+p+"[0] -> ../"+p+"["+max+"]";
-                        
+                    for (ChannelDensityGHK cd: mp.getChannelDensityGHK()) {
+                        if (cd.getSegmentGroup()!=null) {
+                            test(TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS, 
+                                "ChannelDensity: "+cd.getId()+" specifies: "+cd.getSegmentGroup()+" which doesn't exist", 
+                                segGroups.contains(cd.getSegmentGroup()) || cd.getSegmentGroup().equals(NeuroMLElements.SEGMENT_GROUP_ALL));
+                        }
+                        test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
                     }
-                    test(TEST_FORMATTING_CELL_ID_IN_CONNECTION,
-                        "Badly formatted Cell Id attribute in connection "+conn.getId()+" of "+proj.getId()+": "+conn.getPostCellId()+
-                        "; "+form, test);
-                    
-                    
-                    
-                    if (preCellSegs!=null) {
-                        test(TEST_SEGMENT_ID_IN_CONNECTION,
-                            "Segment id "+conn.getPreSegmentId()+" in connection "+conn.getId()+" of "+proj.getId()+" not present in target cell",
-                            preCellSegs.contains(conn.getPreSegmentId()));
+                    for (ChannelDensityNernst cd: mp.getChannelDensityNernst()) {
+                        if (cd.getSegmentGroup()!=null) {
+                            test(TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS, 
+                                "ChannelDensity: "+cd.getId()+" specifies: "+cd.getSegmentGroup()+" which doesn't exist", 
+                                segGroups.contains(cd.getSegmentGroup()) || cd.getSegmentGroup().equals(NeuroMLElements.SEGMENT_GROUP_ALL));
+                        }
+                        test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
                     }
-                    if (postCellSegs!=null) {
-                        test(TEST_SEGMENT_ID_IN_CONNECTION,
-                            "Segment id "+conn.getPostSegmentId()+" in connection "+conn.getId()+" of "+proj.getId()+" not present in target cell",
-                            postCellSegs.contains(conn.getPostSegmentId()));
+                    for (ChannelDensityNonUniform cd: mp.getChannelDensityNonUniform()) {
+                        test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
+                    }
+                    for (ChannelDensityNonUniformNernst cd: mp.getChannelDensityNonUniformNernst()) {
+                        test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
+                    }
+
+                    IntracellularProperties ip = cell.getBiophysicalProperties().getIntracellularProperties();
+
+                    for (Species sp: ip.getSpecies()) {
+                        /* See PospischilEtAl2008/NeuroML2/cells/LTS/LTS.cell.nml for example.
+                           Note included nml files needs to be pure NML2 => can be read by API as standalone...
+                        */
+                        //test(TEST_CONC_MODEL_EXISTS, "Concentration model: "+sp.getConcentrationModel()+" for species "+sp.getIon()+" not found!", standaloneIds.contains(sp.getConcentrationModel()));
                     }
                 }
+                cellidsVsSegs.put(cell.getId(), segIds);
+
             }
-            
-            for (ElectricalProjection proj: network.getElectricalProjection()) {
-                test(TEST_POPULATIONS_IN_PROJECTIONS,
-                        "Pre population id: "+proj.getPresynapticPopulation()+" in projection "+proj.getId()+" not found",
-                        popIds.contains(proj.getPresynapticPopulation()));
-                test(TEST_POPULATIONS_IN_PROJECTIONS,
-                        "Post population id: "+proj.getPostsynapticPopulation()+" in projection "+proj.getId()+" not found",
-                        popIds.contains(proj.getPostsynapticPopulation()));
-                for(ElectricalConnection ec: proj.getElectricalConnection())
-                {
-                    test(TEST_SYNAPSE_IN_PROJECTION, "Synapse: "+ec.getSynapse()+" in "+proj.getId()+" not found!", standaloneIds.contains(ec.getSynapse()));
+
+
+            for (Network network: nml2.getNetwork()) {
+
+                ArrayList<String> allNetElementIds = new ArrayList<String>();
+                //////////////////////////////////////////////////////////////////
+                // <population>
+                //////////////////////////////////////////////////////////////////
+
+                ArrayList<String> popIds = new ArrayList<String>();
+                HashMap<String, String> popVsComponent = new HashMap<String, String>();
+                HashMap<String, Integer> popVsSize = new HashMap<String, Integer>();
+
+                for (Population pop: network.getPopulation()) {
+                    popIds.add(pop.getId());
+                    allNetElementIds.add(pop.getId());
+                    popVsComponent.put(pop.getId(), pop.getComponent());
+                    popVsSize.put(pop.getId(), pop.getSize());
+
+                    if (pop.getType()!=null && pop.getType().value().equals(NeuroMLElements.POPULATION_LIST)) {
+                        if (pop.getSize()!=null) {
+                            int numInstances = pop.getInstance().size();
+                            test(TEST_POPULATION_SIZE_MATCHES_INSTANCES,
+                                "Size of population "+pop.getId()+" is specified as "+pop.getSize()+", but there are "+numInstances+" instance elements",
+                                pop.getSize()!=null && numInstances==pop.getSize());
+                        }
+                    }
+
+                    test(TEST_POPULATION_COMPONENT_EXISTS, "Component: "+pop.getComponent()+" in "+pop.getId()+" not found! Existing: "+standaloneIds, standaloneIds.contains(pop.getComponent()));
                 }
+
+                //////////////////////////////////////////////////////////////////
+                // <projection>
+                //////////////////////////////////////////////////////////////////
+
+                for (Projection proj: network.getProjection()) {
+                    allNetElementIds.add(proj.getId());
+                    test(TEST_POPULATIONS_IN_PROJECTIONS,
+                            "Pre population id: "+proj.getPresynapticPopulation()+" in projection "+proj.getId()+" not found",
+                            popIds.contains(proj.getPresynapticPopulation()));
+                    test(TEST_POPULATIONS_IN_PROJECTIONS,
+                            "Post population id: "+proj.getPostsynapticPopulation()+" in projection "+proj.getId()+" not found",
+                            popIds.contains(proj.getPostsynapticPopulation()));
+
+                    ArrayList<Integer> preCellSegs = cellidsVsSegs.get(popVsComponent.get(proj.getPresynapticPopulation()));
+                    ArrayList<Integer> postCellSegs = cellidsVsSegs.get(popVsComponent.get(proj.getPostsynapticPopulation()));
+
+                    test(TEST_SYNAPSE_IN_PROJECTION, "Synapse: "+proj.getSynapse()+" in "+proj.getId()+" not found!", standaloneIds.contains(proj.getSynapse()));
+
+                    for (Connection conn: proj.getConnection()) {
+
+                        String p = proj.getPresynapticPopulation();
+                        String max = popVsSize.get(p)!=null ? (popVsSize.get(p)-1)+"" : "N";
+                        String form = null;
+                        boolean test = false;
+
+                        if (!conn.getPreCellId().contains("[")) {
+                            String[] split = conn.getPreCellId().split("/");
+                            test = split[0].equals("..") && 
+                                            split[1].equals(p) &&
+                                            (popVsSize.get(p)==null || Integer.parseInt(split[2])<popVsSize.get(p)) &&
+                                            split[3].equals(popVsComponent.get(p));
+                            form = "should be of form: ../"+p+"/0/"+popVsComponent.get(p)+" -> ../"+p+"/"+max+"/"+popVsComponent.get(p);
+                        } else {
+                            String[] split1 = conn.getPreCellId().split("/");
+                            String[] split2 = split1[1].split("\\[");
+                            String[] split3 = split2[1].split("\\]");
+                            test = split1[0].equals("..") && 
+                                            split2[0].equals(p) &&
+                                            Integer.parseInt(split3[0])<popVsSize.get(p);
+                            form = "should be of form: ../"+p+"[0] -> ../"+p+"["+max+"]";
+
+                        }
+                        test(TEST_FORMATTING_CELL_ID_IN_CONNECTION,
+                            "Badly formatted Cell Id attribute in connection "+conn.getId()+" of "+proj.getId()+": "+conn.getPreCellId()+
+                            "; "+form, test);
+
+                        p = proj.getPostsynapticPopulation();
+                        max = popVsSize.get(p)!=null ? (popVsSize.get(p)-1)+"" : "N";
+
+                        if (!conn.getPostCellId().contains("[")) {
+                            String[] split = conn.getPostCellId().split("/");
+                            test = split[0].equals("..") && 
+                                            split[1].equals(p) &&
+                                            (popVsSize.get(p)==null || Integer.parseInt(split[2])<popVsSize.get(p)) &&
+                                            split[3].equals(popVsComponent.get(p));
+                            form = "should be of form: ../"+p+"/0/"+popVsComponent.get(p)+" -> ../"+p+"/"+max+"/"+popVsComponent.get(p);
+                        } else {
+                            String[] split1 = conn.getPostCellId().split("/");
+                            String[] split2 = split1[1].split("\\[");
+                            String[] split3 = split2[1].split("\\]");
+                            test = split1[0].equals("..") && 
+                                            split2[0].equals(p) &&
+                                            Integer.parseInt(split3[0])<popVsSize.get(p);
+                            form = "should be of form: ../"+p+"[0] -> ../"+p+"["+max+"]";
+
+                        }
+                        test(TEST_FORMATTING_CELL_ID_IN_CONNECTION,
+                            "Badly formatted Cell Id attribute in connection "+conn.getId()+" of "+proj.getId()+": "+conn.getPostCellId()+
+                            "; "+form, test);
+
+
+
+                        if (preCellSegs!=null) {
+                            test(TEST_SEGMENT_ID_IN_CONNECTION,
+                                "Segment id "+conn.getPreSegmentId()+" in connection "+conn.getId()+" of "+proj.getId()+" not present in target cell",
+                                preCellSegs.contains(conn.getPreSegmentId()));
+                        }
+                        if (postCellSegs!=null) {
+                            test(TEST_SEGMENT_ID_IN_CONNECTION,
+                                "Segment id "+conn.getPostSegmentId()+" in connection "+conn.getId()+" of "+proj.getId()+" not present in target cell",
+                                postCellSegs.contains(conn.getPostSegmentId()));
+                        }
+                    }
+                }
+
+                for (ElectricalProjection proj: network.getElectricalProjection()) {
+                    allNetElementIds.add(proj.getId());
+                    test(TEST_POPULATIONS_IN_PROJECTIONS,
+                            "Pre population id: "+proj.getPresynapticPopulation()+" in projection "+proj.getId()+" not found",
+                            popIds.contains(proj.getPresynapticPopulation()));
+                    test(TEST_POPULATIONS_IN_PROJECTIONS,
+                            "Post population id: "+proj.getPostsynapticPopulation()+" in projection "+proj.getId()+" not found",
+                            popIds.contains(proj.getPostsynapticPopulation()));
+                    for(ElectricalConnection ec: proj.getElectricalConnection())
+                    {
+                        test(TEST_SYNAPSE_IN_PROJECTION, "Synapse: "+ec.getSynapse()+" in "+proj.getId()+" not found!", standaloneIds.contains(ec.getSynapse()));
+                    }
+                }
+
+                for (ContinuousProjection proj: network.getContinuousProjection()) {
+                    allNetElementIds.add(proj.getId());
+                }
+                
+                for (InputList i: network.getInputList()) {
+                    allNetElementIds.add(i.getId());
+                }
+                
+                ArrayList<String> uniqueNetElementIds = new ArrayList<String>();
+                for (String id: allNetElementIds) {
+                    if (uniqueNetElementIds.contains(id)) {
+                        test(TEST_NETWORK_REPEATED_IDS,"Repeated id in network elements: "+id+"!",false);
+                    } else {
+                        uniqueNetElementIds.add(id);
+                    }
+                }
+
+
             }
-            
-            
-            
         }
 
 		if (validity.length()==0)
@@ -455,7 +500,9 @@ public class NeuroML2Validator {
 	public static void main(String[] args) throws Exception {
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/pyr_4_sym.cell.nml");
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/MediumNet.net.nml");
-        File f = new File("../neuroConstruct/osb/cerebral_cortex/multiple/PospischilEtAl2008/NeuroML2/cells/LTS/LTS.cell.nml");
+        //File f = new File("../OpenCortex/examples/Deterministic.net.nml");
+        File f = new File("../neuroConstruct/osb/cerebellum/cerebellar_granule_cell/GranuleCell/neuroConstruct/generatedNeuroML2/GranuleCell.net.nml");
+        
         
         NeuroML2Validator nv = new NeuroML2Validator();
         nv.validateWithTests(f);

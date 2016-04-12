@@ -73,17 +73,22 @@ public class NeuroMLConverter
 	}
 
 	
-	public NeuroMLDocument loadNeuroML(File xmlFile) throws FileNotFoundException, NeuroMLException
+	public NeuroMLDocument loadNeuroML(File xmlFile) throws IOException, NeuroMLException
 	{
         return loadNeuroML(xmlFile, false, false);
     }
 	
-	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes) throws FileNotFoundException, NeuroMLException
+	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes) throws IOException, NeuroMLException
 	{
         return loadNeuroML(xmlFile, includeIncludes, true);
     }
 	
-	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes, boolean failOnMissingIncludes) throws FileNotFoundException, NeuroMLException
+	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes, boolean failOnMissingIncludes) throws IOException, NeuroMLException
+	{
+        return loadNeuroML(xmlFile, includeIncludes, failOnMissingIncludes, new ArrayList<String>());
+    }
+	
+	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes, boolean failOnMissingIncludes, ArrayList<String> alreadyIncluded) throws NeuroMLException, IOException
 	{
 		if (!xmlFile.exists()) 
             throw new FileNotFoundException(xmlFile.getAbsolutePath());
@@ -101,12 +106,14 @@ public class NeuroMLConverter
             {
                 String relativeFileLocation = include.getHref();
                 File subFile = new File(xmlFile.getAbsoluteFile().getParentFile(), relativeFileLocation);
+                
                 if (failOnMissingIncludes && !subFile.exists()) 
                 {
                     throw new NeuroMLException("Missing file included by "+xmlFile.getAbsolutePath()+": "+relativeFileLocation);
                 }
-                if (subFile.exists()) {
-                    NeuroMLDocument subDoc = loadNeuroML(subFile, includeIncludes, failOnMissingIncludes);
+                if (subFile.exists() && !alreadyIncluded.contains(subFile.getCanonicalPath())) 
+                {
+                    NeuroMLDocument subDoc = loadNeuroML(subFile, includeIncludes, failOnMissingIncludes, alreadyIncluded);
                     LinkedHashMap<String,Standalone> saes = getAllStandaloneElements(subDoc);
                     for (Standalone sae: saes.values()) 
                     {
@@ -115,6 +122,8 @@ public class NeuroMLConverter
                 }
             }
         }
+        
+        alreadyIncluded.add(xmlFile.getCanonicalPath());
             
         return nmlDocument;	
 	}
@@ -174,7 +183,8 @@ public class NeuroMLConverter
                     {
                         try {
                             List<Standalone> list = (List<Standalone>)o;
-                            //System.out.println("Add it: "+elementName+", "+list.size());
+                            //if (!list.isEmpty())
+                            //    System.out.println("Add it: "+elementName+", "+list.size());
                             output.put(elementName, list);
 
                         } catch (ClassCastException cce) {
@@ -201,6 +211,10 @@ public class NeuroMLConverter
             {
                 List<Standalone> list = output.get(element);
                 for (Standalone s: list) {
+                    if (elements.containsKey(s.getId()))
+                    {
+                        throw new NeuroMLException("Repeated top level (standalone element) Id: "+elements.get(s.getId())+" and "+s);
+                    }
                     elements.put(s.getId(), s);
                 }
             }

@@ -3,6 +3,7 @@ package org.neuroml.model.test;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import org.junit.Assert;
@@ -28,7 +29,7 @@ public class CellUtilTest {
     static String exampledirname = wdir + File.separator + "src/test/resources/examples";
 
     
-	private static Cell getCell() throws NeuroMLException, FileNotFoundException {
+	private static Cell getCell() throws NeuroMLException, IOException {
         
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
         File exCell = new File(exampledirname + File.separator+"pyr_4_sym.cell.nml");
@@ -39,7 +40,7 @@ public class CellUtilTest {
     }
     
     @Test
-    public void testGetIdsVsSegments() throws NeuroMLException, FileNotFoundException {
+    public void testGetIdsVsSegments() throws NeuroMLException, IOException {
         System.out.println("Testing: getIdsVsSegments");
         Cell cell = getCell();
         LinkedHashMap<Integer, Segment> idsVsSegments = CellUtils.getIdsVsSegments(cell);
@@ -50,7 +51,7 @@ public class CellUtilTest {
     }
     
     @Test
-    public void testGetSegmentGroupsVsSegIds() throws NeuroMLException, FileNotFoundException {
+    public void testGetSegmentGroupsVsSegIds() throws NeuroMLException, IOException {
         System.out.println("Testing: testGetSegmentGroupsVsSegIds");
         Cell cell = getCell();
         LinkedHashMap<SegmentGroup, ArrayList<Integer>> sgVsSegId = CellUtils.getSegmentGroupsVsSegIds(cell);
@@ -70,7 +71,7 @@ public class CellUtilTest {
     }
     
     @Test
-    public void testIsUnbranchedNonOverlapping() throws NeuroMLException, FileNotFoundException {
+    public void testIsUnbranchedNonOverlapping() throws NeuroMLException, IOException {
         System.out.println("Testing: testIsUnbranchedNonOverlapping");
         Cell cell = getCell();
         
@@ -82,7 +83,7 @@ public class CellUtilTest {
     
     
     @Test
-    public void testGetSegmentsInGroup() throws NeuroMLException, FileNotFoundException {
+    public void testGetSegmentsInGroup() throws NeuroMLException, IOException {
         System.out.println("Testing: testIsUnbranchedNonOverlapping");
         Cell cell = getCell();
         
@@ -97,7 +98,7 @@ public class CellUtilTest {
     
     
     @Test
-    public void testDistance() throws NeuroMLException, FileNotFoundException {
+    public void testDistance() throws NeuroMLException, IOException {
         System.out.println("Testing: distance");
         Point3DWithDiam p = new Point3DWithDiam();
         p.setX(0);
@@ -114,7 +115,7 @@ public class CellUtilTest {
     }
         
     @Test 
-    public void testGetFractionAlongSegGroupLength() throws NeuroMLException, FileNotFoundException {
+    public void testGetFractionAlongSegGroupLength() throws NeuroMLException, IOException {
         System.out.println("Testing: testGetFractionAlongSegGroupLength");
         Cell cell = getCell();
         assertEquals(CellUtils.getFractionAlongSegGroupLength(cell, "soma_group", 0, 0.1f), 0.1, 1e-6);
