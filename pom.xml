@@ -35,7 +35,7 @@
         <dependency>
             <groupId>org.neuroml.core</groupId>
             <artifactId>neuroml2-base-definitions</artifactId>
-            <version>1.4.5</version>
+            <version>1.4.6</version>
         </dependency>
     </dependencies>
     <build>
@@ -78,7 +78,7 @@
                   </goals>
                   <configuration>
                     <resourceBundles>
-                      <resourcebundle>org.neuroml.core:neuroml2-base-definitions:1.4.5</resourcebundle>
+                      <resourcebundle>org.neuroml.core:neuroml2-base-definitions:1.4.6</resourcebundle>
                     </resourceBundles>
                   </configuration>
                 </execution>
