@@ -13,7 +13,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.JAXBException;
@@ -22,7 +21,8 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import org.neuroml.model.IafTauCell;
-
+import org.neuroml.model.Include;
+import org.neuroml.model.IncludeType;
 import org.neuroml.model.Morphology;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.ObjectFactory;
@@ -73,18 +73,59 @@ public class NeuroMLConverter
 	}
 
 	
-	public NeuroMLDocument loadNeuroML(File xmlFile) throws FileNotFoundException, NeuroMLException
+	public NeuroMLDocument loadNeuroML(File xmlFile) throws IOException, NeuroMLException
 	{
-		if (!xmlFile.exists()) throw new FileNotFoundException(xmlFile.getAbsolutePath());
+        return loadNeuroML(xmlFile, false, false);
+    }
+	
+	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes) throws IOException, NeuroMLException
+	{
+        return loadNeuroML(xmlFile, includeIncludes, true);
+    }
+	
+	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes, boolean failOnMissingIncludes) throws IOException, NeuroMLException
+	{
+        return loadNeuroML(xmlFile, includeIncludes, failOnMissingIncludes, new ArrayList<String>());
+    }
+	
+	public NeuroMLDocument loadNeuroML(File xmlFile, boolean includeIncludes, boolean failOnMissingIncludes, ArrayList<String> alreadyIncluded) throws NeuroMLException, IOException
+	{
+		if (!xmlFile.exists()) 
+            throw new FileNotFoundException(xmlFile.getAbsolutePath());
 		
-        
+        NeuroMLDocument nmlDocument;
         try {
             @SuppressWarnings("unchecked")
             JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(xmlFile);
-            return jbe.getValue();	
+            nmlDocument = jbe.getValue();
 		} catch (JAXBException ex) {
             throw new NeuroMLException("Problem loading NeuroML document", ex);
         }	
+        if (includeIncludes) {
+            for (IncludeType include: nmlDocument.getInclude()) 
+            {
+                String relativeFileLocation = include.getHref();
+                File subFile = new File(xmlFile.getAbsoluteFile().getParentFile(), relativeFileLocation);
+                
+                if (failOnMissingIncludes && !subFile.exists()) 
+                {
+                    throw new NeuroMLException("Missing file included by "+xmlFile.getAbsolutePath()+": "+relativeFileLocation);
+                }
+                if (subFile.exists() && !alreadyIncluded.contains(subFile.getCanonicalPath())) 
+                {
+                    NeuroMLDocument subDoc = loadNeuroML(subFile, includeIncludes, failOnMissingIncludes, alreadyIncluded);
+                    LinkedHashMap<String,Standalone> saes = getAllStandaloneElements(subDoc);
+                    for (Standalone sae: saes.values()) 
+                    {
+                        addElementToDocument(nmlDocument, sae);
+                    }
+                }
+            }
+        }
+        
+        alreadyIncluded.add(xmlFile.getCanonicalPath());
+            
+        return nmlDocument;	
 	}
 	
 	public NeuroMLDocument loadNeuroML(String nml2Contents) throws NeuroMLException
@@ -123,7 +164,16 @@ public class NeuroMLConverter
         HashMap<String, List<Standalone>> output = new HashMap<String, List<Standalone>>();
         for (Method m: c.getDeclaredMethods()) {
             String elementName = m.getName().substring(3,4).toLowerCase()+m.getName().substring(4);
-            //System.out.println("M: "+m.toString()+", "+elementName);
+            
+            // TODO: investigate why these are needed...
+            if (elementName.startsWith("iF"))
+                elementName = "if"+elementName.substring(2);
+            if (elementName.startsWith("hH"))
+                elementName = "hh"+elementName.substring(2);
+            if (elementName.startsWith("eIF"))
+                elementName = "eif"+elementName.substring(3);
+            
+            //System.out.println("----\nM: "+m.toString()+", "+elementName);
             try {
                 m.setAccessible(true);
                 if (m.toString().contains("List")) {
@@ -133,11 +183,17 @@ public class NeuroMLConverter
                     {
                         try {
                             List<Standalone> list = (List<Standalone>)o;
+                            //if (!list.isEmpty())
+                            //    System.out.println("Add it: "+elementName+", "+list.size());
                             output.put(elementName, list);
 
                         } catch (ClassCastException cce) {
-                            //
+                            //System.out.println("Failure: "+cce);
                         }
+                    }
+                    else
+                    {
+                        //System.out.println("Ignore it...");
                     }
                 }
 
@@ -148,15 +204,22 @@ public class NeuroMLConverter
             }
             
         }
+        //System.out.println("found: "+output.values());
         for (String element: annot.propOrder()) {
+            //System.out.println("el: "+element);
             if (output.containsKey(element))
             {
                 List<Standalone> list = output.get(element);
                 for (Standalone s: list) {
+                    if (elements.containsKey(s.getId()))
+                    {
+                        throw new NeuroMLException("Repeated top level (standalone element) Id: "+elements.get(s.getId())+" and "+s);
+                    }
                     elements.put(s.getId(), s);
                 }
             }
         }
+        //System.out.println("found: "+elements.values());
 	    
         return elements;
     }
@@ -265,21 +328,33 @@ public class NeuroMLConverter
     
     
 	public static void main(String[] args) throws Exception {
-        String fileName = "../NeuroML2/examples/NML2_SingleCompHHCell.nml";
+        String fileName = "../NeuroML2/examples/NML2_PyNNCells.nml";
 		NeuroMLConverter nmlc = new NeuroMLConverter();
     	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName));
         System.out.println("Loaded: "+nmlDocument.getId());
         
-        
+        /*
         IafTauCell iaf = new IafTauCell();
         iaf.setTau("10ms");
         iaf.setId("iaf00");
-        addElementToDocument(nmlDocument, iaf);
+        addElementToDocument(nmlDocument, iaf);*/
         
         LinkedHashMap<String,Standalone> els = getAllStandaloneElements(nmlDocument);
         for (String el: els.keySet()) {
-            System.out.println("Found: "+ els.get(el));
+            System.out.println("A Found: "+ els.get(el).getId()+" ("+els.get(el)+")");
         }
+        /*
+        fileName = "../org.neuroml.export/src/test/resources/examples/TwoCell.net.nml";
+		nmlc = new NeuroMLConverter();
+    	nmlDocument = nmlc.loadNeuroML(new File(fileName), true);
+        System.out.println("Loaded: "+nmlDocument.getId());
+        
+        
+        
+        els = getAllStandaloneElements(nmlDocument);
+        for (String el: els.keySet()) {
+            System.out.println("B Found: "+ els.get(el).getId()+" ("+els.get(el)+")");
+        }*/
         
         
     }

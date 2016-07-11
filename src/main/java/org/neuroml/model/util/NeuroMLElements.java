@@ -2,7 +2,7 @@ package org.neuroml.model.util;
 
 public class NeuroMLElements {
 
-    public static final String ORG_NEUROML_MODEL_VERSION = "1.3.1";
+    public static final String ORG_NEUROML_MODEL_VERSION = "1.4.6";
     
     public static final String NAMESPACE_URI_VERSION_2 = "http://www.neuroml.org/schema/neuroml2";
 
@@ -11,10 +11,11 @@ public class NeuroMLElements {
     public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA1 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta1.xsd";
     public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA2 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/master/Schemas/NeuroML2/NeuroML_v2beta2.xsd";
     public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA3 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta3.xsd";
+    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA4 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta4.xsd";
     
 
-    public static final String LATEST_SCHEMA = "/Schemas/NeuroML2/NeuroML_v2beta3.xsd";
-    public static final String LATEST_SCHEMA_LOCATION = DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA3;
+    public static final String LATEST_SCHEMA = "/Schemas/NeuroML2/NeuroML_v2beta4.xsd";
+    public static final String LATEST_SCHEMA_LOCATION = DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA4;
 	
 
     
@@ -22,6 +23,7 @@ public class NeuroMLElements {
     public static final String BASE_ION_CHANNEL_COMP_TYPE = "baseIonChannel";
     public static final String ION_CHANNEL_HH_COMP_TYPE = "ionChannelHH";
     public static final String ION_CHANNEL_KS_COMP_TYPE = "ionChannelKS";
+    public static final String KS_STATE_COMP_TYPE = "KSState";
     
     // Cells
     public static final String BASE_CELL_COMP_TYPE = "baseCell";
@@ -32,6 +34,7 @@ public class NeuroMLElements {
     public static final String BASE_IAF_CAP_CELL = "baseIafCapCell";
     public static final String CELL_COMP_TYPE = "cell";
     
+    public static final String BASE_COND_SCALING_CA = "baseConductanceScalingCaDependent";
     public static final String BASE_GATE_COMP_TYPE = "baseGate";
     public static final String BASE_CONC_DEP_RATE_COMP_TYPE = "baseVoltageConcDepRate";
     public static final String BASE_CONC_DEP_VAR_COMP_TYPE = "baseVoltageConcDepVariable";
@@ -40,10 +43,13 @@ public class NeuroMLElements {
 
     public static final String CONC_MODEL_COMP_TYPE = "concentrationModel";
     public static final String CONC_MODEL_SURF_AREA = "surfaceArea";
-    public static final String CONC_MODEL_CA_TOT_CURR = "iCa";
+    //public static final String CONC_MODEL_CA_TOT_CURR = "iCa";
     public static final String CONC_MODEL_INIT_CONC = "initialConcentration";
     public static final String CONC_MODEL_INIT_EXT_CONC = "initialExtConcentration";
     public static final String CONC_MODEL_CONC_STATE_VAR = "concentration";
+    
+    
+    public static final String SEGMENT_GROUP_ALL = "all";
 
     // External props
     public static final String TEMPERATURE = "temperature";
@@ -51,6 +57,11 @@ public class NeuroMLElements {
 
     // Currents
     public static final String POINT_CURR_CURRENT = "i";
+    
+    // Spike sources
+    public static final String BASE_SPIKE_SOURCE_COMP_TYPE = "baseSpikeSource";
+    public static final String BASE_VOLT_DEP_CURR_SRC_SPIKING_COMP_TYPE = "baseVoltageDepPointCurrentSpiking";
+    public static final String SPIKE_ARRAY = "spikeArray";
     
     // Synapses
     public static final String BASE_POINT_CURR_COMP_TYPE = "basePointCurrent";
@@ -66,9 +77,23 @@ public class NeuroMLElements {
     public static final String POPULATION_COMPONENT = "component";
     public static final String POPULATION_SIZE = "size";
     public static final String INSTANCE = "instance";
+    public static final String LOCATION = "location";
+    public static final String LOCATION_X = "x";
+    public static final String LOCATION_Y = "y";
+    public static final String LOCATION_Z = "z";
     
     public static final String POPULATION_LIST = "populationList";
+    
     public static final String PROJECTION = "projection";
     public static final String CONNECTION = "connection";
+    public static final String CONNECTION_WEIGHT_DELAY = "connectionWD";
+    
+    public static final String ELECTRICAL_PROJECTION = "electricalProjection";
+    public static final String ELECTRICAL_CONNECTION = "electricalConnection";
+    public static final String ELECTRICAL_CONNECTION_INSTANCE = "electricalConnectionInstance";
+    
+    public static final String CONTINUOUS_PROJECTION = "continuousProjection";
+    public static final String CONTINUOUS_CONNECTION = "continuousConnection";
+    public static final String CONTINUOUS_CONNECTION_INSTANCE = "continuousConnectionInstance";
 
 }

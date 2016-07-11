@@ -51,9 +51,11 @@ public class CellUtils {
     
     public static Segment getSegmentWithId(Cell cell, int segmentId) throws NeuroMLException {
         List<Segment> segments = cell.getMorphology().getSegment();
-        Segment guess = segments.get(segmentId);
-        if (guess.getId()==segmentId)
-            return guess;
+        if (segments.size()>segmentId) {
+            Segment guess = segments.get(segmentId);
+            if (guess.getId()==segmentId)
+                return guess;
+        }
         for (Segment seg : segments) {
             if (seg.getId()==segmentId)
                 return seg;
@@ -70,7 +72,7 @@ public class CellUtils {
         return namesVsSegmentGroups;
     }
     
-    public static ArrayList<Integer> getSegmentIdsInGroup(Cell cell, String segmentGroup) throws NeuroMLException {
+    public static ArrayList<Integer> getSegmentIdsInGroup(Cell cell, String segmentGroup) {
         
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
             if (sg.getId().equals(segmentGroup)) {
@@ -78,7 +80,7 @@ public class CellUtils {
                 return getSegmentIdsInGroup(namesVsSegmentGroups, sg);
             }
         }
-        throw new NeuroMLException("No SegmentGroup: "+segmentGroup+" in cell with id: "+cell.getId());
+        return new ArrayList<Integer>();
     }
     
     public static ArrayList<Integer> getSegmentIdsInGroup(LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups, SegmentGroup segmentGroup) {
@@ -95,6 +97,16 @@ public class CellUtils {
         }
         
         return segsHere;
+    }
+    
+    public static boolean hasSegmentGroup(Cell cell, String segmentGroup) {
+        
+        for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
+            if (sg.getId().equals(segmentGroup)) {
+                return true;
+            }
+        }
+        return false;
     }
     
     public static ArrayList<Segment> getSegmentsInGroup(Cell cell, String segmentGroup) throws NeuroMLException {
@@ -131,7 +143,6 @@ public class CellUtils {
         LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups = getNamesVsSegmentGroups(cell);
         
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
-            //System.out.println("sggg: "+sg);
             ArrayList<Integer> segsHere = getSegmentIdsInGroup(namesVsSegmentGroups, sg);
             sgVsSegId.put(sg, segsHere);
         }
