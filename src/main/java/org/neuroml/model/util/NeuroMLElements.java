@@ -33,7 +33,11 @@ public class NeuroMLElements {
     public static final String BASE_CELL_CAP_POINT_COND_BASED_CA = "pointCellCondBasedCa";
     public static final String BASE_IAF_CELL = "baseIaf";
     public static final String BASE_IAF_CAP_CELL = "baseIafCapCell";
+    
+    public static final String BASE_PYNN_CELL = "basePyNNCell";
+    
     public static final String CELL_COMP_TYPE = "cell";
+    
     
     public static final String BASE_COND_SCALING_CA = "baseConductanceScalingCaDependent";
     public static final String BASE_GATE_COMP_TYPE = "baseGate";
