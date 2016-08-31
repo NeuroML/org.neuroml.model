@@ -31,6 +31,18 @@ public class CellUtils {
         return sg.getNeuroLexId()!=null &&
                sg.getNeuroLexId().equals(NEUROML2_NEUROLEX_UNBRANCHED_NONOVERLAPPING_SEG_GROUP);
     }
+    
+    public static boolean hasUnbranchedNonOverlappingInfo(Cell cell)
+    {
+        for (SegmentGroup sg : cell.getMorphology().getSegmentGroup())
+        {
+            if (isUnbranchedNonOverlapping(sg))
+            {
+                return true;
+            }
+        }
+        return false;
+    }
 
     public static LinkedHashMap<Integer, Segment> getIdsVsSegments(Cell cell) {
 
