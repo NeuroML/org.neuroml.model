@@ -1,0 +1,35 @@
+<neuroml xmlns="http://www.neuroml.org/schema/neuroml2"  xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.neuroml.org/schema/neuroml2 https://raw.github.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2beta5.xsd" id="IafNet">
+    <notes>Simple test file</notes>
+    <expOneSynapse id="syn0" gbase="65nS" erev="0mV" tauDecay="3ms"/>
+    <iafCell id="iaf0" leakReversal="-65mV" thresh="-50mV" reset="-65mV" C="1.0 nF" leakConductance="10 nS"/>
+    <iafCell id="iaf1" leakReversal="-65mV" thresh="-50mV" reset="-65mV" C="1.0 nF" leakConductance="20 nS"/>
+    <pulseGenerator id="pulseGen_0" delay="0ms" duration="100ms" amplitude="0.051456 nA"/>
+    <pulseGenerator id="pulseGen_1" delay="0ms" duration="100ms" amplitude="0.080642 nA"/>
+    <pulseGenerator id="pulseGen_2" delay="0ms" duration="100ms" amplitude="0.063389 nA"/>
+    <pulseGenerator id="pulseGen_3" delay="0ms" duration="100ms" amplitude="0.009040 nA"/>
+    <pulseGenerator id="pulseGen_4" delay="0ms" duration="100ms" amplitude="0.057664 nA"/>
+    <network id="IafNet">
+        <notes>Simple network</notes>
+        <population id="IafPop0" component="iaf0" size="5"/>
+        <population id="IafPop1" component="iaf0" size="5"/>
+        <synapticConnection from="IafPop0[0]" to="IafPop1[0]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[0]" to="IafPop1[1]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[1]" to="IafPop1[2]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[1]" to="IafPop1[3]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[1]" to="IafPop1[4]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[2]" to="IafPop1[0]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[2]" to="IafPop1[1]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[2]" to="IafPop1[4]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[3]" to="IafPop1[1]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[3]" to="IafPop1[2]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[3]" to="IafPop1[3]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[3]" to="IafPop1[4]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[4]" to="IafPop1[1]" synapse="syn0"/>
+        <synapticConnection from="IafPop0[4]" to="IafPop1[2]" synapse="syn0"/>
+        <explicitInput target="IafPop0[0]" input="pulseGen_0"/>
+        <explicitInput target="IafPop0[1]" input="pulseGen_1"/>
+        <explicitInput target="IafPop0[2]" input="pulseGen_2"/>
+        <explicitInput target="IafPop0[3]" input="pulseGen_3"/>
+        <explicitInput target="IafPop0[4]" input="pulseGen_4"/>
+    </network>
+</neuroml>

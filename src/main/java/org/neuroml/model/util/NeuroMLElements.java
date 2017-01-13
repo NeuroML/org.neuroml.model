@@ -18,7 +18,8 @@ public class NeuroMLElements {
     public static final String LATEST_SCHEMA = "/Schemas/NeuroML2/NeuroML_v2beta5.xsd";
     public static final String LATEST_SCHEMA_LOCATION = DEFAULT_SCHEMA_LOCATION_VERSION_2_BETA5;
 	
-
+    // Top level...
+    public static final String NEUROML_ROOT = "neuroml";
     
     // Ion channels
     public static final String BASE_ION_CHANNEL_COMP_TYPE = "baseIonChannel";
