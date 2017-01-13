@@ -28,8 +28,8 @@ public class HDF5Test
           
                 File h5File = new File(filepath.replaceAll("examples", "tmp").replaceAll(".nml", ".nml.h5"));
                 
-                NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
-                System.out.println("Written "+f+" to "+h5File.getAbsolutePath());
+                //NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
+                //System.out.println("Written "+f+" to "+h5File.getAbsolutePath());
             }
         }
 

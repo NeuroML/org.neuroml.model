@@ -10,28 +10,14 @@ package org.neuroml.model.util.hdf5;
 import ncsa.hdf.object.*;
 import ncsa.hdf.object.h5.*;
 import java.io.File;
-import javax.xml.parsers.SAXParserFactory;
-import java.io.FileInputStream;
 import java.io.IOException;
-import org.xml.sax.InputSource;
-import org.xml.sax.XMLReader;
-import java.util.Iterator;
-import java.util.ArrayList;
-import java.util.Vector;
 import ncsa.hdf.utils.SetNatives;
-import org.apache.tools.ant.Project;
 import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLElements;
 
-/**
- * Utilities file for generating NetworkML HDF5 files
- *
- * @author Padraig Gleeson
- *
- */
 
 public class NeuroMLHDF5Writer
 {
