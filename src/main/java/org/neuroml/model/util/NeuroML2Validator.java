@@ -1,6 +1,5 @@
 package org.neuroml.model.util;
 
-import com.sun.org.apache.bcel.internal.generic.AALOAD;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;

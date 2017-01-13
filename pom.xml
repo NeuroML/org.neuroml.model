@@ -37,7 +37,31 @@
             <artifactId>neuroml2-base-definitions</artifactId>
             <version>1.5.0</version>
         </dependency>
+        
+		<dependency>
+			<groupId>ncsa.hdf</groupId>
+			<artifactId>object</artifactId>
+			<version>2.12</version>
+		</dependency>
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-api</artifactId>
+			<version>1.7.22</version>
+		</dependency>
+
     </dependencies>
+	<repositories>
+
+		<repository>
+			<id>org.geppetto-mvn-repo</id>
+			<url>https://raw.github.com/openworm/org.geppetto.maven/mvn-repo</url>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+			</snapshots>
+		</repository>
+	</repositories>
+    
     <build>
         <plugins>
             <plugin>
