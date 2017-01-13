@@ -38,7 +38,6 @@ public class NeuroMLHDF5Reader
     public NeuroMLHDF5Reader() throws IOException
     {        
 		SetNatives.getInstance().setHDF5Native(System.getProperty("user.dir"));
-
     }
     
    

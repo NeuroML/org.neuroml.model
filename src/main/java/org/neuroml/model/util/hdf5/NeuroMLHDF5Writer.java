@@ -37,43 +37,7 @@ public class NeuroMLHDF5Writer
         Hdf5Utils.open(h5File);
 
         Group root = Hdf5Utils.getRootGroup(h5File);
-        Group nmlGroup = null;
-        
-
-/*
-        Iterator<String> cellGroups = gcp.getNamesGeneratedCellGroups();
-
-        while (cellGroups.hasNext())
-        {
-            String cg = cellGroups.next();
-            int numHere = gcp.getNumberInCellGroup(cg);
-            if (numHere>0)
-            notes.append("Cell Group: "+cg+" contains "+numHere+" cells\n");
-
-        }
-        notes.append("\n");
-
-        Iterator<String> netConns = gnc.getNamesNetConnsIter();
-
-        while (netConns.hasNext())
-        {
-            String mc = netConns.next();
-            int numHere = gnc.getSynapticConnections(mc).size();
-            if (numHere>0)
-            notes.append("Network connection: "+mc+" contains "+numHere+" individual synaptic connections\n");
-
-        }
-
-        Iterator<String> elecInputs = gei.getElecInputsItr();
-
-        while (elecInputs.hasNext())
-        {
-            String ei = elecInputs.next();
-            int numHere = gei.getNumberSingleInputs(ei);
-            if (numHere>0)
-            notes.append("Electrical Input: "+ei+" contains "+numHere+" individual stimulations\n");
-
-        }           */    
+        Group nmlGroup = null;   
         
         try
         {
@@ -87,11 +51,17 @@ public class NeuroMLHDF5Writer
                 
                 for (Population population: network.getPopulation())
                 {
-                    
                     Group popGroup = h5File.createGroup(NeuroMLElements.POPULATION+"_"+population.getId(), netGroup);
                     popGroup.writeMetadata(Hdf5Utils.getSimpleAttr("id", network.getId(), h5File));
                 }
             }
+            
+            neuroml.getNetwork().clear();
+            
+            NeuroMLConverter neuromlConverter = new NeuroMLConverter();
+            String xml = neuromlConverter.neuroml2ToXml(neuroml);
+            nmlGroup.writeMetadata(Hdf5Utils.getSimpleAttr("neuroml_top_level", xml, h5File));
+            
             
             
 
@@ -591,7 +561,7 @@ public class NeuroMLHDF5Writer
         {
             NeuroMLConverter neuromlConverter = new NeuroMLConverter();
             NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(nmlFile);
-            System.out.println("nmlDoc loaded: "+nmlDoc.getId());
+            System.out.println("nmlDoc loaded: \n"+NeuroMLConverter.summary(nmlDoc));
             
             NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
             

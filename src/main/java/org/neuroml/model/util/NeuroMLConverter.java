@@ -20,13 +20,17 @@ import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+import ncsa.hdf.object.Group;
 import org.neuroml.model.IafTauCell;
 import org.neuroml.model.Include;
 import org.neuroml.model.IncludeType;
 import org.neuroml.model.Morphology;
+import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.ObjectFactory;
+import org.neuroml.model.Population;
 import org.neuroml.model.Standalone;
+import org.neuroml.model.util.hdf5.Hdf5Utils;
 
 public class NeuroMLConverter
 {
@@ -152,6 +156,37 @@ public class NeuroMLConverter
             throw new NeuroMLException("Problem loading NeuroML document from URL", ex);
         }
 	}
+    
+    public static String summary(NeuroMLDocument nmlDocument) throws NeuroMLException {
+        
+        String info = new String();
+        info += "*******************************************************\n";
+        info += "* NeuroMLDocument: "+nmlDocument.getId()+"\n";
+        
+        LinkedHashMap<String,Standalone> sae = getAllStandaloneElements(nmlDocument);
+        for (String el: sae.keySet())
+        {
+            Standalone s = sae.get(el);
+            if (!el.equals("network")) {
+                info += "*  "+s.getClass().getSimpleName()+": "+s.getId()+"\n";
+                
+            }
+        }
+        
+        for (Network network: nmlDocument.getNetwork()) {
+            
+            info += "*  Network: "+network.getId()+"\n";
+        
+            for (Population population: network.getPopulation())
+            {
+                info += "*   Population: "+population.getId()+
+                    " with "+population.getSize() +" components of "+population.getComponent()+ "\n";
+            }
+        }
+        info += "*******************************************************\n";
+        
+        return info;
+    }
 	
 	public static LinkedHashMap<String,Standalone> getAllStandaloneElements(NeuroMLDocument nmlDocument) throws NeuroMLException
     {
