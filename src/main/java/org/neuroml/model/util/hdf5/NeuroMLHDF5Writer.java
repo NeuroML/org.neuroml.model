@@ -30,40 +30,38 @@ public class NeuroMLHDF5Writer
     public static File createNeuroMLH5file(NeuroMLDocument neuroml, File file) throws Hdf5Exception, IOException
     {
 
-		SetNatives.getInstance().setHDF5Native(System.getProperty("user.dir"));
-        
+        SetNatives.getInstance().setHDF5Native(System.getProperty("user.dir"));
+
         H5File h5File = Hdf5Utils.createH5file(file);
 
         Hdf5Utils.open(h5File);
 
         Group root = Hdf5Utils.getRootGroup(h5File);
         Group nmlGroup = null;   
-        
+
         try
         {
             nmlGroup = h5File.createGroup(NeuroMLElements.NEUROML_ROOT, root);
             nmlGroup.writeMetadata(Hdf5Utils.getSimpleAttr("id", neuroml.getId(), h5File));
             nmlGroup.writeMetadata(Hdf5Utils.getSimpleAttr("notes", neuroml.getNotes(), h5File));
-            
+
             for (Network network: neuroml.getNetwork()) {
                 Group netGroup = h5File.createGroup(NeuroMLElements.NETWORK, nmlGroup);
                 netGroup.writeMetadata(Hdf5Utils.getSimpleAttr("id", network.getId(), h5File));
-                
+
                 for (Population population: network.getPopulation())
                 {
                     Group popGroup = h5File.createGroup(NeuroMLElements.POPULATION+"_"+population.getId(), netGroup);
                     popGroup.writeMetadata(Hdf5Utils.getSimpleAttr("id", network.getId(), h5File));
                 }
             }
-            
+
             neuroml.getNetwork().clear();
-            
+
             NeuroMLConverter neuromlConverter = new NeuroMLConverter();
             String xml = neuromlConverter.neuroml2ToXml(neuroml);
             nmlGroup.writeMetadata(Hdf5Utils.getSimpleAttr("neuroml_top_level", xml, h5File));
-            
-            
-            
+
 
         }
         catch (Exception ex)
@@ -82,19 +80,19 @@ public class NeuroMLHDF5Writer
             try
             {
                 Group popGroup = h5File.createGroup(NetworkMLConstants.POPULATION_ELEMENT+"_"+cg, popsGroup);
-                
+
                 Attribute nameAttr = Hdf5Utils.getSimpleAttr(NetworkMLConstants.POP_NAME_ATTR, cg, h5File);
                 popGroup.writeMetadata(nameAttr);
-                
+
                 String cellType = project.cellGroupsInfo.getCellType(cg);
-            
+
                 Attribute cellTypeAttr = Hdf5Utils.getSimpleAttr(NetworkMLConstants.CELLTYPE_ATTR, cellType, h5File);
                 popGroup.writeMetadata(cellTypeAttr);
 
                 Datatype dtype = getPopDatatype(h5File);
-                
+
                 int numColumns = 4; // cellNum, x, y, z
-                
+
                 if (posRecs.get(0).getNodeId()!=PositionRecord.NO_NODE_ID)
                 {
                     numColumns = 5; // cellNum, x, y, z
@@ -115,7 +113,7 @@ public class NeuroMLHDF5Writer
                     posArray[i * numColumns + 3] = p.z_pos;
                     if (numColumns>4)
                         posArray[i * numColumns + 4] = p.getNodeId();
-                        
+
 
                 }
 
@@ -131,7 +129,7 @@ public class NeuroMLHDF5Writer
                 dataset.writeMetadata(attr2);
                 Attribute attr3 = Hdf5Utils.getSimpleAttr("column_3", NetworkMLConstants.LOC_Z_ATTR, h5File);
                 dataset.writeMetadata(attr3);
-                
+
                 if (numColumns>4)
                 {
                     Attribute attr4 = Hdf5Utils.getSimpleAttr("column_4", NetworkMLConstants.NODE_ID_ATTR, h5File);
@@ -161,15 +159,15 @@ public class NeuroMLHDF5Writer
             try
             {
                 Group projGroup = h5File.createGroup(NetworkMLConstants.PROJECTION_ELEMENT +"_" + nc, projsGroup);
-                
-                
+
+
                 Attribute nameAttr = Hdf5Utils.getSimpleAttr(NetworkMLConstants.PROJ_NAME_ATTR, nc, h5File);
                 projGroup.writeMetadata(nameAttr);
-                
+
                 String src = null;
                 String tgt = null;
                 Vector<SynapticProperties>  globalSynPropList = null;
-                
+
                 if (project.morphNetworkConnectionsInfo.isValidSimpleNetConn(nc))
                 {
                     src = project.morphNetworkConnectionsInfo.getSourceCellGroup(nc);
@@ -183,60 +181,60 @@ public class NeuroMLHDF5Writer
                     src = project.volBasedConnsInfo.getTargetCellGroup(nc);
                     globalSynPropList = project.volBasedConnsInfo.getSynapseList(nc);
                 }
-                
+
                 Attribute srcAttr = Hdf5Utils.getSimpleAttr(NetworkMLConstants.SOURCE_ATTR, src, h5File);
                 projGroup.writeMetadata(srcAttr);
                 Attribute tgtAttr = Hdf5Utils.getSimpleAttr(NetworkMLConstants.TARGET_ATTR, tgt, h5File);
                 projGroup.writeMetadata(tgtAttr);
-                
+
                 float globWeight = 1;
                 float globDelay = 0;
-                
+
                 for(SynapticProperties sp:  globalSynPropList)
                 {
                     Group synPropGroup = h5File.createGroup(NetworkMLConstants.SYN_PROPS_ELEMENT +"_" + sp.getSynapseType(), projGroup);
 
                     Attribute synTypeAttr = Hdf5Utils.getSimpleAttr(NetworkMLConstants.SYN_TYPE_ATTR, sp.getSynapseType(), h5File);
                     synPropGroup.writeMetadata(synTypeAttr);
-                    
+
                     globDelay = (float)UnitConverter.getTime(sp.getDelayGenerator().getNominalNumber(), UnitConverter.NEUROCONSTRUCT_UNITS, unitSystem);
                     Attribute synTypeDelay = Hdf5Utils.getSimpleAttr(NetworkMLConstants.INTERNAL_DELAY_ATTR, globDelay+"", h5File);
                     synPropGroup.writeMetadata(synTypeDelay);
-                    
+
                     globWeight = sp.getWeightsGenerator().getNominalNumber();
                     Attribute synTypeWeight = Hdf5Utils.getSimpleAttr(NetworkMLConstants.WEIGHT_ATTR, globWeight+"", h5File);
                     synPropGroup.writeMetadata(synTypeWeight);
-                    
+
                     Attribute synTypeThreshold = Hdf5Utils.getSimpleAttr(NetworkMLConstants.THRESHOLD_ATTR, 
                             (float)UnitConverter.getVoltage(sp.getThreshold(), UnitConverter.NEUROCONSTRUCT_UNITS, unitSystem)+"", h5File);
-                    
+
                     synPropGroup.writeMetadata(synTypeThreshold);
                 }
-                
+
                 ArrayList<String> columnsNeeded = new ArrayList<String>();
-                
+
                 columnsNeeded.add(NetworkMLConstants.CONNECTION_ID_ATTR);
                 columnsNeeded.add(NetworkMLConstants.PRE_CELL_ID_ATTR);
                 columnsNeeded.add(NetworkMLConstants.POST_CELL_ID_ATTR);
-                
+
                 for (int i = 0; i < conns.size(); i++)
                 {
                     SingleSynapticConnection conn = conns.get(i);
-                    
+
                     if (conn.sourceEndPoint.location.getSegmentId()!=0 && !columnsNeeded.contains(NetworkMLConstants.PRE_SEGMENT_ID_ATTR))
                         columnsNeeded.add(NetworkMLConstants.PRE_SEGMENT_ID_ATTR);
-                    
+
                     if (conn.sourceEndPoint.location.getFractAlong()!=SegmentLocation.DEFAULT_FRACT_CONN && 
                             !columnsNeeded.contains(NetworkMLConstants.PRE_FRACT_ALONG_ATTR))
                         columnsNeeded.add(NetworkMLConstants.PRE_FRACT_ALONG_ATTR);
-                    
+
                     if (conn.targetEndPoint.location.getSegmentId()!=0 && !columnsNeeded.contains(NetworkMLConstants.POST_SEGMENT_ID_ATTR))
                         columnsNeeded.add(NetworkMLConstants.POST_SEGMENT_ID_ATTR);
-                    
+
                     if (conn.targetEndPoint.location.getFractAlong()!=SegmentLocation.DEFAULT_FRACT_CONN && 
                             !columnsNeeded.contains(NetworkMLConstants.POST_FRACT_ALONG_ATTR))
                         columnsNeeded.add(NetworkMLConstants.POST_FRACT_ALONG_ATTR);
-                    
+
                     if (conn.apPropDelay!=0)
                     {
                         for(SynapticProperties sp:  globalSynPropList)
@@ -248,20 +246,20 @@ public class NeuroMLHDF5Writer
                             }
                         }
                     }
-                    
+
                     if (conn.props!=null)
                     {
                         for(ConnSpecificProps prop: conn.props)
                         {
                             if(prop.weight!=1 && !columnsNeeded.contains(NetworkMLConstants.WEIGHT_ATTR+"_"+prop.synapseType))
                                 columnsNeeded.add(NetworkMLConstants.WEIGHT_ATTR+"_"+prop.synapseType);
-                            
+
                             if(prop.internalDelay!=0 && !columnsNeeded.contains(NetworkMLConstants.INTERNAL_DELAY_ATTR+"_"+prop.synapseType))
                                 columnsNeeded.add(NetworkMLConstants.INTERNAL_DELAY_ATTR+"_"+prop.synapseType);
                         }
                     }
                 }
-                
+
 
                 Datatype dtype = getProjDatatype(h5File);
 
@@ -279,29 +277,29 @@ public class NeuroMLHDF5Writer
 
                     projArray[i * columnsNeeded.size() + row] = conn.sourceEndPoint.cellNumber;
                     row++;
-                    
+
                     projArray[i * columnsNeeded.size() + row] = conn.targetEndPoint.cellNumber;
                     row++;
-                    
+
                     if (columnsNeeded.contains(NetworkMLConstants.PRE_SEGMENT_ID_ATTR))
                     {
                         projArray[i * columnsNeeded.size() + row] = conn.sourceEndPoint.location.getSegmentId();
                         row++;
                     }
-                    
+
                     if (columnsNeeded.contains(NetworkMLConstants.PRE_FRACT_ALONG_ATTR))
                     {
                         projArray[i * columnsNeeded.size() + row] = conn.sourceEndPoint.location.getFractAlong();
                         row++;
                     }
 
-                    
+
                     if (columnsNeeded.contains(NetworkMLConstants.POST_SEGMENT_ID_ATTR))
                     {
                         projArray[i * columnsNeeded.size() + row] = conn.targetEndPoint.location.getSegmentId();
                         row++;
                     }
-                    
+
                     if (columnsNeeded.contains(NetworkMLConstants.POST_FRACT_ALONG_ATTR))
                     {
                         projArray[i * columnsNeeded.size() + row] = conn.targetEndPoint.location.getFractAlong();
@@ -317,8 +315,8 @@ public class NeuroMLHDF5Writer
                             row++;
                         }
                     }
-                    
-                    
+
+
                     if (conn.props!=null)
                     {
                         for(ConnSpecificProps prop: conn.props)
@@ -334,21 +332,21 @@ public class NeuroMLHDF5Writer
                                         (float)UnitConverter.getTime(prop.internalDelay, UnitConverter.NEUROCONSTRUCT_UNITS, unitSystem);
                                 row++;
                             }
-                            
+
                         }
                     }
 
                 }
 
                 Dataset projDataset = h5File.createScalarDS(nc, projGroup, dtype, dims2D, null, null, 0, projArray);
-                
+
                 for(int i=0;i<columnsNeeded.size();i++)
                 {
                     Attribute attr = Hdf5Utils.getSimpleAttr("column_"+i, columnsNeeded.get(i), h5File);
                     projDataset.writeMetadata(attr);
                 }
-                
-                
+
+
                 System.out.println("Dataset compression: " + projDataset.getCompression());
 
             }
@@ -357,26 +355,26 @@ public class NeuroMLHDF5Writer
                 throw new Hdf5Exception("Failed to create group in HDF5 file: " + h5File.getFilePath(), ex);
             }
         }
-         
+
         // Start of writing the Electrical Inputs into Hdf5 format
-        
+
         // Create Record Inputs
         //                 - Input either IClamp or Random Spike
         //                      - IClamp Type add attributes Delay, Duration, Amplitude)
         //                      - Random Spike add attributes Frequency, Mechanism) 
         //                              - Sites Group Table of 4 Columns (Cell Group ID, Cell ID, Segment ID, Fraction Along)
-        
+
         // Create an iterator to navigate through all the input names
-        
+
         Iterator<String> nEi = gei.getElecInputsItr(); 
         try
         { 
             // Add units for the Inputs
-            
+
                 Attribute unitsAttr = Hdf5Utils.getSimpleAttr(NetworkMLConstants.UNITS_ATTR, units, h5File);
                 inputsGroup.writeMetadata(unitsAttr);
-           
-            
+
+
             // loop around all the inputs
             while(nEi.hasNext())        
             {
@@ -436,13 +434,13 @@ public class NeuroMLHDF5Writer
                         Group inputTypeGroup = h5File.createGroup(myElectricalInput.getType()+"_"+"properties", inputGroup);
 
                         // Get Details of the IClamp attributes
-                        
-                        
+
+
                         String delay = (float)UnitConverter.getTime(ic.getDel().getNominalNumber(), UnitConverter.NEUROCONSTRUCT_UNITS, unitSystem)+"";
                         String duration = (float)UnitConverter.getTime(ic.getDur().getNominalNumber(), UnitConverter.NEUROCONSTRUCT_UNITS, unitSystem)+"";     
                         String amp = (float)UnitConverter.getCurrent(ic.getAmp().getNominalNumber(), UnitConverter.NEUROCONSTRUCT_UNITS, unitSystem)+"";
-            
-            
+
+
 //////////                        ic.getDelay().reset();
 //////////                        String delay = (float)UnitConverter.getTime(ic.getDelay().getNumber(), UnitConverter.NEUROCONSTRUCT_UNITS, unitSystem)+"";
 //////////                        ic.getDuration().reset();
@@ -494,16 +492,16 @@ public class NeuroMLHDF5Writer
             {
                 throw new Hdf5Exception("Failed to create group in HDF5 file: " + h5File.getFilePath(), ex);
             }
-        
+
         */
-        
+
         //h5File.
 
         Hdf5Utils.close(h5File);
 
         System.out.println("Created file: " + file);
         System.out.println("Size: " + file.length()+" bytes");
-        
+
         return file;
     }
 
@@ -553,21 +551,21 @@ public class NeuroMLHDF5Writer
 
     public static void main(String[] args)
     {
-        
+
         File h5File = new File("../temp/net.h5");
         File nmlFile = new File("src/test/resources/examples/testnet.nml");
-        
+
         try
         {
             NeuroMLConverter neuromlConverter = new NeuroMLConverter();
             NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(nmlFile);
             System.out.println("nmlDoc loaded: \n"+NeuroMLConverter.summary(nmlDoc));
-            
+
             NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
-            
+
             /*
             //System.out.println("Sys prop: "+System.getProperty("java.library.path"), true);
-            
+
             Project testProj = Project.loadProject(new File("nCmodels/GranCellLayer/GranCellLayer.ncx"),
                                                    null);
 

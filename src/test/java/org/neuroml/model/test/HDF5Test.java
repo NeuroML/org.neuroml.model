@@ -27,9 +27,11 @@ public class HDF5Test
                 NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(new File(filepath));
           
                 File h5File = new File(filepath.replaceAll("examples", "tmp").replaceAll(".nml", ".nml.h5"));
+                if (!h5File.getParentFile().exists())
+                    h5File.getParentFile().mkdir();
                 
-                //NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
-                //System.out.println("Written "+f+" to "+h5File.getAbsolutePath());
+                NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
+                System.out.println("Written "+f+" to "+h5File.getAbsolutePath());
             }
         }
 
