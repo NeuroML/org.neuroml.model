@@ -22,6 +22,8 @@ import org.neuroml.model.util.NeuroMLElements;
 public class NeuroMLHDF5Writer
 {
 
+    public static String NEUROML_TOP_LEVEL_CONTENT = "neuroml_top_level";
+    
     public NeuroMLHDF5Writer()
     {
         super();
@@ -42,17 +44,19 @@ public class NeuroMLHDF5Writer
         try
         {
             nmlGroup = h5File.createGroup(NeuroMLElements.NEUROML_ROOT, root);
-            nmlGroup.writeMetadata(Hdf5Utils.getSimpleAttr("id", neuroml.getId(), h5File));
-            nmlGroup.writeMetadata(Hdf5Utils.getSimpleAttr("notes", neuroml.getNotes(), h5File));
+            
+            Hdf5Utils.addStringAttribute(nmlGroup, "id", neuroml.getId(), h5File);
+            Hdf5Utils.addStringAttribute(nmlGroup, "notes", neuroml.getNotes(), h5File);
+            
 
             for (Network network: neuroml.getNetwork()) {
                 Group netGroup = h5File.createGroup(NeuroMLElements.NETWORK, nmlGroup);
-                netGroup.writeMetadata(Hdf5Utils.getSimpleAttr("id", network.getId(), h5File));
+                Hdf5Utils.addStringAttribute(netGroup, "id", network.getId(), h5File);
 
                 for (Population population: network.getPopulation())
                 {
                     Group popGroup = h5File.createGroup(NeuroMLElements.POPULATION+"_"+population.getId(), netGroup);
-                    popGroup.writeMetadata(Hdf5Utils.getSimpleAttr("id", network.getId(), h5File));
+                    Hdf5Utils.addStringAttribute(popGroup, "id", population.getId(), h5File);
                 }
             }
 
@@ -60,7 +64,8 @@ public class NeuroMLHDF5Writer
 
             NeuroMLConverter neuromlConverter = new NeuroMLConverter();
             String xml = neuromlConverter.neuroml2ToXml(neuroml);
-            nmlGroup.writeMetadata(Hdf5Utils.getSimpleAttr("neuroml_top_level", xml, h5File));
+            
+            Hdf5Utils.addStringAttribute(nmlGroup, NEUROML_TOP_LEVEL_CONTENT, xml, h5File);
 
 
         }

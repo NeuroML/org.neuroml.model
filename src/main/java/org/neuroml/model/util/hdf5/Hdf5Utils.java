@@ -55,6 +55,16 @@ public class Hdf5Utils
         
         return attr;
     }
+    
+    public static void addStringAttribute(Group group, String name, String value, H5File h5File) throws Exception
+    {
+        Datatype dtype = h5File.createDatatype(Datatype.CLASS_STRING, value.length()+1, Datatype.NATIVE, Datatype.NATIVE);
+        
+        String[] info = new String[]{value };
+        Attribute attr = new Attribute(name, dtype, new long[]{1}, info);
+        
+        group.writeMetadata(attr);
+    }
 
     public static H5File createH5file(File file) throws Hdf5Exception
     {
@@ -166,9 +176,14 @@ public class Hdf5Utils
         {
             if (attribute.getName().equals(attrName))
             {
+                /*System.out.println("----Attr: "+attribute+", val: "+attribute.getValue()+
+                               ", class: "+attribute.getValue().getClass()+", dim: "+attribute.getDataDims().length+
+                               ", desc: "+attribute.getType().getDatatypeDescription());*/
+            
                 if (attribute.getValue() instanceof Object[])
                 {
                     Object[] vals = (Object[])attribute.getValue();
+                    //System.out.println("Array of length: "+vals.length);
 
                     return vals[0].toString();
                 }

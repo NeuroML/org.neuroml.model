@@ -103,5 +103,8 @@ public class NeuroMLElements {
     public static final String CONTINUOUS_PROJECTION = "continuousProjection";
     public static final String CONTINUOUS_CONNECTION = "continuousConnection";
     public static final String CONTINUOUS_CONNECTION_INSTANCE = "continuousConnectionInstance";
+    
+    
+    public static final String INPUT_LIST = "inputList";
 
 }
