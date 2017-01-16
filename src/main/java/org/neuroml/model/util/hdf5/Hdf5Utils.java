@@ -176,9 +176,14 @@ public class Hdf5Utils
         {
             if (attribute.getName().equals(attrName))
             {
-                /*System.out.println("----Attr: "+attribute+", val: "+attribute.getValue()+
-                               ", class: "+attribute.getValue().getClass()+", dim: "+attribute.getDataDims().length+
-                               ", desc: "+attribute.getType().getDatatypeDescription());*/
+                /*System.out.println("---- Attribute: "+attribute+"; val: "+attribute.getValue()+
+                               "; class: "+attribute.getValue().getClass()+"; dim: "+attribute.getDataDims().length+
+                               "; desc: "+attribute.getType().getDatatypeDescription()
+                               +"; dt class "+attribute.getType().getDatatypeClass()
+                               +"; dt order "+attribute.getType().getDatatypeOrder()
+                               +"; dt sign "+attribute.getType().getDatatypeSign()
+                               +"; dt size "+attribute.getType().getDatatypeSize()
+                               +"; dt nat "+attribute.getType().toNative());*/
             
                 if (attribute.getValue() instanceof Object[])
                 {

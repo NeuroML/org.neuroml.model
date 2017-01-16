@@ -57,6 +57,14 @@ public class NeuroMLHDF5Writer
                 {
                     Group popGroup = h5File.createGroup(NeuroMLElements.POPULATION+"_"+population.getId(), netGroup);
                     Hdf5Utils.addStringAttribute(popGroup, "id", population.getId(), h5File);
+                    Hdf5Utils.addStringAttribute(popGroup, "component", population.getComponent(), h5File);
+                    int size;
+                    if (!population.getInstance().isEmpty())
+                        size = population.getInstance().size();
+                    else
+                        size = population.getSize();
+                    
+                    Hdf5Utils.addStringAttribute(popGroup, "size", size+"", h5File);
                 }
             }
 
