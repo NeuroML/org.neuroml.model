@@ -609,64 +609,27 @@ public class NeuroMLHDF5Writer
     {
 
         File h5File = new File("../temp/net.h5");
-        //File nmlFile = new File("src/test/resources/examples/testnet.nml");
-        File nmlFile = new File("src/test/resources/examples/MediumNet.net.nml");
+        File nmlFile = new File("src/test/resources/examples/testnet.nml");
+        //File nmlFile = new File("src/test/resources/examples/MediumNet.net.nml");
 
         try
         {
             NeuroMLConverter neuromlConverter = new NeuroMLConverter();
             NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(nmlFile);
             
-            System.out.println("nmlDoc loaded: \n"+NeuroMLConverter.summary(nmlDoc));
+            String summary0 = NeuroMLConverter.summary(nmlDoc);
+            System.out.println("nmlDoc loaded: \n"+summary0);
 
             NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
 
-            /*
-            //System.out.println("Sys prop: "+System.getProperty("java.library.path"), true);
+            NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
 
-            Project testProj = Project.loadProject(new File("nCmodels/GranCellLayer/GranCellLayer.ncx"),
-                                                   null);
+            nmlReader.parse(h5File);
+            String summary1 = NeuroMLConverter.summary(nmlReader.getNeuroMLDocument());
 
-            //File nmlFile = new File("examples/Ex9-GranCellLayer/savedNetworks/600.nml");
-            File nmlFile = new File("nCmodels/GranCellLayer/savedNetworks/75.nml");
-            //File nmlFile = new File("../copynCmodels/Parallel/savedNetworks/50000.nml");
-            //File nmlFile = new File("../copynCmodels/NewGranCellLayer/savedNetworks/87000Rand.nml");
-            //File nmlFile = new File("../temp/test.nml");
-            //File nmlFile = new File("../copynCmodels/Parallel/savedNetworks/50000.nml");
+            System.out.println("File loaded: "+h5File+"\n"+summary1);
 
-
-            System.out.println("Loading netml cell from " + nmlFile.getAbsolutePath(), true);
-            System.out.println("Saving netml to " + h5File.getAbsolutePath(), true);
-
-            GeneratedCellPositions gcp = testProj.generatedCellPositions;
-            GeneratedNetworkConnections gnc = testProj.generatedNetworkConnections;
-            GeneratedElecInputs gei = testProj.generatedElecInputs;
-
-            FileInputStream instream = null;
-            InputSource is = null;
-
-            SAXParserFactory spf = SAXParserFactory.newInstance();
-            spf.setNamespaceAware(true);
-
-            XMLReader xmlReader = spf.newSAXParser().getXMLReader();
-
-            NetworkMLReader nmlBuilder = new NetworkMLReader(testProj);
-            xmlReader.setContentHandler(nmlBuilder);
-
-            instream = new FileInputStream(nmlFile);
-
-            is = new InputSource(instream);
-
-            xmlReader.parse(is);
-
-            //System.out.println("Cells: " + gcp.getNumberInAllCellGroups(), true);
-            //System.out.println("Net conn num: " + gnc.getNumberSynapticConnections(GeneratedNetworkConnections.ANY_NETWORK_CONNECTION), true);
-            //System.out.println("Stimulations num: " + gei.getNumberSingleInputs(), true);
-
-            NetworkMLWriter.createNetworkMLH5file(h5File, 
-                                                  testProj,
-                                                  testProj.simConfigInfo.getDefaultSimConfig(),
-                                                  NetworkMLConstants.UNITS_PHYSIOLOGICAL);*/
+            compare(summary0,summary1);
 
         }
         catch (Exception e)
@@ -676,5 +639,22 @@ public class NeuroMLHDF5Writer
         }
 
 
+    }
+    
+    
+    private static void compare(String s1, String s2)
+    {
+        //System.out.println("Comparing\n"+"\n----------------------------\n"+s1+"\n----------------------------\n"+s2+"\n----------------------------\n");
+        String[] s1a = s1.split("\n");
+        String[] s2a = s2.split("\n");
+        for (int i=0;i< Math.min(s2a.length, s1a.length);i++) {
+            if (!s1a[i].equals(s2a[i]))
+                System.out.println("Mismatch, line "+i+":\n"+"\n----------------------------\n"+s1a[i]+"\n----------------------------\n"+s2a[i]+"\n----------------------------\n");
+            //Assert.assertEquals(s1, s2);
+        }
+        
+        assert(s1.equals(s2));
+        
+        System.out.println("Strings are equal!!");
     }
 }

@@ -31,7 +31,6 @@ import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.ObjectFactory;
 import org.neuroml.model.Population;
 import org.neuroml.model.Standalone;
-import org.neuroml.model.util.hdf5.Hdf5Utils;
 
 public class NeuroMLConverter
 {
@@ -168,7 +167,8 @@ public class NeuroMLConverter
         for (String el: sae.keySet())
         {
             Standalone s = sae.get(el);
-            if (!el.equals("network")) {
+            if (!s.getClass().getSimpleName().equals("Network")) {
+                
                 info += "*  "+s.getClass().getSimpleName()+": "+s.getId()+"\n";
                 
             }

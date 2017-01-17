@@ -13,7 +13,9 @@ import ncsa.hdf.object.h5.*;
 import java.io.*;
 import java.util.ArrayList;
 import ncsa.hdf.utils.SetNatives;
+import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
+import org.neuroml.model.Population;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLElements;
 import org.neuroml.model.util.NeuroMLException;
@@ -27,13 +29,15 @@ public class NeuroMLHDF5Reader
     boolean inProjections = false;
     boolean inInputs = false;
     
-    String currentPopulation = null;
+    Network currentNetwork = null;
+    
+    Population currentPopulation = null;
     String currentProjection = null;
     String currentInput = null;
    
-    
     NeuroMLConverter neuromlConverter;
     NeuroMLDocument neuroMLDocument;
+    boolean verbose = false;
 
     public NeuroMLHDF5Reader() throws IOException, NeuroMLException
     {        
@@ -45,13 +49,26 @@ public class NeuroMLHDF5Reader
         return neuroMLDocument;
     }
     
+    public void setVerbose(boolean v)
+    {
+        this.verbose = v;
+        Hdf5Utils.setVerbose(v);
+        
+    }
+    
+    private void printv(String msg)
+    {
+        String pre = "HDF5 R >> ";
+        if (verbose) 
+            System.out.println(pre+msg.replaceAll("\n", "\n"+pre));
+    }
     
     public void parse(File hdf5File) throws Hdf5Exception, NeuroMLException 
     {
         H5File h5File = Hdf5Utils.openForRead(hdf5File);
         
         Group root = Hdf5Utils.getRootGroup(h5File);
-        System.out.println("root: "+root);
+        printv("root: "+root);
         
         parseGroup(root);
         
@@ -61,20 +78,18 @@ public class NeuroMLHDF5Reader
         
     public void startGroup(Group g) throws Hdf5Exception, NeuroMLException
     {
-        System.out.println("-----   Going into a group: "+g.getFullName());
+        printv("-----   Going into a group: "+g.getFullName());
         
         ArrayList<Attribute> attrs = Hdf5Utils.parseGroupForAttributes(g);
             
         for (Attribute attribute : attrs) 
         {
-            //attribute.
-            System.out.println("Group: "+g.getName()+ " has attribute: "+ attribute.getName()+" = "+ Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName()));
-            
+            printv("Group: "+g.getName()+ " has attribute: "+ attribute.getName()+" = "+ Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName()));
         }
         
         if (g.getName().equals((NeuroMLElements.NEUROML_ROOT)))
         {
-            System.out.println("Found the main group");
+            printv("Found the main group");
             for (Attribute attr: attrs) {
                 if (attr.getName().equals(NEUROML_TOP_LEVEL_CONTENT)){
                     String nml = Hdf5Utils.getFirstStringValAttr(attrs, attr.getName());
@@ -85,6 +100,30 @@ public class NeuroMLHDF5Reader
                 neuroMLDocument = new NeuroMLDocument();
             
 
+        }
+        if (g.getName().equals((NeuroMLElements.NETWORK)))
+        {
+            printv("Found the network group");
+            
+            currentNetwork = new Network();
+            currentNetwork.setId(Hdf5Utils.getFirstStringValAttr(attrs, "id"));
+            currentNetwork.setNotes(Hdf5Utils.getFirstStringValAttr(attrs, "notes"));
+            neuroMLDocument.getNetwork().add(currentNetwork);
+            
+
+        }
+        if (g.getName().startsWith(NeuroMLElements.POPULATION+"_"))
+        {
+            printv("Found a population group");
+            
+            currentPopulation = new Population();
+            currentNetwork.getPopulation().add(currentPopulation);
+            currentPopulation.setId(Hdf5Utils.getFirstStringValAttr(attrs, "id"));
+            currentPopulation.setSize(Integer.parseInt(Hdf5Utils.getFirstStringValAttr(attrs, "size")));
+            currentPopulation.setComponent(Hdf5Utils.getFirstStringValAttr(attrs, "component"));
+            
+            
+
         }/*
         if (g.getName().startsWith(NetworkMLConstants.PROJECTION_ELEMENT) && inProjections)
         {
@@ -92,7 +131,7 @@ public class NeuroMLHDF5Reader
             String source = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.SOURCE_ATTR);
             String target = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.TARGET_ATTR);
             
-            System.out.println("Found a projection: "+ name+" from "+ source+" to "+ target);
+            printv("Found a projection: "+ name+" from "+ source+" to "+ target);
             
             
             currentProjection = name;
@@ -125,13 +164,13 @@ public class NeuroMLHDF5Reader
             if (propDelay!=null)
                 globAPDelay = (float)UnitConverter.getTime(Float.parseFloat(propDelay), projUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
             
-            System.out.println("Found: "+ cp);
+            printv("Found: "+ cp);
             
             globConnProps.add(cp);
         }
         else if (g.getName().equals(NetworkMLConstants.INPUTS_ELEMENT))
         {
-            System.out.println("Found the Inputs group");
+            printv("Found the Inputs group");
             inInputs = true;
             
             String units = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.UNITS_ATTR);
@@ -146,7 +185,7 @@ public class NeuroMLHDF5Reader
             
             //String inputName = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_ELEMENT);
             
-            System.out.println("Found an Input: "+ inputName);
+            printv("Found an Input: "+ inputName);
             //inInput = true;
             
             if (project.elecInputInfo.getStim(inputName) == null)
@@ -177,7 +216,7 @@ public class NeuroMLHDF5Reader
             ElectricalInput myElectricalInput = nextStim.getElectricalInput();
             IClamp ic = (IClamp)myElectricalInput;
             
-            System.out.println("Found an IClamp Input"); 
+            printv("Found an IClamp Input"); 
             
             float currDelay=-1, currDur=-1, currAmp=-1;
             
@@ -217,7 +256,7 @@ public class NeuroMLHDF5Reader
             ElectricalInput myElectricalInput = nextStim.getElectricalInput();
             RandomSpikeTrain rs = (RandomSpikeTrain)myElectricalInput;
             
-            System.out.println("Found an Random Spike Train Input");
+            printv("Found an Random Spike Train Input");
             
             if ((!project.elecInputInfo.getStim(inputName).getCellGroup().equals(cellGroup))||
                     frequency != rs.getRate().getFixedNum()||
@@ -235,12 +274,16 @@ public class NeuroMLHDF5Reader
     
     public void endGroup(Group g) throws Hdf5Exception
     {
-        System.out.println("-----   Going out of a group: "+g.getFullName());
+        printv("-----   Going out of a group: "+g.getFullName());
         
         if (g.getName().equals(NeuroMLElements.INPUT_LIST))
         {
             currentInput = null;
         }        
+        else if (g.getName().startsWith(NeuroMLElements.NETWORK))
+        {
+            currentNetwork = null;
+        }       
         else if (g.getName().startsWith(NeuroMLElements.POPULATION))
         {
             currentPopulation = null;
@@ -270,19 +313,19 @@ public class NeuroMLHDF5Reader
     
     public void dataSet(Dataset d) throws Hdf5Exception
     {
-        System.out.println("-----   Looking through dataset: "+d);
+        printv("-----   Looking through dataset: "+d);
         
         ArrayList<Attribute> attrs = Hdf5Utils.parseDatasetForAttributes(d);
             
         for (Attribute attribute : attrs) 
         {
-            System.out.println("Dataset: "+d.getName()+ " has attribute: "+ attribute.getName()+" = "+ Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName()));
+            printv("Dataset: "+d.getName()+ " has attribute: "+ attribute.getName()+" = "+ Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName()));
             
         }
         
         float[][] data = Hdf5Utils.parse2Ddataset(d);
         
-        System.out.println("Data has size: ("+data.length+", "+data[0].length+")");
+        printv("Data has size: ("+data.length+", "+data[0].length+")");
         
         
         if (inPopulations && currentPopulation!=null)
@@ -306,7 +349,7 @@ public class NeuroMLHDF5Reader
         }/*
         if (inProjections && currentProjection!=null)
         {
-            System.out.println("Adding info for NetConn: "+ currentProjection);
+            printv("Adding info for NetConn: "+ currentProjection);
             
             int id_col = -1;
             
@@ -329,7 +372,7 @@ public class NeuroMLHDF5Reader
                 if (storedInColumn.equals(NetworkMLConstants.CONNECTION_ID_ATTR))
                 {
                     id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    System.out.println("id col: "+id_col);
+                    printv("id col: "+id_col);
                 }
                 else if (storedInColumn.equals(NetworkMLConstants.PRE_CELL_ID_ATTR))
                 {
@@ -338,12 +381,12 @@ public class NeuroMLHDF5Reader
                 else if (storedInColumn.equals(NetworkMLConstants.PRE_SEGMENT_ID_ATTR))
                 {
                     pre_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    System.out.println("pre_segment_id_col: "+pre_segment_id_col);
+                    printv("pre_segment_id_col: "+pre_segment_id_col);
                 }
                 else if (storedInColumn.equals(NetworkMLConstants.PRE_FRACT_ALONG_ATTR))
                 {
                     pre_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    System.out.println("pre_fraction_along_col: "+pre_fraction_along_col);
+                    printv("pre_fraction_along_col: "+pre_fraction_along_col);
                 }
                 
                 
@@ -435,7 +478,7 @@ public class NeuroMLHDF5Reader
                 {
                     for(ConnSpecificProps currCp:localConnProps)
                     {
-                        System.out.println("Pre cp: "+currCp);
+                        printv("Pre cp: "+currCp);
                         ConnSpecificProps cp2 = new ConnSpecificProps(currCp.synapseType);
                         
                         if (currCp.internalDelay>0) // index was stored in this val...
@@ -443,7 +486,7 @@ public class NeuroMLHDF5Reader
                         if (currCp.weight>0) // index was stored in this val...
                             cp2.weight = data[i][(int)currCp.weight];
                         
-                        System.out.println("Filled cp: "+cp2);
+                        printv("Filled cp: "+cp2);
                         
                         props.add(cp2);
                     }
@@ -464,7 +507,7 @@ public class NeuroMLHDF5Reader
         }
         if (inInputs && currentInput !=null)
         {
-            System.out.println("Adding info for: "+ currentInput);
+            printv("Adding info for: "+ currentInput);
             StimulationSettings nextStim = project.elecInputInfo.getStim(currentInput);
             ElectricalInput myElectricalInput = nextStim.getElectricalInput();
             String electricalInputType = myElectricalInput.getType();
@@ -513,7 +556,7 @@ public class NeuroMLHDF5Reader
             {
                 Group subGroup = (Group)obj;
                 
-                System.out.println("---------    Found a sub group: "+subGroup.getName());
+                printv("---------    Found a sub group: "+subGroup.getName());
                 
                 parseGroup(subGroup);
             }
@@ -527,7 +570,7 @@ public class NeuroMLHDF5Reader
             {
                 Dataset ds = (Dataset)obj;
                 
-                System.out.println("Found a dataset: "+ds.getName());
+                printv("Found a dataset: "+ds.getName());
                 
                 dataSet(ds);
             }
@@ -550,6 +593,7 @@ public class NeuroMLHDF5Reader
                 File h5File = new File(file);
 
                 NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
+                nmlReader.setVerbose(true);
 
                 nmlReader.parse(h5File);
 

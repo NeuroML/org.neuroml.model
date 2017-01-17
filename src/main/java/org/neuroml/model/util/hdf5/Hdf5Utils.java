@@ -6,6 +6,7 @@
 
 package org.neuroml.model.util.hdf5;
 
+import com.sun.org.apache.bcel.internal.generic.INSTANCEOF;
 import ncsa.hdf.object.*;
 import ncsa.hdf.object.h5.*;
 import java.io.*;
@@ -20,10 +21,23 @@ import ncsa.hdf.utils.SetNatives;
 public class Hdf5Utils
 {
 
+    static boolean verbose = false;
     
     public Hdf5Utils()
     {
         super();
+    }
+    
+    public static void setVerbose(boolean v)
+    {
+        verbose = v;
+    }
+    
+    private static void printv(String msg)
+    {
+        String pre = "HDF5 U >> ";
+        if (verbose) 
+            System.out.println(pre+msg.replaceAll("\n", "\n"+pre));
     }
     
     /*
@@ -179,28 +193,38 @@ public class Hdf5Utils
         {
             if (attribute.getName().equals(attrName))
             {
-                /*System.out.println("---- Attribute: "+attribute+"; val: "+attribute.getValue()+
+                printv("Attribute: "+attribute+"; val: "+attribute.getValue()+
                                "; class: "+attribute.getValue().getClass()+"; dim: "+attribute.getDataDims().length+
                                "; desc: "+attribute.getType().getDatatypeDescription()
                                +"; dt class "+attribute.getType().getDatatypeClass()
                                +"; dt order "+attribute.getType().getDatatypeOrder()
                                +"; dt sign "+attribute.getType().getDatatypeSign()
                                +"; dt size "+attribute.getType().getDatatypeSize()
-                               +"; dt nat "+attribute.getType().toNative());*/
+                               +"; dt nat "+attribute.getType().toNative());
             
                 if (attribute.getValue() instanceof Object[])
                 {
                     Object[] vals = (Object[])attribute.getValue();
-                    //System.out.println("Array of length: "+vals.length);
+                    printv(" Array of length: "+vals.length+"; first: ["+vals[0]+"], "+vals[0].getClass().getCanonicalName());
 
                     return vals[0].toString();
                 }
                 if (attribute.getValue() instanceof Object)
                 {
-                    System.out.println("--- "+attribute.getValue().toString()+" for "+ attrName);
+                    Object val = attribute.getValue();
+
+                    printv(" Value: ["+val+"], "+val.getClass().getCanonicalName());
+                    
+                    if (val instanceof long[])
+                    {
+                        long[] l = ((long[])val);
+                        printv(" long[] of length: "+l.length+"; first: ["+l[0]+"]");
+                        return l[0]+"";
+                    }
+                    
                     //Object[] gg = (Object[])attribute.getValue();
                     
-                    return attribute.getValue().toString();
+                    return val.toString();
                 }
             }
 
@@ -419,15 +443,16 @@ public class Hdf5Utils
             
             File f = null;
             f = new File("src/test/resources/examples/simplenet.nml.h5");
+            f = new File("src/test/resources/examples/testnet.nml.h5");
 
 
-            System.out.println("Reading a HDF5 file: " + f.getCanonicalPath());
+            printv("Reading a HDF5 file: " + f.getCanonicalPath());
 
             H5File h5file = Hdf5Utils.openH5file(f);
 
             Hdf5Utils.open(h5file);
 
-            System.out.println("h5file: "+h5file.getRootNode());
+            printv("h5file: "+h5file.getRootNode());
 
             Group g = Hdf5Utils.getRootGroup(h5file);
 
