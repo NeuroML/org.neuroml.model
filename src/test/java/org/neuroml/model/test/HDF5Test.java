@@ -50,7 +50,7 @@ public class HDF5Test extends TestCase
                 System.out.println("      Trying to load: " + filepath);
                 
                 NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
-                nmlReader.setVerbose(true);
+                //nmlReader.setVerbose(true);
                 nmlReader.parse(f);
                 
                 System.out.println("File loaded: "+filepath+"\n"
@@ -65,7 +65,7 @@ public class HDF5Test extends TestCase
         File exdir = new File(exampledirname);
         
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
-        String[] tests = new String[]{"testnet.nml"};
+        String[] tests = new String[]{"testnet.nml","MediumNet.net.nml"};
         
         for (String fn : tests) {
             File f = new File(exdir,fn);

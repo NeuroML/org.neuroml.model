@@ -55,6 +55,10 @@ public class NeuroMLHDF5Writer
                 Group netGroup = h5File.createGroup(NeuroMLElements.NETWORK, nmlGroup);
                 Hdf5Utils.addStringAttribute(netGroup, "id", network.getId(), h5File);
                 Hdf5Utils.addStringAttribute(netGroup, "notes", network.getNotes(), h5File);
+                if (network.getTemperature()!=null)
+                {
+                    Hdf5Utils.addStringAttribute(netGroup, "temperature", network.getTemperature(), h5File);
+                }
 
                 for (Population population: network.getPopulation())
                 {
@@ -609,8 +613,8 @@ public class NeuroMLHDF5Writer
     {
 
         File h5File = new File("../temp/net.h5");
-        File nmlFile = new File("src/test/resources/examples/testnet.nml");
-        //File nmlFile = new File("src/test/resources/examples/MediumNet.net.nml");
+        //File nmlFile = new File("src/test/resources/examples/testnet.nml");
+        File nmlFile = new File("src/test/resources/examples/MediumNet.net.nml");
 
         try
         {
@@ -635,14 +639,14 @@ public class NeuroMLHDF5Writer
         catch (Exception e)
         {
             e.printStackTrace();
-            System.exit(0);
+            System.exit(-1);
         }
 
 
     }
     
     
-    private static void compare(String s1, String s2)
+    private static void compare(String s1, String s2) throws Exception
     {
         //System.out.println("Comparing\n"+"\n----------------------------\n"+s1+"\n----------------------------\n"+s2+"\n----------------------------\n");
         String[] s1a = s1.split("\n");
@@ -653,8 +657,8 @@ public class NeuroMLHDF5Writer
             //Assert.assertEquals(s1, s2);
         }
         
-        assert(s1.equals(s2));
+        if (!s1.equals(s2)) throw new Exception("Strings not equal!!");
         
-        System.out.println("Strings are equal!!");
+        System.out.println("Strings are equal!!"+s1.equals(s2));
     }
 }

@@ -6,7 +6,7 @@
 
 package org.neuroml.model.util.hdf5;
 
-import com.sun.org.apache.bcel.internal.generic.INSTANCEOF;
+
 import ncsa.hdf.object.*;
 import ncsa.hdf.object.h5.*;
 import java.io.*;

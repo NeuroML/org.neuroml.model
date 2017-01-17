@@ -11,9 +11,13 @@ package org.neuroml.model.util.hdf5;
 import ncsa.hdf.object.*;
 import ncsa.hdf.object.h5.*;
 import java.io.*;
+import java.math.BigInteger;
 import java.util.ArrayList;
 import ncsa.hdf.utils.SetNatives;
+import org.neuroml.model.Instance;
+import org.neuroml.model.Location;
 import org.neuroml.model.Network;
+import org.neuroml.model.NetworkTypes;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.util.NeuroMLConverter;
@@ -24,10 +28,10 @@ import static org.neuroml.model.util.hdf5.NeuroMLHDF5Writer.NEUROML_TOP_LEVEL_CO
 
 public class NeuroMLHDF5Reader
 {    
-    
+    /*
     boolean inPopulations = false;
     boolean inProjections = false;
-    boolean inInputs = false;
+    boolean inInputs = false;*/
     
     Network currentNetwork = null;
     
@@ -108,6 +112,13 @@ public class NeuroMLHDF5Reader
             currentNetwork = new Network();
             currentNetwork.setId(Hdf5Utils.getFirstStringValAttr(attrs, "id"));
             currentNetwork.setNotes(Hdf5Utils.getFirstStringValAttr(attrs, "notes"));
+            
+            if (Hdf5Utils.getFirstStringValAttr(attrs, "temperature")!=null)
+            {
+                currentNetwork.setTemperature(Hdf5Utils.getFirstStringValAttr(attrs, "temperature"));
+                currentNetwork.setType(NetworkTypes.NETWORK_WITH_TEMPERATURE);
+            }
+            
             neuroMLDocument.getNetwork().add(currentNetwork);
             
 
@@ -320,30 +331,30 @@ public class NeuroMLHDF5Reader
         for (Attribute attribute : attrs) 
         {
             printv("Dataset: "+d.getName()+ " has attribute: "+ attribute.getName()+" = "+ Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName()));
-            
         }
         
         float[][] data = Hdf5Utils.parse2Ddataset(d);
         
         printv("Data has size: ("+data.length+", "+data[0].length+")");
         
-        
-        if (inPopulations && currentPopulation!=null)
+        if (currentPopulation!=null)
         {
-            for(int i = 0;i<data.length;i++)
+            for (float[] data1 : data)
             {
-                int id = (int)data[i][0];
-                float x = data[i][1];
-                float y = data[i][2];
-                float z = data[i][3];
+                Location l = new Location();
+                l.setX(data1[1]);
+                l.setY(data1[2]);
+                l.setZ(data1[3]);
+                Instance i = new Instance();
+                i.setId(new BigInteger ((int)data1[0]+""));
+                i.setLocation(l);
+                currentPopulation.getInstance().add(i);
                 /*
                 PositionRecord posRec = new PositionRecord(id,x,y,z);
-                
                 if (data[0].length==5)
                 {
-                    posRec.setNodeId((int)data[i][4]);
+                posRec.setNodeId((int)data[i][4]);
                 }
-                
                 this.project.generatedCellPositions.addPosition(currentPopulation, posRec);*/
             }
         }/*
@@ -587,6 +598,7 @@ public class NeuroMLHDF5Reader
         {
             
             String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
+            files = new String[]{"src/test/resources/tmp/MediumNet.net.nml.h5"};
             
             for (String file: files)
             {

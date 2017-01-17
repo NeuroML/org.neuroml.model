@@ -10,6 +10,8 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -157,6 +159,18 @@ public class NeuroMLConverter
         }
 	}
     
+    private static <T extends Standalone> void sortStandalones(List<T> standalones) 
+    {
+        Collections.sort(standalones, new Comparator<T>(){
+            @Override
+            public int compare(T o1, T o2){
+                if(o1.getId().equals(o2.getId()))
+                    return 0;
+                return o1.getId().compareTo(o2.getId());
+            }
+       });
+    }
+    
     public static String summary(NeuroMLDocument nmlDocument) throws NeuroMLException {
         
         String info = new String();
@@ -168,18 +182,25 @@ public class NeuroMLConverter
         {
             Standalone s = sae.get(el);
             if (!s.getClass().getSimpleName().equals("Network")) {
-                
                 info += "*  "+s.getClass().getSimpleName()+": "+s.getId()+"\n";
-                
             }
         }
         
         for (Network network: nmlDocument.getNetwork()) {
             
-            info += "*  Network: "+network.getId()+"\n";
-        
-            for (Population population: network.getPopulation())
+            info += "*  Network: "+network.getId();
+            if (network.getTemperature()!=null) {
+                
+                info += " (temperature: "+network.getTemperature()+")";
+            }
+            info += "\n";
+            
+            List<Population> pops = network.getPopulation();
+            sortStandalones(pops);
+            for (Standalone p: pops)
             {
+                Population population = (Population)p;
+                
                 info += "*   Population: "+population.getId()+
                     " with "+population.getSize() +" components of "+population.getComponent()+ "\n";
                 if (population.getInstance().size()>0) 
