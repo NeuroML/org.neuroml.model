@@ -46,7 +46,6 @@ public class NeuroMLHDF5Reader
     }
     
     
-    
     public void parse(File hdf5File) throws Hdf5Exception, NeuroMLException 
     {
         H5File h5File = Hdf5Utils.openForRead(hdf5File);
@@ -59,7 +58,6 @@ public class NeuroMLHDF5Reader
         Hdf5Utils.close(h5File);
     }
         
-     
         
     public void startGroup(Group g) throws Hdf5Exception, NeuroMLException
     {
@@ -80,12 +78,12 @@ public class NeuroMLHDF5Reader
             for (Attribute attr: attrs) {
                 if (attr.getName().equals(NEUROML_TOP_LEVEL_CONTENT)){
                     String nml = Hdf5Utils.getFirstStringValAttr(attrs, attr.getName());
-                    System.out.println("==== nml: "+nml);
                     neuroMLDocument = neuromlConverter.loadNeuroML(nml);
                 }
             }
             if (neuroMLDocument==null)
                 neuroMLDocument = new NeuroMLDocument();
+            
 
         }/*
         if (g.getName().startsWith(NetworkMLConstants.PROJECTION_ELEMENT) && inProjections)
@@ -545,8 +543,7 @@ public class NeuroMLHDF5Reader
         try
         {
             
-            String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5",
-            "src/test/resources/tmp/testnet.nml.h5"};
+            String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
             
             for (String file: files)
             {

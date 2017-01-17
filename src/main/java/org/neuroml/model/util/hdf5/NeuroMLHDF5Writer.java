@@ -12,6 +12,8 @@ import ncsa.hdf.object.h5.*;
 import java.io.File;
 import java.io.IOException;
 import ncsa.hdf.utils.SetNatives;
+import org.neuroml.model.Instance;
+import org.neuroml.model.Location;
 import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
@@ -52,19 +54,60 @@ public class NeuroMLHDF5Writer
             for (Network network: neuroml.getNetwork()) {
                 Group netGroup = h5File.createGroup(NeuroMLElements.NETWORK, nmlGroup);
                 Hdf5Utils.addStringAttribute(netGroup, "id", network.getId(), h5File);
+                Hdf5Utils.addStringAttribute(netGroup, "notes", network.getNotes(), h5File);
 
                 for (Population population: network.getPopulation())
                 {
                     Group popGroup = h5File.createGroup(NeuroMLElements.POPULATION+"_"+population.getId(), netGroup);
                     Hdf5Utils.addStringAttribute(popGroup, "id", population.getId(), h5File);
                     Hdf5Utils.addStringAttribute(popGroup, "component", population.getComponent(), h5File);
+                    Hdf5Utils.addStringAttribute(popGroup, "type", population.getType()!= null ? population.getType().value() : "population", h5File);
                     int size;
+                    
                     if (!population.getInstance().isEmpty())
+                    {
                         size = population.getInstance().size();
+                    }
                     else
+                    {
                         size = population.getSize();
+                    }
+                    
                     
                     Hdf5Utils.addStringAttribute(popGroup, "size", size+"", h5File);
+                    
+                    if (!population.getInstance().isEmpty())
+                    {
+                        Datatype dtype = getPopDatatype(h5File);
+                        int numColumns = 4; // id, x, y, z
+                        long[] dims2D = {population.getInstance().size(), numColumns};
+
+                        float[] posArray = new float[population.getInstance().size() * numColumns];
+
+
+                        for (int i=0; i<population.getInstance().size(); i++)
+                        {
+                            Instance inst = population.getInstance().get(i);
+                            Location p = inst.getLocation();
+                            posArray[i * numColumns + 0] = inst.getId().intValue();
+                            posArray[i * numColumns + 1] = p.getX();
+                            posArray[i * numColumns + 2] = p.getY();
+                            posArray[i * numColumns + 3] = p.getZ();
+                        }
+
+
+                        Dataset dataset = h5File.createScalarDS
+                           (population.getId(), popGroup, dtype, dims2D, null, null, 0, posArray);
+                        /*
+                        Attribute attr0 = Hdf5Utils.getSimpleAttr("column_0", NetworkMLConstants.INSTANCE_ID_ATTR, h5File);
+                        dataset.writeMetadata(attr0);
+                        Attribute attr1 = Hdf5Utils.getSimpleAttr("column_1", NetworkMLConstants.LOC_X_ATTR, h5File);
+                        dataset.writeMetadata(attr1);
+                        Attribute attr2 = Hdf5Utils.getSimpleAttr("column_2", NetworkMLConstants.LOC_Y_ATTR, h5File);
+                        dataset.writeMetadata(attr2);
+                        Attribute attr3 = Hdf5Utils.getSimpleAttr("column_3", NetworkMLConstants.LOC_Z_ATTR, h5File);
+                        dataset.writeMetadata(attr3);*/
+                    }
                 }
             }
 
@@ -566,12 +609,14 @@ public class NeuroMLHDF5Writer
     {
 
         File h5File = new File("../temp/net.h5");
-        File nmlFile = new File("src/test/resources/examples/testnet.nml");
+        //File nmlFile = new File("src/test/resources/examples/testnet.nml");
+        File nmlFile = new File("src/test/resources/examples/MediumNet.net.nml");
 
         try
         {
             NeuroMLConverter neuromlConverter = new NeuroMLConverter();
             NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(nmlFile);
+            
             System.out.println("nmlDoc loaded: \n"+NeuroMLConverter.summary(nmlDoc));
 
             NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);

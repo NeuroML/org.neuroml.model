@@ -58,6 +58,9 @@ public class Hdf5Utils
     
     public static void addStringAttribute(Group group, String name, String value, H5File h5File) throws Exception
     {
+        if (value==null)
+            return;
+        
         Datatype dtype = h5File.createDatatype(Datatype.CLASS_STRING, value.length()+1, Datatype.NATIVE, Datatype.NATIVE);
         
         String[] info = new String[]{value };

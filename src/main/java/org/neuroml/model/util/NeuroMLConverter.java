@@ -24,6 +24,7 @@ import ncsa.hdf.object.Group;
 import org.neuroml.model.IafTauCell;
 import org.neuroml.model.Include;
 import org.neuroml.model.IncludeType;
+import org.neuroml.model.Location;
 import org.neuroml.model.Morphology;
 import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
@@ -181,6 +182,11 @@ public class NeuroMLConverter
             {
                 info += "*   Population: "+population.getId()+
                     " with "+population.getSize() +" components of "+population.getComponent()+ "\n";
+                if (population.getInstance().size()>0) 
+                {
+                    Location l = population.getInstance().get(0).getLocation();
+                    info += "*     Locations: [("+ l.getX() + ","+ l.getY() + ","+ l.getZ() + "), ...]\n";
+                }
             }
         }
         info += "*******************************************************\n";

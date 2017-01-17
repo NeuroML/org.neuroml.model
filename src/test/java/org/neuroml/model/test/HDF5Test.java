@@ -22,21 +22,21 @@ public class HDF5Test
         File exdir = new File(exampledirname);
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
         for (File f : exdir.listFiles()) {
-            if (f.getName().endsWith("net.nml")) {
+            if (f.getName().endsWith(".nml")) {
                 String filepath = f.getAbsolutePath();
-                System.out.println("      Trying to load: " + filepath);
+                System.out.println(">>      Trying to load: " + filepath);
                 NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(new File(filepath));
           
-                File h5File = new File(filepath.replaceAll("examples", "examples").replaceAll(".nml", ".nml.h5"));
+                File h5File = new File(filepath.replaceAll("examples", "tmp").replaceAll(".nml", ".nml.h5"));
                 if (!h5File.getParentFile().exists())
                     h5File.getParentFile().mkdir();
                 
                 NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
-                System.out.println("Written "+f+" to "+h5File.getAbsolutePath());
+                System.out.println(">>     Written "+f+" to "+h5File.getAbsolutePath());
             }
         }
-
     }    
+    
     
     @Test
     public void testRead() throws Exception {
@@ -52,12 +52,30 @@ public class HDF5Test
 
                 nmlReader.parse(f);
                 
-
                 System.out.println("File loaded: "+filepath+"\n"
                         +NeuroMLConverter.summary(nmlReader.getNeuroMLDocument()));
             }
         }
+    }/*
+    @Test
+    public void testReadWrite() throws Exception {
+        
+        File exdir = new File(exampledirname);
+        NeuroMLConverter neuromlConverter = new NeuroMLConverter();
+        
+        for (File f : exdir.listFiles()) {
+            if (f.getName().endsWith("net.nml.h5")) {
+                String filepath = f.getAbsolutePath();
+                System.out.println("      Trying to load: " + filepath);
+                
+                NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
 
-    }
+                nmlReader.parse(f);
+                
+                System.out.println("File loaded: "+filepath+"\n"
+                        +NeuroMLConverter.summary(nmlReader.getNeuroMLDocument()));
+            }
+        }
+    }*/
     
 }
