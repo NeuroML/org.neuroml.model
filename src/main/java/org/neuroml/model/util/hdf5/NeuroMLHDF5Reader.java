@@ -14,12 +14,15 @@ import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import ncsa.hdf.utils.SetNatives;
+import org.neuroml.model.Connection;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.Network;
 import org.neuroml.model.NetworkTypes;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
+import org.neuroml.model.PopulationTypes;
+import org.neuroml.model.Projection;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLElements;
 import org.neuroml.model.util.NeuroMLException;
@@ -36,7 +39,7 @@ public class NeuroMLHDF5Reader
     Network currentNetwork = null;
     
     Population currentPopulation = null;
-    String currentProjection = null;
+    Projection currentProjection = null;
     String currentInput = null;
    
     NeuroMLConverter neuromlConverter;
@@ -67,8 +70,12 @@ public class NeuroMLHDF5Reader
             System.out.println(pre+msg.replaceAll("\n", "\n"+pre));
     }
     
-    public void parse(File hdf5File) throws Hdf5Exception, NeuroMLException 
+    public void parse(File hdf5File, boolean includeConnections) throws Hdf5Exception, NeuroMLException 
     {
+        if (includeConnections) 
+        {
+            throw new NeuroMLException("Not yet implemented!!");
+        }
         H5File h5File = Hdf5Utils.openForRead(hdf5File);
         
         Group root = Hdf5Utils.getRootGroup(h5File);
@@ -135,18 +142,20 @@ public class NeuroMLHDF5Reader
             
             
 
-        }/*
-        if (g.getName().startsWith(NetworkMLConstants.PROJECTION_ELEMENT) && inProjections)
-        {
-            String name = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.PROJ_NAME_ATTR);
-            String source = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.SOURCE_ATTR);
-            String target = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.TARGET_ATTR);
-            
-            printv("Found a projection: "+ name+" from "+ source+" to "+ target);
-            
-            
-            currentProjection = name;
         }
+        if (g.getName().startsWith(NeuroMLElements.PROJECTION+"_"))
+        {
+            currentProjection = new Projection();
+            currentNetwork.getProjection().add(currentProjection);
+            currentProjection.setId(Hdf5Utils.getFirstStringValAttr(attrs, "id"));
+            currentProjection.setPresynapticPopulation(Hdf5Utils.getFirstStringValAttr(attrs, "presynapticPopulation"));
+            currentProjection.setPostsynapticPopulation(Hdf5Utils.getFirstStringValAttr(attrs, "postsynapticPopulation"));
+            currentProjection.setSynapse(Hdf5Utils.getFirstStringValAttr(attrs, "synapse"));
+                
+            printv("Found a projection: "+ currentProjection.getId());
+            
+           
+        }/*
         else if (g.getName().startsWith(NetworkMLConstants.SYN_PROPS_ELEMENT+"_") && inProjections)
         {
             String name = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.SYN_TYPE_ATTR);
@@ -339,6 +348,8 @@ public class NeuroMLHDF5Reader
         
         if (currentPopulation!=null)
         {
+            currentPopulation.setType(PopulationTypes.POPULATION_LIST);
+            
             for (float[] data1 : data)
             {
                 Location l = new Location();
@@ -357,10 +368,10 @@ public class NeuroMLHDF5Reader
                 }
                 this.project.generatedCellPositions.addPosition(currentPopulation, posRec);*/
             }
-        }/*
-        if (inProjections && currentProjection!=null)
+        }
+        if (currentProjection!=null)
         {
-            printv("Adding info for NetConn: "+ currentProjection);
+            printv("Adding info for Projection: "+ currentProjection);
             
             int id_col = -1;
             
@@ -380,77 +391,40 @@ public class NeuroMLHDF5Reader
             {
                 String storedInColumn = Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName());
                 
-                if (storedInColumn.equals(NetworkMLConstants.CONNECTION_ID_ATTR))
+                if (storedInColumn.equals("id"))
                 {
                     id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
                     printv("id col: "+id_col);
                 }
-                else if (storedInColumn.equals(NetworkMLConstants.PRE_CELL_ID_ATTR))
+                else if (storedInColumn.equals("pre_cell_id"))
                 {
                     pre_cell_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
                 }
-                else if (storedInColumn.equals(NetworkMLConstants.PRE_SEGMENT_ID_ATTR))
-                {
-                    pre_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    printv("pre_segment_id_col: "+pre_segment_id_col);
-                }
-                else if (storedInColumn.equals(NetworkMLConstants.PRE_FRACT_ALONG_ATTR))
-                {
-                    pre_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    printv("pre_fraction_along_col: "+pre_fraction_along_col);
-                }
-                
-                
-                else if (storedInColumn.equals(NetworkMLConstants.POST_CELL_ID_ATTR))
+                else if (storedInColumn.equals("post_cell_id"))
                 {
                     post_cell_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
                 }
-                else if (storedInColumn.equals(NetworkMLConstants.POST_SEGMENT_ID_ATTR))
+                else if (storedInColumn.equals("pre_segment_id"))
+                {
+                    pre_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                }
+                else if (storedInColumn.equals("post_segment_id"))
                 {
                     post_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
                 }
-                else if (storedInColumn.equals(NetworkMLConstants.POST_FRACT_ALONG_ATTR))
+                
+                else if (storedInColumn.equals("pre_fraction_along"))
+                {
+                    pre_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                }
+                else if (storedInColumn.equals("post_fraction_along"))
                 {
                     post_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
                 }
                 
                 
-                else if (storedInColumn.startsWith(NetworkMLConstants.PROP_DELAY_ATTR))
-                {
-                    prop_delay_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                }
                 
-                
-                
-                for(String synType: getConnectionSynTypes())
-                {
-                    if (storedInColumn.endsWith(synType))
-                    {
-                        ConnSpecificProps cp = null;
                         
-                        for(ConnSpecificProps currCp:localConnProps)
-                        {
-                            if (currCp.synapseType.equals(synType))
-                                cp = currCp;
-                        }
-                        if (cp==null)
-                        {
-                            cp = new ConnSpecificProps(synType);
-                            cp.internalDelay = -1;
-                            cp.weight = -1;
-                            localConnProps.add(cp);
-                        }
-                        
-                        if (storedInColumn.startsWith(NetworkMLConstants.INTERNAL_DELAY_ATTR))
-                        {
-                            cp.internalDelay = Integer.parseInt(attribute.getName().substring("column_".length())); // store the col num temporarily..
-                        }
-                        if (storedInColumn.startsWith(NetworkMLConstants.WEIGHT_ATTR))
-                        {
-                            cp.weight = Integer.parseInt(attribute.getName().substring("column_".length())); // store the col num temporarily..
-                        }
-                    }
-                }
 
             }
             
@@ -465,12 +439,12 @@ public class NeuroMLHDF5Reader
                 int pre_cell_id = (int)data[i][pre_cell_id_col];
                 int post_cell_id = (int)data[i][post_cell_id_col];
                 
-                float prop_delay = 0;
                 
                 if (pre_segment_id_col>=0) 
                     pre_seg_id = (int)data[i][pre_segment_id_col];
                 if (pre_fraction_along_col>=0) 
                     pre_fract_along = data[i][pre_fraction_along_col];
+                
                 if (post_segment_id_col>=0) 
                     post_seg_id = (int)data[i][post_segment_id_col];
                 if (post_fraction_along_col>=0) 
@@ -478,31 +452,19 @@ public class NeuroMLHDF5Reader
                 
                 
                     //(float)UnitConverter.getTime(XXXXXXXXX, UnitConverter.NEUROCONSTRUCT_UNITS, unitSystem)+"";
-                if (prop_delay_col>=0) 
-                    prop_delay = (float)UnitConverter.getTime(data[i][prop_delay_col], projUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
+                //if (prop_delay_col>=0) 
+                //    prop_delay = (float)UnitConverter.getTime(data[i][prop_delay_col], projUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
                 
-                
-                
-                ArrayList<ConnSpecificProps> props = new ArrayList<ConnSpecificProps>();
-                
-                if (localConnProps.size()>0)
-                {
-                    for(ConnSpecificProps currCp:localConnProps)
-                    {
-                        printv("Pre cp: "+currCp);
-                        ConnSpecificProps cp2 = new ConnSpecificProps(currCp.synapseType);
-                        
-                        if (currCp.internalDelay>0) // index was stored in this val...
-                            cp2.internalDelay = (float)UnitConverter.getTime(data[i][(int)currCp.internalDelay], projUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-                        if (currCp.weight>0) // index was stored in this val...
-                            cp2.weight = data[i][(int)currCp.weight];
-                        
-                        printv("Filled cp: "+cp2);
-                        
-                        props.add(cp2);
-                    }
-                }
-                
+                Connection conn = new Connection();
+                conn.setId(id);
+                conn.setPreCellId("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/???");
+                conn.setPostCellId("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/???");
+                conn.setPreSegmentId(pre_seg_id);
+                conn.setPostSegmentId(post_seg_id);
+                conn.setPreFractionAlong(pre_fract_along);
+                conn.setPostFractionAlong(post_fract_along);
+                currentProjection.getConnection().add(conn);
+                /*
                 this.project.generatedNetworkConnections.addSynapticConnection(currentProjection,
                                                                                GeneratedNetworkConnections.MORPH_NETWORK_CONNECTION,
                                                                                pre_cell_id, 
@@ -512,10 +474,10 @@ public class NeuroMLHDF5Reader
                                                                                post_seg_id,
                                                                                post_fract_along,
                                                                                prop_delay,
-                                                                               props);
+                                                                               props);*/
             }
             
-        }
+        }/*
         if (inInputs && currentInput !=null)
         {
             printv("Adding info for: "+ currentInput);
@@ -607,7 +569,7 @@ public class NeuroMLHDF5Reader
                 NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
                 nmlReader.setVerbose(true);
 
-                nmlReader.parse(h5File);
+                nmlReader.parse(h5File, false);
 
                 System.out.println("File loaded: "+file+"\n"+NeuroMLConverter.summary(nmlReader.getNeuroMLDocument()));
             }

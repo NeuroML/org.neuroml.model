@@ -11,12 +11,15 @@ import ncsa.hdf.object.*;
 import ncsa.hdf.object.h5.*;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import ncsa.hdf.utils.SetNatives;
+import org.neuroml.model.Connection;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
+import org.neuroml.model.Projection;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLElements;
 
@@ -41,7 +44,7 @@ public class NeuroMLHDF5Writer
         Hdf5Utils.open(h5File);
 
         Group root = Hdf5Utils.getRootGroup(h5File);
-        Group nmlGroup = null;   
+        Group nmlGroup;   
 
         try
         {
@@ -113,6 +116,78 @@ public class NeuroMLHDF5Writer
                         dataset.writeMetadata(attr3);*/
                     }
                 }
+                
+                for (Projection proj: network.getProjection())
+                {
+                    Group projGroup = h5File.createGroup(NeuroMLElements.PROJECTION+"_"+proj.getId(), netGroup);
+                    Hdf5Utils.addStringAttribute(projGroup, "id", proj.getId(), h5File);
+                    Hdf5Utils.addStringAttribute(projGroup, "presynapticPopulation", proj.getPresynapticPopulation(), h5File);
+                    Hdf5Utils.addStringAttribute(projGroup, "postsynapticPopulation", proj.getPostsynapticPopulation(), h5File);
+                    Hdf5Utils.addStringAttribute(projGroup, "synapse", proj.getSynapse(), h5File);
+                    Hdf5Utils.addStringAttribute(projGroup, "type", "projection", h5File);
+                    
+                    if (!proj.getConnection().isEmpty())
+                    {
+                        
+                        Datatype dtype = getProjDatatype(h5File);
+                        
+
+                        ArrayList<String> columnsNeeded = new ArrayList<String>();
+
+                        columnsNeeded.add("id");
+                        columnsNeeded.add("pre_cell_id");
+                        columnsNeeded.add("post_cell_id");
+                        
+                        //TODO: optimise!!!
+                        columnsNeeded.add("pre_segment_id");
+                        columnsNeeded.add("post_segment_id");
+                        columnsNeeded.add("pre_fraction_along");
+                        columnsNeeded.add("post_fraction_along");
+
+                        long[] dims2D = {proj.getConnection().size(), columnsNeeded.size()};
+
+                        float[] projArray = new float[proj.getConnection().size() * columnsNeeded.size()];
+
+                        for (int i = 0; i < proj.getConnection().size(); i++)
+                        {
+                            Connection conn = proj.getConnection().get(i);
+
+                            int row = 0;
+                            projArray[i * columnsNeeded.size() +row] = i;
+                            row++;
+
+                            projArray[i * columnsNeeded.size() + row] = NeuroMLConverter.getPreCellId(conn);
+                            row++;
+
+                            projArray[i * columnsNeeded.size() + row] = NeuroMLConverter.getPostCellId(conn);
+                            row++;
+                            
+                            projArray[i * columnsNeeded.size() + row] = conn.getPreSegmentId();
+                            row++;
+                            
+                            projArray[i * columnsNeeded.size() + row] = conn.getPostSegmentId();
+                            row++;
+                            
+                            projArray[i * columnsNeeded.size() + row] = conn.getPreFractionAlong();
+                            row++;
+                            
+                            projArray[i * columnsNeeded.size() + row] = conn.getPostFractionAlong();
+                            row++;
+
+                        }
+
+                        Dataset projDataset = h5File.createScalarDS(proj.getId(), projGroup, dtype, dims2D, null, null, 0, projArray);
+
+                        for(int i=0;i<columnsNeeded.size();i++)
+                        {
+                            Attribute attr = Hdf5Utils.getSimpleAttr("column_"+i, columnsNeeded.get(i), h5File);
+                            projDataset.writeMetadata(attr);
+                        }
+
+
+                        System.out.println("Dataset compression: " + projDataset.getCompression());
+                    }
+                }
             }
 
             neuroml.getNetwork().clear();
@@ -128,82 +203,7 @@ public class NeuroMLHDF5Writer
         {
             throw new Hdf5Exception("Failed to create group in HDF5 file: "+ h5File.getFilePath(), ex);
         }
-/*
-        cellGroups = gcp.getNamesGeneratedCellGroups();
 
-        while(cellGroups.hasNext())
-        {
-            String cg = cellGroups.next();
-
-            ArrayList<PositionRecord> posRecs = gcp.getPositionRecords(cg);
-
-            try
-            {
-                Group popGroup = h5File.createGroup(NetworkMLConstants.POPULATION_ELEMENT+"_"+cg, popsGroup);
-
-                Attribute nameAttr = Hdf5Utils.getSimpleAttr(NetworkMLConstants.POP_NAME_ATTR, cg, h5File);
-                popGroup.writeMetadata(nameAttr);
-
-                String cellType = project.cellGroupsInfo.getCellType(cg);
-
-                Attribute cellTypeAttr = Hdf5Utils.getSimpleAttr(NetworkMLConstants.CELLTYPE_ATTR, cellType, h5File);
-                popGroup.writeMetadata(cellTypeAttr);
-
-                Datatype dtype = getPopDatatype(h5File);
-
-                int numColumns = 4; // cellNum, x, y, z
-
-                if (posRecs.get(0).getNodeId()!=PositionRecord.NO_NODE_ID)
-                {
-                    numColumns = 5; // cellNum, x, y, z
-                }
-
-                long[] dims2D = {posRecs.size(), numColumns};
-
-                float[] posArray = new float[posRecs.size() * numColumns];
-
-
-                for (int i=0; i<posRecs.size(); i++)
-                {
-                    PositionRecord p = posRecs.get(i);
-
-                    posArray[i * numColumns + 0] = p.cellNumber;
-                    posArray[i * numColumns + 1] = p.x_pos;
-                    posArray[i * numColumns + 2] = p.y_pos;
-                    posArray[i * numColumns + 3] = p.z_pos;
-                    if (numColumns>4)
-                        posArray[i * numColumns + 4] = p.getNodeId();
-
-
-                }
-
-
-                Dataset dataset = h5File.createScalarDS
-                    (cg, popGroup, dtype, dims2D, null, null, 0, posArray);
-
-                Attribute attr0 = Hdf5Utils.getSimpleAttr("column_0", NetworkMLConstants.INSTANCE_ID_ATTR, h5File);
-                dataset.writeMetadata(attr0);
-                Attribute attr1 = Hdf5Utils.getSimpleAttr("column_1", NetworkMLConstants.LOC_X_ATTR, h5File);
-                dataset.writeMetadata(attr1);
-                Attribute attr2 = Hdf5Utils.getSimpleAttr("column_2", NetworkMLConstants.LOC_Y_ATTR, h5File);
-                dataset.writeMetadata(attr2);
-                Attribute attr3 = Hdf5Utils.getSimpleAttr("column_3", NetworkMLConstants.LOC_Z_ATTR, h5File);
-                dataset.writeMetadata(attr3);
-
-                if (numColumns>4)
-                {
-                    Attribute attr4 = Hdf5Utils.getSimpleAttr("column_4", NetworkMLConstants.NODE_ID_ATTR, h5File);
-                    dataset.writeMetadata(attr4);
-                }
-
-
-            }
-            catch (Exception ex)
-            {
-                throw new Hdf5Exception("Failed to create group in HDF5 file: " + h5File.getFilePath(), ex);
-            }
-        }
-*/
 
         /*
 
@@ -628,7 +628,7 @@ public class NeuroMLHDF5Writer
 
             NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
 
-            nmlReader.parse(h5File);
+            nmlReader.parse(h5File, false);
             String summary1 = NeuroMLConverter.summary(nmlReader.getNeuroMLDocument());
 
             System.out.println("File loaded: "+h5File+"\n"+summary1);

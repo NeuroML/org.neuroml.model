@@ -23,6 +23,8 @@ import javax.xml.bind.Unmarshaller;
 import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import ncsa.hdf.object.Group;
+import org.neuroml.model.Base;
+import org.neuroml.model.Connection;
 import org.neuroml.model.IafTauCell;
 import org.neuroml.model.Include;
 import org.neuroml.model.IncludeType;
@@ -32,6 +34,7 @@ import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.ObjectFactory;
 import org.neuroml.model.Population;
+import org.neuroml.model.Projection;
 import org.neuroml.model.Standalone;
 
 public class NeuroMLConverter
@@ -159,9 +162,9 @@ public class NeuroMLConverter
         }
 	}
     
-    private static <T extends Standalone> void sortStandalones(List<T> standalones) 
+    private static <T extends Base> void sortElements(List<T> elements) 
     {
-        Collections.sort(standalones, new Comparator<T>(){
+        Collections.sort(elements, new Comparator<T>(){
             @Override
             public int compare(T o1, T o2){
                 if(o1.getId().equals(o2.getId()))
@@ -189,18 +192,18 @@ public class NeuroMLConverter
         for (Network network: nmlDocument.getNetwork()) {
             
             info += "*  Network: "+network.getId();
-            if (network.getTemperature()!=null) {
-                
+            if (network.getTemperature()!=null) 
+            {
                 info += " (temperature: "+network.getTemperature()+")";
             }
             info += "\n";
             
+            // Populations
+            
             List<Population> pops = network.getPopulation();
-            sortStandalones(pops);
-            for (Standalone p: pops)
+            sortElements(pops);
+            for (Population population: pops)
             {
-                Population population = (Population)p;
-                
                 info += "*   Population: "+population.getId()+
                     " with "+population.getSize() +" components of "+population.getComponent()+ "\n";
                 if (population.getInstance().size()>0) 
@@ -209,10 +212,54 @@ public class NeuroMLConverter
                     info += "*     Locations: [("+ l.getX() + ","+ l.getY() + ","+ l.getZ() + "), ...]\n";
                 }
             }
+            
+            // Projections
+            
+            List<Projection> projs = network.getProjection();
+            sortElements(projs);
+            for (Projection projection: projs)
+            {
+                info += "*   Projection: "+projection.getId()+
+                    " from "+projection.getPresynapticPopulation() +" to "+projection.getPostsynapticPopulation()
+                    +", synapse "+projection.getSynapse()+ "\n";
+                
+                if (projection.getConnection().size()>0) 
+                {
+                    Connection c = projection.getConnection().get(0);
+                    info += "*    "+projection.getConnection().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
+                    
+                }
+            }
         }
         info += "*******************************************************\n";
         
         return info;
+    }
+    
+    public static int getPreCellId(Connection c)
+    {
+        return getCellId(c.getPreCellId());
+    }
+    
+    public static int getPostCellId(Connection c)
+    {
+        return getCellId(c.getPostCellId());
+    }
+    
+    private static int getCellId(String path)
+    {
+        return Integer.parseInt(path.split("/")[2]);
+    }
+    
+    private static String connectionInfo(Connection c)
+    {
+        return "(Connection "+c.getId()+": "+getPreCellId(c)
+            +":"+c.getPreSegmentId()
+            +"("+c.getPreFractionAlong()
+            +") -> "+getPostCellId(c)
+            +":"+c.getPostSegmentId()
+            +"("+c.getPostFractionAlong()
+            +")";
     }
 	
 	public static LinkedHashMap<String,Standalone> getAllStandaloneElements(NeuroMLDocument nmlDocument) throws NeuroMLException

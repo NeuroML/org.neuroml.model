@@ -51,7 +51,7 @@ public class HDF5Test extends TestCase
                 
                 NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
                 //nmlReader.setVerbose(true);
-                nmlReader.parse(f);
+                nmlReader.parse(f,false);
                 
                 System.out.println("File loaded: "+filepath+"\n"
                         +NeuroMLConverter.summary(nmlReader.getNeuroMLDocument()));
@@ -85,7 +85,7 @@ public class HDF5Test extends TestCase
 
             NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
 
-            nmlReader.parse(h5File);
+            nmlReader.parse(h5File, false);
             String summary1 = NeuroMLConverter.summary(nmlReader.getNeuroMLDocument());
 
             System.out.println("File loaded: "+h5File+"\n"+summary1);
