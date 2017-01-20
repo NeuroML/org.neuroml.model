@@ -28,6 +28,8 @@ import org.neuroml.model.Connection;
 import org.neuroml.model.IafTauCell;
 import org.neuroml.model.Include;
 import org.neuroml.model.IncludeType;
+import org.neuroml.model.Input;
+import org.neuroml.model.InputList;
 import org.neuroml.model.Location;
 import org.neuroml.model.Morphology;
 import org.neuroml.model.Network;
@@ -230,6 +232,22 @@ public class NeuroMLConverter
                     
                 }
             }
+            
+            // InputLists
+            
+            List<InputList> ils = network.getInputList();
+            sortElements(ils);
+            for (InputList il: ils)
+            {
+                info += "*   InputList: "+il.getId()+" to "+il.getPopulation()+", component "+il.getComponent()+ "\n";
+                
+                if (il.getInput().size()>0) 
+                {
+                    Input i = il.getInput().get(0);
+                    info += "*    "+il.getInput().size()+" inputs: ["+ inputInfo(i)+ ", ...]\n";
+                    
+                }
+            }
         }
         info += "*******************************************************\n";
         
@@ -260,6 +278,29 @@ public class NeuroMLConverter
             +":"+c.getPostSegmentId()
             +"("+c.getPostFractionAlong()
             +")";
+    }
+    
+    public static int getTargetCellId(Input i)
+    {
+        return getCellId(i.getTarget());
+    }
+    
+    public static int getSegmentId(Input i)
+    {
+        return (i.getSegmentId()!=null ? i.getSegmentId() : 0);
+    }
+    public static float getFractionAlong(Input i)
+    {
+        return (float)(i.getFractionAlong()!=null ? i.getFractionAlong() : 0.5);
+    }
+    
+    private static String inputInfo(Input i)
+    {
+        return "(Input "+i.getId()
+            +": "+getTargetCellId(i)
+            +":"+getSegmentId(i)
+            +"("+getFractionAlong(i)
+            +"))";
     }
 	
 	public static LinkedHashMap<String,Standalone> getAllStandaloneElements(NeuroMLDocument nmlDocument) throws NeuroMLException

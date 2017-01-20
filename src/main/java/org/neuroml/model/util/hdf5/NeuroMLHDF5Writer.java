@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import ncsa.hdf.utils.SetNatives;
 import org.neuroml.model.Connection;
+import org.neuroml.model.InputList;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.Network;
@@ -187,6 +188,40 @@ public class NeuroMLHDF5Writer
 
                         System.out.println("Dataset compression: " + projDataset.getCompression());
                     }
+                }
+                
+                for (InputList il: network.getInputList())
+                {
+                    Group ilGroup = h5File.createGroup(NeuroMLElements.INPUT_LIST+"_"+il.getId(), netGroup);
+                    Hdf5Utils.addStringAttribute(ilGroup, "id", il.getId(), h5File);
+                    Hdf5Utils.addStringAttribute(ilGroup, "component", il.getComponent(), h5File);
+                    Hdf5Utils.addStringAttribute(ilGroup, "population", il.getPopulation(), h5File);
+
+                    int inputsNumCols = 3; // Cell ID, Segment ID, Fraction Along Segment
+
+                    int inputNumber = il.getInput().size();
+
+                    long[] dims2D = {inputNumber, inputsNumCols};
+
+                    float[] sitesArray = new float[inputNumber * inputsNumCols];
+
+                    Datatype dtype = getInputDatatype(h5File);
+                    
+                    for (int i=0; i<inputNumber; i++)
+                    {
+                        sitesArray[i * inputsNumCols + 0] = NeuroMLConverter.getTargetCellId(il.getInput().get(i));
+                        sitesArray[i * inputsNumCols + 1] = NeuroMLConverter.getSegmentId(il.getInput().get(i));
+                        sitesArray[i * inputsNumCols + 2] = NeuroMLConverter.getFractionAlong(il.getInput().get(i));
+                    }   
+                    
+                    Dataset sitesDataset = h5File.createScalarDS(il.getId(), ilGroup, dtype, dims2D, null, null, 0, sitesArray);
+                    
+                    Attribute attr0 = Hdf5Utils.getSimpleAttr("column_0", "target_cell_id", h5File);
+                    sitesDataset.writeMetadata(attr0);
+                    Attribute attr1 = Hdf5Utils.getSimpleAttr("column_1", "segment_id", h5File);
+                    sitesDataset.writeMetadata(attr1);
+                    Attribute attr2 = Hdf5Utils.getSimpleAttr("column_2", "fraction_along", h5File);
+                    sitesDataset.writeMetadata(attr2);
                 }
             }
 
@@ -627,6 +662,7 @@ public class NeuroMLHDF5Writer
             NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
 
             NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
+            nmlReader.setVerbose(true);
 
             nmlReader.parse(h5File, false);
             String summary1 = NeuroMLConverter.summary(nmlReader.getNeuroMLDocument());

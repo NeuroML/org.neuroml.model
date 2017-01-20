@@ -15,6 +15,8 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import ncsa.hdf.utils.SetNatives;
 import org.neuroml.model.Connection;
+import org.neuroml.model.Input;
+import org.neuroml.model.InputList;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.Network;
@@ -40,7 +42,7 @@ public class NeuroMLHDF5Reader
     
     Population currentPopulation = null;
     Projection currentProjection = null;
-    String currentInput = null;
+    InputList currentInputList = null;
    
     NeuroMLConverter neuromlConverter;
     NeuroMLDocument neuroMLDocument;
@@ -153,6 +155,19 @@ public class NeuroMLHDF5Reader
             currentProjection.setSynapse(Hdf5Utils.getFirstStringValAttr(attrs, "synapse"));
                 
             printv("Found a projection: "+ currentProjection.getId());
+            
+           
+        }
+        if (g.getName().startsWith(NeuroMLElements.INPUT_LIST+"_") || g.getName().startsWith("input_list_")) // inputList_ preferred!
+        {
+            currentInputList = new InputList();
+            currentNetwork.getInputList().add(currentInputList);
+            String id = Hdf5Utils.getFirstStringValAttr(attrs, "id");
+            currentInputList.setId(id);
+            currentInputList.setPopulation(Hdf5Utils.getFirstStringValAttr(attrs, "population"));
+            currentInputList.setComponent(Hdf5Utils.getFirstStringValAttr(attrs, "component"));
+                
+            printv("Found an input list: "+ currentInputList.getId()+" on "+currentInputList.getPopulation());
             
            
         }/*
@@ -296,9 +311,9 @@ public class NeuroMLHDF5Reader
     {
         printv("-----   Going out of a group: "+g.getFullName());
         
-        if (g.getName().equals(NeuroMLElements.INPUT_LIST))
+        if (g.getName().startsWith(NeuroMLElements.INPUT_LIST) || g.getName().startsWith("input_list_"))  // inputList_ preferred!
         {
-            currentInput = null;
+            currentInputList = null;
         }        
         else if (g.getName().startsWith(NeuroMLElements.NETWORK))
         {
@@ -311,10 +326,6 @@ public class NeuroMLHDF5Reader
         else if (g.getName().startsWith(NeuroMLElements.PROJECTION))
         {
             currentProjection = null;
-        }
-        else if (g.getName().startsWith(NeuroMLElements.CONNECTION))
-        {
-            //localAPDelay = 0;
         }
         
     }
@@ -369,7 +380,7 @@ public class NeuroMLHDF5Reader
                 this.project.generatedCellPositions.addPosition(currentPopulation, posRec);*/
             }
         }
-        if (currentProjection!=null)
+        else if (currentProjection!=null)
         {
             printv("Adding info for Projection: "+ currentProjection);
             
@@ -422,10 +433,6 @@ public class NeuroMLHDF5Reader
                     post_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
                 }
                 
-                
-                
-                        
-
             }
             
             for(int i = 0;i<data.length;i++)
@@ -451,10 +458,6 @@ public class NeuroMLHDF5Reader
                     post_fract_along = data[i][post_fraction_along_col];
                 
                 
-                    //(float)UnitConverter.getTime(XXXXXXXXX, UnitConverter.NEUROCONSTRUCT_UNITS, unitSystem)+"";
-                //if (prop_delay_col>=0) 
-                //    prop_delay = (float)UnitConverter.getTime(data[i][prop_delay_col], projUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-                
                 Connection conn = new Connection();
                 conn.setId(id);
                 conn.setPreCellId("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/???");
@@ -464,48 +467,33 @@ public class NeuroMLHDF5Reader
                 conn.setPreFractionAlong(pre_fract_along);
                 conn.setPostFractionAlong(post_fract_along);
                 currentProjection.getConnection().add(conn);
-                /*
-                this.project.generatedNetworkConnections.addSynapticConnection(currentProjection,
-                                                                               GeneratedNetworkConnections.MORPH_NETWORK_CONNECTION,
-                                                                               pre_cell_id, 
-                                                                               pre_seg_id,
-                                                                               pre_fract_along,
-                                                                               post_cell_id,
-                                                                               post_seg_id,
-                                                                               post_fract_along,
-                                                                               prop_delay,
-                                                                               props);*/
+                
             }
             
-        }/*
-        if (inInputs && currentInput !=null)
+        }
+        else if (currentInputList !=null)
         {
-            printv("Adding info for: "+ currentInput);
-            StimulationSettings nextStim = project.elecInputInfo.getStim(currentInput);
-            ElectricalInput myElectricalInput = nextStim.getElectricalInput();
-            String electricalInputType = myElectricalInput.getType();
-            String cellGroup = nextStim.getCellGroup();
+            printv("Adding info for: "+ currentInputList.getId());
                     
             for(int i = 0;i<data.length;i++)
             {
-                Float fileCellId = data[i][0];
-                Float fileSegmentId = data[i][1];
+                printv("Adding point "+i);
+                Float fcellId = data[i][0];
+                Float fsegmentId = data[i][1];
                 Float fractionAlong = data[i][2];
-                int cellId = fileCellId.intValue();
-                int segmentId = fileSegmentId.intValue();                
+                int cellId = fcellId.intValue();
+                int segmentId = fsegmentId.intValue();                
                 
-                SingleElectricalInput singleElectricalInputFromFile 
-                        = new SingleElectricalInput(electricalInputType,
-                                                    cellGroup,
-                                                    cellId,
-                                                    segmentId,
-                                                    fractionAlong,
-                                                    null);
-               
-                this.project.generatedElecInputs.addSingleInput(currentInput,singleElectricalInputFromFile);
+                Input input = new Input();
+                input.setId(i);
+                input.setTarget("../"+currentInputList.getPopulation()+"/"+cellId+"/???");
+                input.setSegmentId(segmentId);
+                input.setFractionAlong(fractionAlong);
+                currentInputList.getInput().add(input);
+                
             }
         }
-        */
+        
         
     }
         
@@ -516,7 +504,6 @@ public class NeuroMLHDF5Reader
                 
         java.util.List members = g.getMemberList();
 
-       
         // NOTE: parsing contents twice to ensure subgroups are handled before datasets
         // This is mainly because synapse_props groups will need to be parsed before dataset of connections  
        
@@ -560,7 +547,7 @@ public class NeuroMLHDF5Reader
         {
             
             String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
-            files = new String[]{"src/test/resources/tmp/MediumNet.net.nml.h5"};
+            //files = new String[]{"src/test/resources/tmp/MediumNet.net.nml.h5"};
             
             for (String file: files)
             {
