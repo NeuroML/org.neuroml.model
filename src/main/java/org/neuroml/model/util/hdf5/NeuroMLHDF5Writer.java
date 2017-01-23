@@ -664,7 +664,7 @@ public class NeuroMLHDF5Writer
             NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
             nmlReader.setVerbose(true);
 
-            nmlReader.parse(h5File, false);
+            nmlReader.parse(h5File, true);
             String summary1 = NeuroMLConverter.summary(nmlReader.getNeuroMLDocument());
 
             System.out.println("File loaded: "+h5File+"\n"+summary1);

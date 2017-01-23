@@ -33,10 +33,6 @@ import static org.neuroml.model.util.hdf5.NeuroMLHDF5Writer.NEUROML_TOP_LEVEL_CO
 
 public class NeuroMLHDF5Reader
 {    
-    /*
-    boolean inPopulations = false;
-    boolean inProjections = false;
-    boolean inInputs = false;*/
     
     Network currentNetwork = null;
     
@@ -47,6 +43,8 @@ public class NeuroMLHDF5Reader
     NeuroMLConverter neuromlConverter;
     NeuroMLDocument neuroMLDocument;
     boolean verbose = false;
+    
+    boolean includeConnections = false;
 
     public NeuroMLHDF5Reader() throws IOException, NeuroMLException
     {        
@@ -62,7 +60,6 @@ public class NeuroMLHDF5Reader
     {
         this.verbose = v;
         Hdf5Utils.setVerbose(v);
-        
     }
     
     private void printv(String msg)
@@ -72,12 +69,10 @@ public class NeuroMLHDF5Reader
             System.out.println(pre+msg.replaceAll("\n", "\n"+pre));
     }
     
-    public void parse(File hdf5File, boolean includeConnections) throws Hdf5Exception, NeuroMLException 
+    public NeuroMLDocument parse(File hdf5File, boolean includeConnections) throws Hdf5Exception, NeuroMLException 
     {
-        if (includeConnections) 
-        {
-            throw new NeuroMLException("Not yet implemented!!");
-        }
+        this.includeConnections = includeConnections;
+        
         H5File h5File = Hdf5Utils.openForRead(hdf5File);
         
         Group root = Hdf5Utils.getRootGroup(h5File);
@@ -86,10 +81,12 @@ public class NeuroMLHDF5Reader
         parseGroup(root);
         
         Hdf5Utils.close(h5File);
+        
+        return neuroMLDocument;
     }
         
         
-    public void startGroup(Group g) throws Hdf5Exception, NeuroMLException
+    protected void startGroup(Group g) throws Hdf5Exception, NeuroMLException
     {
         printv("-----   Going into a group: "+g.getFullName());
         
@@ -130,7 +127,6 @@ public class NeuroMLHDF5Reader
             
             neuroMLDocument.getNetwork().add(currentNetwork);
             
-
         }
         if (g.getName().startsWith(NeuroMLElements.POPULATION+"_"))
         {
@@ -156,7 +152,6 @@ public class NeuroMLHDF5Reader
                 
             printv("Found a projection: "+ currentProjection.getId());
             
-           
         }
         if (g.getName().startsWith(NeuroMLElements.INPUT_LIST+"_") || g.getName().startsWith("input_list_")) // inputList_ preferred!
         {
@@ -169,145 +164,14 @@ public class NeuroMLHDF5Reader
                 
             printv("Found an input list: "+ currentInputList.getId()+" on "+currentInputList.getPopulation());
             
-           
-        }/*
-        else if (g.getName().startsWith(NetworkMLConstants.SYN_PROPS_ELEMENT+"_") && inProjections)
-        {
-            String name = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.SYN_TYPE_ATTR);
-            
-            ConnSpecificProps cp = new ConnSpecificProps(name);
-            
-            
-            String internalDelay = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INTERNAL_DELAY_ATTR);
-            if (internalDelay!=null)
-                cp.internalDelay = (float)UnitConverter.getTime(Float.parseFloat(internalDelay), projUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-            
-            
-            // Lump them in to the internal delay...
-            String preDelay = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.PRE_DELAY_ATTR);
-            if (preDelay!=null)
-                cp.internalDelay = cp.internalDelay + (float)UnitConverter.getTime(Float.parseFloat(preDelay), projUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-            
-            String postDelay = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.POST_DELAY_ATTR);
-            if (postDelay!=null)
-                cp.internalDelay = cp.internalDelay + (float)UnitConverter.getTime(Float.parseFloat(postDelay), projUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-            
-            
-            cp.weight = Float.parseFloat(Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.WEIGHT_ATTR));
-            
-            String propDelay = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.PROP_DELAY_ATTR);
-            if (propDelay!=null)
-                globAPDelay = (float)UnitConverter.getTime(Float.parseFloat(propDelay), projUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-            
-            printv("Found: "+ cp);
-            
-            globConnProps.add(cp);
         }
-        else if (g.getName().equals(NetworkMLConstants.INPUTS_ELEMENT))
-        {
-            printv("Found the Inputs group");
-            inInputs = true;
-            
-            String units = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.UNITS_ATTR);
-            
-            inputUnitSystem = UnitConverter.getUnitSystemIndex(units);
-        }
-        else if (g.getName().startsWith(NetworkMLConstants.INPUT_ELEMENT) && inInputs)
-        {
-            // The table of input sites is within the input group so get sites from here
-            
-            String inputName = g.getName().substring(6);
-            
-            //String inputName = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_ELEMENT);
-            
-            printv("Found an Input: "+ inputName);
-            //inInput = true;
-            
-            if (project.elecInputInfo.getStim(inputName) == null)
-            {
-                throw new Hdf5Exception("Error: there is an electrical input with name: "+ inputName+" specified in " +
-                        "that file, but no such electrical input exists in the project. Add one to allow import of this file");
-            }
-            // Get the atributes of the Input and compare them with the attributes within the project
-            // Test to find out what type of input this is
-
-        }
-        else if (g.getName().startsWith("IClamp") && inInputs)
-        {
-            String inputName = g.getParent().getName().substring(6);
-            // Get the input sites from the table
-
-            String cellGroup = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_TARGET_POPULATION_ATTR);
-            if (cellGroup==null)
-            {
-                cellGroup = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_TARGET_CELLGROUP_OLD_ATTR); // check old name
-            }
-
-            float readDelay = (float)UnitConverter.getTime(Float.parseFloat(Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_DELAY_ATTR)), inputUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-            float readDuration = (float)UnitConverter.getTime(Float.parseFloat(Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_DUR_ATTR)), inputUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-            float readAmp = (float)UnitConverter.getCurrent(Float.parseFloat(Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_AMP_ATTR)), inputUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-            
-            StimulationSettings nextStim = project.elecInputInfo.getStim(inputName);
-            ElectricalInput myElectricalInput = nextStim.getElectricalInput();
-            IClamp ic = (IClamp)myElectricalInput;
-            
-            printv("Found an IClamp Input"); 
-            
-            float currDelay=-1, currDur=-1, currAmp=-1;
-            
-            
-            
-            currDelay = ic.getDel().getNominalNumber();
-            currDur = ic.getDur().getNominalNumber();     
-            currAmp = ic.getAmp().getNominalNumber();
-            
-            
-            if ((!project.elecInputInfo.getStim(inputName).getCellGroup().equals(cellGroup))
-                   ||(readDelay!= currDelay)
-                   ||(readDuration != currDur)
-                   ||(readAmp != currAmp))                    
-            {
-                throw new Hdf5Exception("Error: the input properties of the file do not match those in the project for input "+ inputName+"" +
-                        "\nreadDelay: "+readDelay+", currDelay: "+currDelay+
-                        "\nreadDuration: "+readDuration+", currDur: "+currDur+
-                        "\nreadAmp: "+readAmp+", currAmp: "+currAmp+", str: "+Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_AMP_ATTR));
-            }
-            currentInput = inputName;
-        }
-        else if (g.getName().startsWith("RandomSpikeTrain") && inInputs)
-        {
-            String inputName = g.getParent().getName().substring(6);
-            // Get the input sites from the table
-            String cellGroup = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_TARGET_POPULATION_ATTR);
-            if (cellGroup==null)
-            {
-                cellGroup = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.INPUT_TARGET_CELLGROUP_OLD_ATTR); // check old name
-            }
-
-            float frequency = (float)UnitConverter.getRate(Float.parseFloat(Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.RND_STIM_FREQ_ATTR)), inputUnitSystem, UnitConverter.NEUROCONSTRUCT_UNITS);
-            String mechanism = Hdf5Utils.getFirstStringValAttr(attrs, NetworkMLConstants.RND_STIM_MECH_ATTR);
-            
-            StimulationSettings nextStim = project.elecInputInfo.getStim(inputName);
-            ElectricalInput myElectricalInput = nextStim.getElectricalInput();
-            RandomSpikeTrain rs = (RandomSpikeTrain)myElectricalInput;
-            
-            printv("Found an Random Spike Train Input");
-            
-            if ((!project.elecInputInfo.getStim(inputName).getCellGroup().equals(cellGroup))||
-                    frequency != rs.getRate().getFixedNum()||
-                    !rs.getSynapseType().equals(mechanism))                    
-            {
-                throw new Hdf5Exception("Error: the input properties of the file do not match those in the project for input "+ inputName);
-            }
-            currentInput = inputName;
-        }        */
         
     }
     
     
     
     
-    public void endGroup(Group g) throws Hdf5Exception
+    protected void endGroup(Group g) throws Hdf5Exception
     {
         printv("-----   Going out of a group: "+g.getFullName());
         
@@ -327,22 +191,10 @@ public class NeuroMLHDF5Reader
         {
             currentProjection = null;
         }
-        
     }
-    /*
-    private ArrayList<String> getConnectionSynTypes()
-    {
-        ArrayList<String> a = new ArrayList<String>();
-        
-        for(ConnSpecificProps c: globConnProps)
-        {
-            a.add(c.synapseType);
-        }
-        return a;
-    }*/
     
     
-    public void dataSet(Dataset d) throws Hdf5Exception
+    protected void dataSet(Dataset d) throws Hdf5Exception
     {
         printv("-----   Looking through dataset: "+d);
         
@@ -371,103 +223,104 @@ public class NeuroMLHDF5Reader
                 i.setId(new BigInteger ((int)data1[0]+""));
                 i.setLocation(l);
                 currentPopulation.getInstance().add(i);
-                /*
-                PositionRecord posRec = new PositionRecord(id,x,y,z);
-                if (data[0].length==5)
-                {
-                posRec.setNodeId((int)data[i][4]);
-                }
-                this.project.generatedCellPositions.addPosition(currentPopulation, posRec);*/
+                
             }
         }
         else if (currentProjection!=null)
         {
             printv("Adding info for Projection: "+ currentProjection);
             
-            int id_col = -1;
-            
-            int pre_cell_id_col = -1;
-            int pre_segment_id_col = -1;
-            int pre_fraction_along_col = -1;
-            
-            int post_cell_id_col = -1;
-            int post_segment_id_col = -1;
-            int post_fraction_along_col = -1;
-            
-            int prop_delay_col = -1;
-            
-            
-            
-            for (Attribute attribute : attrs) 
+            if (!includeConnections) 
             {
-                String storedInColumn = Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName());
-                
-                if (storedInColumn.equals("id"))
-                {
-                    id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    printv("id col: "+id_col);
-                }
-                else if (storedInColumn.equals("pre_cell_id"))
-                {
-                    pre_cell_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                }
-                else if (storedInColumn.equals("post_cell_id"))
-                {
-                    post_cell_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                }
-                else if (storedInColumn.equals("pre_segment_id"))
-                {
-                    pre_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                }
-                else if (storedInColumn.equals("post_segment_id"))
-                {
-                    post_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                }
-                
-                else if (storedInColumn.equals("pre_fraction_along"))
-                {
-                    pre_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                }
-                else if (storedInColumn.equals("post_fraction_along"))
-                {
-                    post_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                }
-                
+                printv("Explicitly asked to ignore connection information...");
             }
-            
-            for(int i = 0;i<data.length;i++)
+            else
             {
-                int pre_seg_id = 0;
-                float pre_fract_along = 0.5f;
-                int post_seg_id = 0;
-                float post_fract_along = 0.5f;
-                
-                int id = (int)data[i][id_col];
-                int pre_cell_id = (int)data[i][pre_cell_id_col];
-                int post_cell_id = (int)data[i][post_cell_id_col];
-                
-                
-                if (pre_segment_id_col>=0) 
-                    pre_seg_id = (int)data[i][pre_segment_id_col];
-                if (pre_fraction_along_col>=0) 
-                    pre_fract_along = data[i][pre_fraction_along_col];
-                
-                if (post_segment_id_col>=0) 
-                    post_seg_id = (int)data[i][post_segment_id_col];
-                if (post_fraction_along_col>=0) 
-                    post_fract_along = data[i][post_fraction_along_col];
-                
-                
-                Connection conn = new Connection();
-                conn.setId(id);
-                conn.setPreCellId("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/???");
-                conn.setPostCellId("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/???");
-                conn.setPreSegmentId(pre_seg_id);
-                conn.setPostSegmentId(post_seg_id);
-                conn.setPreFractionAlong(pre_fract_along);
-                conn.setPostFractionAlong(post_fract_along);
-                currentProjection.getConnection().add(conn);
-                
+                int id_col = -1;
+
+                int pre_cell_id_col = -1;
+                int pre_segment_id_col = -1;
+                int pre_fraction_along_col = -1;
+
+                int post_cell_id_col = -1;
+                int post_segment_id_col = -1;
+                int post_fraction_along_col = -1;
+
+                int prop_delay_col = -1;
+
+
+                for (Attribute attribute : attrs) 
+                {
+                    String storedInColumn = Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName());
+
+                    if (storedInColumn.equals("id"))
+                    {
+                        id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                        printv("id col: "+id_col);
+                    }
+                    else if (storedInColumn.equals("pre_cell_id"))
+                    {
+                        pre_cell_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+                    else if (storedInColumn.equals("post_cell_id"))
+                    {
+                        post_cell_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+                    else if (storedInColumn.equals("pre_segment_id"))
+                    {
+                        pre_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+                    else if (storedInColumn.equals("post_segment_id"))
+                    {
+                        post_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+
+                    else if (storedInColumn.equals("pre_fraction_along"))
+                    {
+                        pre_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+                    else if (storedInColumn.equals("post_fraction_along"))
+                    {
+                        post_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+
+                }
+
+                for (float[] data1 : data)
+                {
+                    int pre_seg_id = 0;
+                    float pre_fract_along = 0.5f;
+                    int post_seg_id = 0;
+                    float post_fract_along = 0.5f;
+                    int id = (int) data1[id_col];
+                    int pre_cell_id = (int) data1[pre_cell_id_col];
+                    int post_cell_id = (int) data1[post_cell_id_col];
+                    if (pre_segment_id_col>=0)
+                    {
+                        pre_seg_id = (int) data1[pre_segment_id_col];
+                    }
+                    if (pre_fraction_along_col>=0)
+                    {
+                        pre_fract_along = data1[pre_fraction_along_col];
+                    }
+                    if (post_segment_id_col>=0)
+                    {
+                        post_seg_id = (int) data1[post_segment_id_col];
+                    }
+                    if (post_fraction_along_col>=0)
+                    {
+                        post_fract_along = data1[post_fraction_along_col];
+                    }
+                    Connection conn = new Connection();
+                    conn.setId(id);
+                    conn.setPreCellId("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/???");
+                    conn.setPostCellId("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/???");
+                    conn.setPreSegmentId(pre_seg_id);
+                    conn.setPostSegmentId(post_seg_id);
+                    conn.setPreFractionAlong(pre_fract_along);
+                    conn.setPostFractionAlong(post_fract_along);
+                    currentProjection.getConnection().add(conn);
+                }
             }
             
         }
@@ -494,11 +347,10 @@ public class NeuroMLHDF5Reader
             }
         }
         
-        
     }
         
         
-    public void parseGroup(Group g) throws Hdf5Exception, NeuroMLException
+    protected void parseGroup(Group g) throws Hdf5Exception, NeuroMLException
     {
         startGroup(g);
                 
@@ -556,7 +408,7 @@ public class NeuroMLHDF5Reader
                 NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
                 nmlReader.setVerbose(true);
 
-                nmlReader.parse(h5File, false);
+                nmlReader.parse(h5File, true);
 
                 System.out.println("File loaded: "+file+"\n"+NeuroMLConverter.summary(nmlReader.getNeuroMLDocument()));
             }

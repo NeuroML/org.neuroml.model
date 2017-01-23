@@ -24,7 +24,9 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import ncsa.hdf.object.Group;
 import org.neuroml.model.Base;
+import org.neuroml.model.BaseConnectionOldFormat;
 import org.neuroml.model.Connection;
+import org.neuroml.model.ConnectionWD;
 import org.neuroml.model.IafTauCell;
 import org.neuroml.model.Include;
 import org.neuroml.model.IncludeType;
@@ -38,6 +40,7 @@ import org.neuroml.model.ObjectFactory;
 import org.neuroml.model.Population;
 import org.neuroml.model.Projection;
 import org.neuroml.model.Standalone;
+import org.neuroml.model.util.hdf5.NeuroMLHDF5Reader;
 
 public class NeuroMLConverter
 {
@@ -180,16 +183,19 @@ public class NeuroMLConverter
         
         String info = new String();
         info += "*******************************************************\n";
-        info += "* NeuroMLDocument: "+nmlDocument.getId()+"\n";
+        info += "* NeuroMLDocument: "+nmlDocument.getId()+"\n*\n";
         
         LinkedHashMap<String,Standalone> sae = getAllStandaloneElements(nmlDocument);
+        String post = "";
         for (String el: sae.keySet())
         {
             Standalone s = sae.get(el);
             if (!s.getClass().getSimpleName().equals("Network")) {
                 info += "*  "+s.getClass().getSimpleName()+": "+s.getId()+"\n";
+                post = "*\n";
             }
         }
+        info += post;
         
         for (Network network: nmlDocument.getNetwork()) {
             
@@ -198,68 +204,88 @@ public class NeuroMLConverter
             {
                 info += " (temperature: "+network.getTemperature()+")";
             }
-            info += "\n";
+            info += "\n*\n";
             
             // Populations
             
             List<Population> pops = network.getPopulation();
             sortElements(pops);
+            String pop_info = "";
+            int tot_pops = 0, tot_cells = 0;
             for (Population population: pops)
             {
-                info += "*   Population: "+population.getId()+
+                pop_info += "*     Population: "+population.getId()+
                     " with "+population.getSize() +" components of "+population.getComponent()+ "\n";
+                tot_pops+=1;
+                tot_cells+=population.getSize();
                 if (population.getInstance().size()>0) 
                 {
                     Location l = population.getInstance().get(0).getLocation();
-                    info += "*     Locations: [("+ l.getX() + ","+ l.getY() + ","+ l.getZ() + "), ...]\n";
+                    pop_info += "*       Locations: [("+ l.getX() + ","+ l.getY() + ","+ l.getZ() + "), ...]\n";
                 }
             }
+            info+= "*   "+tot_cells+" cells in "+tot_pops+" populations\n"+pop_info+"*\n";
             
             // Projections
             
             List<Projection> projs = network.getProjection();
             sortElements(projs);
+            String proj_info = "";
+            int tot_projs = 0, tot_conns = 0;
             for (Projection projection: projs)
             {
-                info += "*   Projection: "+projection.getId()+
+                proj_info += "*     Projection: "+projection.getId()+
                     " from "+projection.getPresynapticPopulation() +" to "+projection.getPostsynapticPopulation()
-                    +", synapse "+projection.getSynapse()+ "\n";
+                    +", synapse: "+projection.getSynapse()+ "\n";
+                tot_projs+=1;
                 
+                tot_conns+=projection.getConnection().size();
                 if (projection.getConnection().size()>0) 
                 {
                     Connection c = projection.getConnection().get(0);
-                    info += "*    "+projection.getConnection().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
-                    
+                    proj_info += "*      "+projection.getConnection().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
+                }
+                
+                tot_conns+=projection.getConnectionWD().size();
+                if (projection.getConnectionWD().size()>0) 
+                {
+                    ConnectionWD c = projection.getConnectionWD().get(0);
+                    proj_info += "*      "+projection.getConnectionWD().size()+" connections (wd): ["+ connectionInfo(c)+ ", ...]\n";
                 }
             }
+            info+= "*   "+tot_conns+" connections in "+tot_projs+" projections\n"+proj_info+"*\n";
             
             // InputLists
             
             List<InputList> ils = network.getInputList();
             sortElements(ils);
+            String il_info = "";
+            int tot_ils = 0, tot_is = 0;
             for (InputList il: ils)
             {
-                info += "*   InputList: "+il.getId()+" to "+il.getPopulation()+", component "+il.getComponent()+ "\n";
-                
+                il_info += "*     InputList: "+il.getId()+" to "+il.getPopulation()+", component "+il.getComponent()+ "\n";
+                tot_ils+=1;
+                tot_is+=il.getInput().size();
                 if (il.getInput().size()>0) 
                 {
                     Input i = il.getInput().get(0);
-                    info += "*    "+il.getInput().size()+" inputs: ["+ inputInfo(i)+ ", ...]\n";
+                    il_info += "*      "+il.getInput().size()+" inputs: ["+ inputInfo(i)+ ", ...]\n";
                     
                 }
             }
+            info+= "*   "+tot_is+" inputs in "+tot_ils+" input lists\n"+il_info+"*\n";
         }
         info += "*******************************************************\n";
         
         return info;
     }
     
-    public static int getPreCellId(Connection c)
+    public static int getPreCellId(BaseConnectionOldFormat c)
     {
         return getCellId(c.getPreCellId());
     }
     
-    public static int getPostCellId(Connection c)
+    public static int getPostCellId(BaseConnectionOldFormat c)
     {
         return getCellId(c.getPostCellId());
     }
@@ -277,7 +303,21 @@ public class NeuroMLConverter
             +") -> "+getPostCellId(c)
             +":"+c.getPostSegmentId()
             +"("+c.getPostFractionAlong()
-            +")";
+            +"))";
+    }
+    
+    private static String connectionInfo(ConnectionWD c)
+    {
+        return "(Connection "+c.getId()+": "+getPreCellId(c)
+            +":"+c.getPreSegmentId()
+            +"("+c.getPreFractionAlong()
+            +") -> "+getPostCellId(c)
+            +":"+c.getPostSegmentId()
+            +"("+c.getPostFractionAlong()
+            +")"
+            + " weight: "+c.getWeight()
+            + ", delay: "+c.getDelay()
+            +"))";
     }
     
     public static int getTargetCellId(Input i)
@@ -478,33 +518,25 @@ public class NeuroMLConverter
     
     
 	public static void main(String[] args) throws Exception {
-        String fileName = "../NeuroML2/examples/NML2_PyNNCells.nml";
+        
+        String fileName = "../neuroConstruct/osb/showcase/NetPyNEShowcase/NeuroML2/scaling/Balanced.net.nml";
 		NeuroMLConverter nmlc = new NeuroMLConverter();
     	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName));
-        System.out.println("Loaded: "+nmlDocument.getId());
+       
+        System.out.println("Loaded: \n"+NeuroMLConverter.summary(nmlDocument));
         
-        /*
-        IafTauCell iaf = new IafTauCell();
-        iaf.setTau("10ms");
-        iaf.setId("iaf00");
-        addElementToDocument(nmlDocument, iaf);*/
+        fileName = "../neuroConstruct/osb/showcase/NetPyNEShowcase/NeuroML2/scaling/Balanced.net.nml.h5";
         
-        LinkedHashMap<String,Standalone> els = getAllStandaloneElements(nmlDocument);
-        for (String el: els.keySet()) {
-            System.out.println("A Found: "+ els.get(el).getId()+" ("+els.get(el)+")");
-        }
-        /*
-        fileName = "../org.neuroml.export/src/test/resources/examples/TwoCell.net.nml";
-		nmlc = new NeuroMLConverter();
-    	nmlDocument = nmlc.loadNeuroML(new File(fileName), true);
-        System.out.println("Loaded: "+nmlDocument.getId());
+    	NeuroMLHDF5Reader nmlH5 = new NeuroMLHDF5Reader();
         
+        nmlDocument = nmlH5.parse(new File(fileName), false);
+       
+        System.out.println("Loaded: \n"+NeuroMLConverter.summary(nmlDocument));
         
+        nmlDocument = nmlH5.parse(new File(fileName), true);
+       
+        System.out.println("Loaded: \n"+NeuroMLConverter.summary(nmlDocument));
         
-        els = getAllStandaloneElements(nmlDocument);
-        for (String el: els.keySet()) {
-            System.out.println("B Found: "+ els.get(el).getId()+" ("+els.get(el)+")");
-        }*/
         
         
     }
