@@ -25,6 +25,7 @@ import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.PopulationTypes;
 import org.neuroml.model.Projection;
+import org.neuroml.model.util.NeuroML2Validator;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLElements;
 import org.neuroml.model.util.NeuroMLException;
@@ -409,8 +410,13 @@ public class NeuroMLHDF5Reader
                 nmlReader.setVerbose(true);
 
                 nmlReader.parse(h5File, true);
-
-                System.out.println("File loaded: "+file+"\n"+NeuroMLConverter.summary(nmlReader.getNeuroMLDocument()));
+                
+                NeuroMLDocument nml2Doc = nmlReader.getNeuroMLDocument();
+                System.out.println("File loaded: "+file+"\n"+NeuroMLConverter.summary(nml2Doc));
+                
+                NeuroML2Validator nmlv = new NeuroML2Validator();
+                nmlv.validateWithTests(nml2Doc);
+                System.out.println("Status: "+nmlv.getValidity());
             }
 
         }

@@ -179,7 +179,13 @@ public class NeuroMLConverter
        });
     }
     
-    public static String summary(NeuroMLDocument nmlDocument) throws NeuroMLException {
+    public static String summary(NeuroMLDocument nmlDocument) throws NeuroMLException 
+    {
+        return summary(nmlDocument, false);
+    }
+    
+    public static String summary(NeuroMLDocument nmlDocument, boolean full) throws NeuroMLException 
+    {
         
         String info = new String();
         info += "*******************************************************\n";
