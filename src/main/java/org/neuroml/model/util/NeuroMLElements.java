@@ -68,6 +68,7 @@ public class NeuroMLElements {
     public static final String BASE_SPIKE_SOURCE_COMP_TYPE = "baseSpikeSource";
     public static final String BASE_VOLT_DEP_CURR_SRC_SPIKING_COMP_TYPE = "baseVoltageDepPointCurrentSpiking";
     public static final String SPIKE_ARRAY = "spikeArray";
+    public static final String SPIKE_GENERATOR = "spikeGenerator";
     
     // Synapses
     public static final String BASE_POINT_CURR_COMP_TYPE = "basePointCurrent";
