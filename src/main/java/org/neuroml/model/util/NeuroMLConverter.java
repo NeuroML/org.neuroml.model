@@ -40,6 +40,8 @@ import org.neuroml.model.ObjectFactory;
 import org.neuroml.model.Population;
 import org.neuroml.model.Projection;
 import org.neuroml.model.Standalone;
+import org.neuroml.model.util.hdf5.Hdf5Exception;
+import org.neuroml.model.util.hdf5.NetworkHelper;
 import org.neuroml.model.util.hdf5.NeuroMLHDF5Reader;
 
 public class NeuroMLConverter
@@ -85,6 +87,40 @@ public class NeuroMLConverter
             throw new NeuroMLException("Problem converting XML to Morphology in NeuroML", ex);
         }
 	}
+    
+    public NetworkHelper loadNeuroMLOptimized(String xml) throws NeuroMLException
+    {
+        NeuroMLDocument nmlDoc = loadNeuroML(xml);
+        NetworkHelper netHelper = new NetworkHelper(nmlDoc);
+        return netHelper;
+    }
+    
+    public NetworkHelper loadNeuroMLOptimized(File xmlOrH5File) throws NeuroMLException
+    {
+        try
+        {
+            if (xmlOrH5File.getName().endsWith("h5") ||xmlOrH5File.getName().endsWith("hdf5"))
+            {
+                NeuroMLHDF5Reader h5Reader = new NeuroMLHDF5Reader();
+                NetworkHelper netHelper = h5Reader.parseOptimized(xmlOrH5File);
+                return netHelper;
+            }
+            else
+            {
+                NeuroMLDocument nmlDoc = loadNeuroML(xmlOrH5File, true, true);
+                NetworkHelper netHelper = new NetworkHelper(nmlDoc);
+                return netHelper;
+            }
+        }
+        catch (IOException ex)
+        {
+            throw new NeuroMLException("Problem loading "+xmlOrH5File.getAbsolutePath(), ex);
+        }
+        catch (Hdf5Exception ex)
+        {
+            throw new NeuroMLException("Problem loading "+xmlOrH5File.getAbsolutePath(), ex);
+        }
+    }
 
 	
 	public NeuroMLDocument loadNeuroML(File xmlFile) throws IOException, NeuroMLException
@@ -106,7 +142,7 @@ public class NeuroMLConverter
 	{
 		if (!xmlFile.exists()) 
             throw new FileNotFoundException(xmlFile.getAbsolutePath());
-		
+        
         NeuroMLDocument nmlDocument;
         try {
             @SuppressWarnings("unchecked")
@@ -116,6 +152,7 @@ public class NeuroMLConverter
             throw new NeuroMLException("Problem loading NeuroML document", ex);
         }	
         if (includeIncludes) {
+            ArrayList<IncludeType> toRemove = new ArrayList<IncludeType>();
             for (IncludeType include: nmlDocument.getInclude()) 
             {
                 String relativeFileLocation = include.getHref();
@@ -134,6 +171,11 @@ public class NeuroMLConverter
                         addElementToDocument(nmlDocument, sae);
                     }
                 }
+                toRemove.add(include);
+            }
+            for (IncludeType i: toRemove)
+            {
+                nmlDocument.getInclude().remove(i);
             }
         }
         
@@ -144,17 +186,71 @@ public class NeuroMLConverter
 	
 	public NeuroMLDocument loadNeuroML(String nml2Contents) throws NeuroMLException
 	{	
-		StringReader sr = new StringReader(nml2Contents);
-        
-        try {
+        return loadNeuroML(nml2Contents, false, null);
+    }
+    
+	public NeuroMLDocument loadNeuroML(String nml2Contents, boolean includeIncludes, File baseDirectoryForIncludes) throws NeuroMLException
+    {
+        return loadNeuroML(nml2Contents, includeIncludes, baseDirectoryForIncludes, new ArrayList<String>());
+    }
+    
+	public NeuroMLDocument loadNeuroML(String nml2Contents, boolean includeIncludes, File baseDirectoryForIncludes, ArrayList<String> alreadyIncluded) throws NeuroMLException
+    {
+        StringReader sr = new StringReader(nml2Contents);
+
+        NeuroMLDocument nmlDocument;
+        try
+        {
             @SuppressWarnings("unchecked")
             JAXBElement<NeuroMLDocument> jbe = (JAXBElement<NeuroMLDocument>) unmarshaller.unmarshal(sr);
-            return jbe.getValue();		
-        } catch (JAXBException ex) {
+            nmlDocument = jbe.getValue();
+        }
+        catch (JAXBException ex)
+        {
             throw new NeuroMLException("Problem loading NeuroML document", ex);
         }
-		
-	}
+
+        if (includeIncludes)
+        {
+            ArrayList<IncludeType> toRemove = new ArrayList<IncludeType>();
+
+            for (IncludeType include : nmlDocument.getInclude())
+            {
+                String relativeFileLocation = include.getHref();
+
+                File subFile = new File(baseDirectoryForIncludes, relativeFileLocation);
+
+                try
+                {
+                    if (!subFile.exists())
+                    {
+                        throw new NeuroMLException("Missing file included: " + relativeFileLocation + " (assume: " + subFile + ")");
+                    }
+                    else if (!alreadyIncluded.contains(subFile.getCanonicalPath()))
+                    {
+                        NeuroMLDocument subDoc = loadNeuroML(subFile, includeIncludes, true, alreadyIncluded);
+                        LinkedHashMap<String, Standalone> saes = getAllStandaloneElements(subDoc);
+                        for (Standalone sae : saes.values())
+                        {
+                            addElementToDocument(nmlDocument, sae);
+                        }
+                    }
+                }
+                catch (IOException ex)
+                {
+                    throw new NeuroMLException("Problem loading NeuroML document", ex);
+                }
+                
+                toRemove.add(include);
+            }
+            for (IncludeType i : toRemove)
+            {
+                nmlDocument.getInclude().remove(i);
+            }
+        }
+
+        return nmlDocument;
+    }
 	
 	public NeuroMLDocument urlToNeuroML(URL url) throws NeuroMLException
 	{
@@ -526,11 +622,12 @@ public class NeuroMLConverter
 	public static void main(String[] args) throws Exception {
         
         String fileName = "../neuroConstruct/osb/showcase/NetPyNEShowcase/NeuroML2/scaling/Balanced.net.nml";
+        fileName = "src/test/resources/examples/MediumNet.net.nml";
 		NeuroMLConverter nmlc = new NeuroMLConverter();
-    	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName));
+    	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName), true);
        
         System.out.println("Loaded: \n"+NeuroMLConverter.summary(nmlDocument));
-        
+        /*
         fileName = "../neuroConstruct/osb/showcase/NetPyNEShowcase/NeuroML2/scaling/Balanced.net.nml.h5";
         
     	NeuroMLHDF5Reader nmlH5 = new NeuroMLHDF5Reader();
@@ -541,7 +638,7 @@ public class NeuroMLConverter
         
         nmlDocument = nmlH5.parse(new File(fileName), true);
        
-        System.out.println("Loaded: \n"+NeuroMLConverter.summary(nmlDocument));
+        System.out.println("Loaded: \n"+NeuroMLConverter.summary(nmlDocument));*/
         
         
         

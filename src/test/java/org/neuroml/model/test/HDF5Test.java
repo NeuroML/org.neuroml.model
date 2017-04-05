@@ -68,24 +68,27 @@ public class HDF5Test extends TestCase
         String[] tests = new String[]{"testnet.nml","MediumNet.net.nml"};
         
         for (String fn : tests) {
-            File f = new File(exdir,fn);
-            String filepath = f.getAbsolutePath();
+            File ft = new File(exdir,fn);
+            String filepath = ft.getAbsolutePath();
             System.out.println("      Trying to load: " + filepath);
 
-            NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(new File(filepath));
+            NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(new File(filepath), true);
             
             String summary0 = NeuroMLConverter.summary(nmlDoc);
             System.out.println("nmlDoc loaded: \n"+summary0);
 
-            File h5File = new File(filepath.replaceAll("examples", "tmp").replaceAll(".nml", ".nml.h5"));
+            File h5File = new File(filepath.replaceAll(".nml", ".nml.h5"));
             if (!h5File.getParentFile().exists())
                 h5File.getParentFile().mkdir();
-
+            
             NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
-
+            
             NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
 
             nmlReader.parse(h5File, true);
+             
+            System.out.println("Parsed: "+h5File.getAbsolutePath());
+ 
             String summary1 = NeuroMLConverter.summary(nmlReader.getNeuroMLDocument());
 
             System.out.println("File loaded: "+h5File+"\n"+summary1);

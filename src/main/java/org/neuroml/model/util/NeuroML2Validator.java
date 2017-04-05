@@ -121,6 +121,14 @@ public class NeuroML2Validator {
 		if (warnings.length()==0) return false;
 		return (!getWarnings().equals(NO_WARNINGS));
 	}
+    
+    /*
+        e.g. to find included files
+    */
+    public void setBaseDirectory(File f)
+    {
+        this.baseDirectory = f;
+    }
 
 	public void validateWithTests(File xmlFile) throws SAXException, IOException, NeuroMLException
 	{

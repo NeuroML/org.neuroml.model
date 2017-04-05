@@ -43,9 +43,16 @@ public class NeuroMLHDF5Reader
    
     NeuroMLConverter neuromlConverter;
     NeuroMLDocument neuroMLDocument;
+    NetworkHelper networkHelper;
+    
     boolean verbose = false;
     
     boolean includeConnections = false;
+    boolean optimized = false;
+    
+    File sourceDocument;
+    
+    ArrayList<String> alreadyIncluded = new ArrayList<String>();
 
     public NeuroMLHDF5Reader() throws IOException, NeuroMLException
     {        
@@ -72,7 +79,17 @@ public class NeuroMLHDF5Reader
     
     public NeuroMLDocument parse(File hdf5File, boolean includeConnections) throws Hdf5Exception, NeuroMLException 
     {
+        return parse(hdf5File, includeConnections, new ArrayList<String>());
+    }
+    
+    /*
+        alreadyIncluded is used if e.g. a parser has already read in other NML files before getting to the HDF5 file
+    */
+    public NeuroMLDocument parse(File hdf5File, boolean includeConnections, ArrayList<String> alreadyIncluded) throws Hdf5Exception, NeuroMLException 
+    {
+        sourceDocument = hdf5File;
         this.includeConnections = includeConnections;
+        this.alreadyIncluded = alreadyIncluded;
         
         H5File h5File = Hdf5Utils.openForRead(hdf5File);
         
@@ -84,6 +101,27 @@ public class NeuroMLHDF5Reader
         Hdf5Utils.close(h5File);
         
         return neuroMLDocument;
+    }
+    
+    public NetworkHelper parseOptimized(File hdf5File) throws Hdf5Exception, NeuroMLException 
+    {
+        sourceDocument = hdf5File;
+        includeConnections = true;
+        optimized = true;
+        networkHelper = new NetworkHelper();
+        
+        H5File h5File = Hdf5Utils.openForRead(hdf5File);
+        
+        Group root = Hdf5Utils.getRootGroup(h5File);
+        printv("root: "+root);
+        
+        parseGroup(root);
+        
+        Hdf5Utils.close(h5File);
+        
+        networkHelper.setNeuroMLDocument(neuroMLDocument);
+        
+        return networkHelper;
     }
         
         
@@ -104,7 +142,7 @@ public class NeuroMLHDF5Reader
             for (Attribute attr: attrs) {
                 if (attr.getName().equals(NEUROML_TOP_LEVEL_CONTENT)){
                     String nml = Hdf5Utils.getFirstStringValAttr(attrs, attr.getName());
-                    neuroMLDocument = neuromlConverter.loadNeuroML(nml);
+                    neuroMLDocument = neuromlConverter.loadNeuroML(nml, true, sourceDocument.getAbsoluteFile().getParentFile(), alreadyIncluded);
                 }
             }
             if (neuroMLDocument==null)
@@ -214,17 +252,50 @@ public class NeuroMLHDF5Reader
         {
             currentPopulation.setType(PopulationTypes.POPULATION_LIST);
             
-            for (float[] data1 : data)
+            if (optimized)
             {
-                Location l = new Location();
-                l.setX(data1[1]);
-                l.setY(data1[2]);
-                l.setZ(data1[3]);
-                Instance i = new Instance();
-                i.setId(new BigInteger ((int)data1[0]+""));
-                i.setLocation(l);
-                currentPopulation.getInstance().add(i);
-                
+                networkHelper.setPopulationArray(currentPopulation.getId(), currentPopulation.getComponent(), currentPopulation.getType().value(), data);
+            }
+            else
+            {
+                int id_col = 0;
+                int x_col = 1;
+                int y_col = 2;
+                int z_col = 3;
+
+                for (Attribute attribute : attrs) 
+                {
+                    String storedInColumn = Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName());
+
+                    if (storedInColumn.equals("id"))
+                    {
+                        id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+                    if (storedInColumn.equals("x"))
+                    {
+                        x_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+                    if (storedInColumn.equals("y"))
+                    {
+                        y_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+                    if (storedInColumn.equals("z"))
+                    {
+                        z_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                    }
+                }
+
+                for (float[] data1 : data)
+                {
+                    Location l = new Location();
+                    l.setX(data1[x_col]);
+                    l.setY(data1[y_col]);
+                    l.setZ(data1[z_col]);
+                    Instance i = new Instance();
+                    i.setId(new BigInteger ((int)data1[id_col]+""));
+                    i.setLocation(l);
+                    currentPopulation.getInstance().add(i);
+                }
             }
         }
         else if (currentProjection!=null)
@@ -400,7 +471,8 @@ public class NeuroMLHDF5Reader
         {
             
             String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
-            //files = new String[]{"src/test/resources/tmp/MediumNet.net.nml.h5"};
+            files = new String[]{"src/test/resources/examples/MediumNet.net.nml.h5"};
+            //files = new String[]{"/home/padraig/git/osb-model-validation/utilities/local_test/netpyneshowcase/NeuroML2/scaling/Balanced.net.nml.h5"};
             
             for (String file: files)
             {
@@ -409,12 +481,13 @@ public class NeuroMLHDF5Reader
                 NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
                 nmlReader.setVerbose(true);
 
-                nmlReader.parse(h5File, true);
+                nmlReader.parse(h5File, false);
                 
                 NeuroMLDocument nml2Doc = nmlReader.getNeuroMLDocument();
                 System.out.println("File loaded: "+file+"\n"+NeuroMLConverter.summary(nml2Doc));
                 
                 NeuroML2Validator nmlv = new NeuroML2Validator();
+                nmlv.setBaseDirectory(h5File.getAbsoluteFile().getParentFile());
                 nmlv.validateWithTests(nml2Doc);
                 System.out.println("Status: "+nmlv.getValidity());
             }
