@@ -490,19 +490,12 @@ public class NeuroMLConverter
         }
     }
     
-    private static String connectionInfo(Connection c)
-    {
-        return "(Connection "+c.getId()+": "+getPreCellId(c)
-            +":"+c.getPreSegmentId()
-            +"("+c.getPreFractionAlong()
-            +") -> "+getPostCellId(c)
-            +":"+c.getPostSegmentId()
-            +"("+c.getPostFractionAlong()
-            +"))";
-    }
     
     private static String formatDelay(String delay)
     {
+        if (delay==null)
+            return "???";
+        
         float factor = 1;
         if (delay.endsWith("ms")) 
             delay = delay.substring(0, delay.length()-2);
@@ -514,8 +507,15 @@ public class NeuroMLConverter
         return Float.parseFloat(delay)*factor+" ms";
     }
     
-    private static String connectionInfo(ConnectionWD c)
+    public static String connectionInfo(BaseConnectionOldFormat c)
     {
+        String weight = "";
+        String delay = "";
+        if (c instanceof ConnectionWD)
+        {
+            weight = " weight: "+((ConnectionWD)c).getWeight();
+            delay = " delay: "+formatDelay(((ConnectionWD)c).getDelay());
+        }
         return "(Connection "+c.getId()+": "+getPreCellId(c)
             +":"+c.getPreSegmentId()
             +"("+c.getPreFractionAlong()
@@ -523,13 +523,13 @@ public class NeuroMLConverter
             +":"+c.getPostSegmentId()
             +"("+c.getPostFractionAlong()
             +")"
-            + " weight: "+c.getWeight()
-            + ", delay: "+formatDelay(c.getDelay())
+            + weight
+            + delay
             +"))";
     }
     
     
-    private static String connectionInfo(BaseConnectionNewFormat c)
+    public static String connectionInfo(BaseConnectionNewFormat c)
     {
         String type = null;
         String more ="";

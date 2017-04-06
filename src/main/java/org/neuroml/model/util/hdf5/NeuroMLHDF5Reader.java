@@ -269,10 +269,23 @@ public class NeuroMLHDF5Reader
         }       
         else if (g.getName().startsWith(NeuroMLElements.POPULATION))
         {
+            if (optimized)
+            {
+                if (networkHelper.getPopulationIds().isEmpty() || !networkHelper.getPopulationIds().contains(currentPopulation.getId()))
+                    networkHelper.setPopulationArray(currentPopulation, new float[0][0]);
+            }
             currentPopulation = null;
         }
         else if (g.getName().startsWith(NeuroMLElements.PROJECTION))
         {
+            if (optimized)
+            {
+                if (currentProjectionType.equals("projection"))
+                {
+                    if (networkHelper.getProjectionIds().isEmpty() || !networkHelper.getProjectionIds().contains(currentProjection.getId()))
+                        networkHelper.setProjectionArray(currentProjection, new HashMap<String,Integer>(), new float[0][0]);
+                }
+            }
             currentProjection = null;
             currentProjectionType = "";
         }
@@ -302,7 +315,7 @@ public class NeuroMLHDF5Reader
             
             if (optimized)
             {
-                networkHelper.setPopulationArray(currentPopulation.getId(), currentPopulation.getComponent(), currentPopulation.getType().value(), data);
+                networkHelper.setPopulationArray(currentPopulation, data);
             }
             else
             {
@@ -366,15 +379,15 @@ public class NeuroMLHDF5Reader
                 int post_segment_id_col = -1;
                 int post_fraction_along_col = -1;
 
-                int prop_delay_col = -1;
-                int prop_weight_col = -1;
+                int delay_col = -1;
+                int weight_col = -1;
 
 
                 for (Attribute attribute : attrs) 
                 {
                     String storedInColumn = Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName());
                     int colNum = attribute.getName().indexOf("column_")==0 ? Integer.parseInt(attribute.getName().substring("column_".length())) : -1;
-                    
+
                     if (storedInColumn.equals("id"))
                     {
                         id_col = colNum;
@@ -406,159 +419,182 @@ public class NeuroMLHDF5Reader
                     }
                     else if (storedInColumn.equals("weight"))
                     {
-                        prop_weight_col = colNum;
+                        weight_col = colNum;
                     }
                     else if (storedInColumn.equals("delay"))
                     {
-                        prop_delay_col = colNum;
+                        delay_col = colNum;
                     }
 
                 }
-
-                for (float[] data1 : data)
+                
+                if (optimized)
                 {
-                    int pre_seg_id = 0;
-                    float pre_fract_along = 0.5f;
-                    int post_seg_id = 0;
-                    float post_fract_along = 0.5f;
-                    int id = (int) data1[id_col];
-                    int pre_cell_id = (int) data1[pre_cell_id_col];
-                    int post_cell_id = (int) data1[post_cell_id_col];
-                    float weight = 1;
-                    float delay = 0;
-                        
-                    if (pre_segment_id_col>=0)
-                    {
-                        pre_seg_id = (int) data1[pre_segment_id_col];
-                    }
-                    if (pre_fraction_along_col>=0)
-                    {
-                        pre_fract_along = data1[pre_fraction_along_col];
-                    }
-                    if (post_segment_id_col>=0)
-                    {
-                        post_seg_id = (int) data1[post_segment_id_col];
-                    }
-                    if (post_fraction_along_col>=0)
-                    {
-                        post_fract_along = data1[post_fraction_along_col];
-                    }
-                    if (prop_weight_col>=0)
-                    {
-                        weight = data1[prop_weight_col];
-                    }
-                    if (prop_delay_col>=0)
-                    {
-                        delay = data1[prop_delay_col];
-                    }
+                    HashMap<String,Integer> columns = new HashMap<String, Integer>();
+                    columns.put("id", id_col);
+                    columns.put("pre_cell_id", pre_cell_id_col);
+                    columns.put("post_cell_id", post_cell_id_col);
+                    columns.put("pre_segment_id", pre_segment_id_col);
+                    columns.put("post_segment_id", post_segment_id_col);
+                    columns.put("pre_fraction_along", pre_fraction_along_col);
+                    columns.put("post_fraction_along", post_fraction_along_col);
+                    columns.put("weight", weight_col);
+                    columns.put("delay", delay_col);
                     
+
                     if (currentProjectionType.equals("projection"))
                     {
-                        BaseConnectionOldFormat connc = new Connection();
-                        
-                        if ( (prop_weight_col>=0 && weight!=1) || (prop_delay_col>=0 && delay !=0))
+                        networkHelper.setProjectionArray(currentProjection, columns, data);
+                    }
+                }
+                else
+                {
+
+                    for (float[] data1 : data)
+                    {
+                        int pre_seg_id = 0;
+                        float pre_fract_along = 0.5f;
+                        int post_seg_id = 0;
+                        float post_fract_along = 0.5f;
+                        int id = (int) data1[id_col];
+                        int pre_cell_id = (int) data1[pre_cell_id_col];
+                        int post_cell_id = (int) data1[post_cell_id_col];
+                        float weight = 1;
+                        float delay = 0;
+
+                        if (pre_segment_id_col>=0)
                         {
-                            ConnectionWD connw = new ConnectionWD();
-                            connw.setWeight(weight);
-                            connw.setDelay(delay+" ms");
-                            connc = connw;
-                            ((Projection)currentProjection).getConnectionWD().add(connw);
+                            pre_seg_id = (int) data1[pre_segment_id_col];
                         }
-                        else
+                        if (pre_fraction_along_col>=0)
                         {
-                            ((Projection)currentProjection).getConnection().add((Connection)connc);
+                            pre_fract_along = data1[pre_fraction_along_col];
+                        }
+                        if (post_segment_id_col>=0)
+                        {
+                            post_seg_id = (int) data1[post_segment_id_col];
+                        }
+                        if (post_fraction_along_col>=0)
+                        {
+                            post_fract_along = data1[post_fraction_along_col];
+                        }
+                        if (weight_col>=0)
+                        {
+                            weight = data1[weight_col];
+                        }
+                        if (delay_col>=0)
+                        {
+                            delay = data1[delay_col];
                         }
 
-                        connc.setPreSegmentId(pre_seg_id);
-                        connc.setPostSegmentId(post_seg_id);
-                        connc.setPreFractionAlong(pre_fract_along);
-                        connc.setPostFractionAlong(post_fract_along);
-                        connc.setPreCellId("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/"+populationComponent.get(currentProjection.getPresynapticPopulation()));
-                        connc.setPostCellId("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/"+populationComponent.get(currentProjection.getPostsynapticPopulation()));
-                        
-                        connc.setId(id);
-                    }
-                    
-                    if (currentProjectionType.equals("electricalProjection"))
-                    {
-                        BaseConnectionNewFormat conn = new ElectricalConnection();
-                        
-                        if (populationUsesList.get(currentProjection.getPresynapticPopulation()) ||
-                            populationUsesList.get(currentProjection.getPostsynapticPopulation()))
+                        if (currentProjectionType.equals("projection"))
                         {
-                            if ( (prop_weight_col>=0 && weight!=1))
+                            BaseConnectionOldFormat connc = new Connection();
+
+                            if ( (weight_col>=0 && weight!=1) || (delay_col>=0 && delay !=0))
                             {
-                                ElectricalConnectionInstanceW connw = new ElectricalConnectionInstanceW();
+                                ConnectionWD connw = new ConnectionWD();
                                 connw.setWeight(weight);
-                                conn = connw;
-                                ((ElectricalProjection)currentProjection).getElectricalConnectionInstanceW().add(connw);
+                                connw.setDelay(delay+" ms");
+                                connc = connw;
+                                ((Projection)currentProjection).getConnectionWD().add(connw);
                             }
                             else
                             {
-                                ElectricalConnectionInstance connc = new ElectricalConnectionInstance();
-                                conn = connc;
-                                ((ElectricalProjection)currentProjection).getElectricalConnectionInstance().add((ElectricalConnectionInstance)connc);
-                                
+                                ((Projection)currentProjection).getConnection().add((Connection)connc);
                             }
-                            conn.setPreCell("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/"+populationComponent.get(currentProjection.getPresynapticPopulation()));
-                            conn.setPostCell("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/"+populationComponent.get(currentProjection.getPostsynapticPopulation()));
+
+                            connc.setPreSegmentId(pre_seg_id);
+                            connc.setPostSegmentId(post_seg_id);
+                            connc.setPreFractionAlong(pre_fract_along);
+                            connc.setPostFractionAlong(post_fract_along);
+                            connc.setPreCellId("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/"+populationComponent.get(currentProjection.getPresynapticPopulation()));
+                            connc.setPostCellId("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/"+populationComponent.get(currentProjection.getPostsynapticPopulation()));
+
+                            connc.setId(id);
                         }
-                        else
+
+                        if (currentProjectionType.equals("electricalProjection"))
                         {
-                            conn.setPreCell(pre_cell_id+"");
-                            conn.setPostCell(post_cell_id+"");
-                            ((ElectricalProjection)currentProjection).getElectricalConnection().add((ElectricalConnection)conn);
-                        }
-                        
-                        conn.setPreSegment(pre_seg_id);
-                        conn.setPostSegment(post_seg_id);
-                        conn.setPreFractionAlong(pre_fract_along);
-                        conn.setPostFractionAlong(post_fract_along);
-                        conn.setId(id);
-                        ((ElectricalConnection)conn).setSynapse(projectionSynapse.get(currentProjection.getId()));
-                    }
-                    
-                    if (currentProjectionType.equals("continuousProjection"))
-                    {
-                        BaseConnectionNewFormat conn = new ContinuousConnection();
-                        
-                        if (populationUsesList.get(currentProjection.getPresynapticPopulation()) ||
-                            populationUsesList.get(currentProjection.getPostsynapticPopulation()))
-                        {
-                            if ( (prop_weight_col>=0 && weight!=1))
+                            BaseConnectionNewFormat conn = new ElectricalConnection();
+
+                            if (populationUsesList.get(currentProjection.getPresynapticPopulation()) ||
+                                populationUsesList.get(currentProjection.getPostsynapticPopulation()))
                             {
-                                ContinuousConnectionInstanceW connw = new ContinuousConnectionInstanceW();
-                                connw.setWeight(weight);
-                                conn = connw;
-                                ((ContinuousProjection)currentProjection).getContinuousConnectionInstanceW().add(connw);
+                                if ( (weight_col>=0 && weight!=1))
+                                {
+                                    ElectricalConnectionInstanceW connw = new ElectricalConnectionInstanceW();
+                                    connw.setWeight(weight);
+                                    conn = connw;
+                                    ((ElectricalProjection)currentProjection).getElectricalConnectionInstanceW().add(connw);
+                                }
+                                else
+                                {
+                                    ElectricalConnectionInstance connc = new ElectricalConnectionInstance();
+                                    conn = connc;
+                                    ((ElectricalProjection)currentProjection).getElectricalConnectionInstance().add((ElectricalConnectionInstance)connc);
+
+                                }
+                                conn.setPreCell("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/"+populationComponent.get(currentProjection.getPresynapticPopulation()));
+                                conn.setPostCell("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/"+populationComponent.get(currentProjection.getPostsynapticPopulation()));
                             }
                             else
                             {
-                                ContinuousConnectionInstance connc = new ContinuousConnectionInstance();
-                                conn = connc;
-                                ((ContinuousProjection)currentProjection).getContinuousConnectionInstance().add((ContinuousConnectionInstance)connc);
-                                
+                                conn.setPreCell(pre_cell_id+"");
+                                conn.setPostCell(post_cell_id+"");
+                                ((ElectricalProjection)currentProjection).getElectricalConnection().add((ElectricalConnection)conn);
                             }
-                            conn.setPreCell("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/"+populationComponent.get(currentProjection.getPresynapticPopulation()));
-                            conn.setPostCell("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/"+populationComponent.get(currentProjection.getPostsynapticPopulation()));
+
+                            conn.setPreSegment(pre_seg_id);
+                            conn.setPostSegment(post_seg_id);
+                            conn.setPreFractionAlong(pre_fract_along);
+                            conn.setPostFractionAlong(post_fract_along);
+                            conn.setId(id);
+                            ((ElectricalConnection)conn).setSynapse(projectionSynapse.get(currentProjection.getId()));
                         }
-                        else
+
+                        if (currentProjectionType.equals("continuousProjection"))
                         {
-                            conn.setPreCell(pre_cell_id+"");
-                            conn.setPostCell(post_cell_id+"");
-                            ((ContinuousProjection)currentProjection).getContinuousConnection().add((ContinuousConnection)conn);
+                            BaseConnectionNewFormat conn = new ContinuousConnection();
+
+                            if (populationUsesList.get(currentProjection.getPresynapticPopulation()) ||
+                                populationUsesList.get(currentProjection.getPostsynapticPopulation()))
+                            {
+                                if ( (weight_col>=0 && weight!=1))
+                                {
+                                    ContinuousConnectionInstanceW connw = new ContinuousConnectionInstanceW();
+                                    connw.setWeight(weight);
+                                    conn = connw;
+                                    ((ContinuousProjection)currentProjection).getContinuousConnectionInstanceW().add(connw);
+                                }
+                                else
+                                {
+                                    ContinuousConnectionInstance connc = new ContinuousConnectionInstance();
+                                    conn = connc;
+                                    ((ContinuousProjection)currentProjection).getContinuousConnectionInstance().add((ContinuousConnectionInstance)connc);
+
+                                }
+                                conn.setPreCell("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/"+populationComponent.get(currentProjection.getPresynapticPopulation()));
+                                conn.setPostCell("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/"+populationComponent.get(currentProjection.getPostsynapticPopulation()));
+                            }
+                            else
+                            {
+                                conn.setPreCell(pre_cell_id+"");
+                                conn.setPostCell(post_cell_id+"");
+                                ((ContinuousProjection)currentProjection).getContinuousConnection().add((ContinuousConnection)conn);
+                            }
+
+                            conn.setPreSegment(pre_seg_id);
+                            conn.setPostSegment(post_seg_id);
+                            conn.setPreFractionAlong(pre_fract_along);
+                            conn.setPostFractionAlong(post_fract_along);
+                            conn.setId(id);
+                            ((ContinuousConnection)conn).setPreComponent(projectionComponentPre.get(currentProjection.getId()));
+                            ((ContinuousConnection)conn).setPostComponent(projectionComponentPost.get(currentProjection.getId()));
+
                         }
-                        
-                        conn.setPreSegment(pre_seg_id);
-                        conn.setPostSegment(post_seg_id);
-                        conn.setPreFractionAlong(pre_fract_along);
-                        conn.setPostFractionAlong(post_fract_along);
-                        conn.setId(id);
-                        ((ContinuousConnection)conn).setPreComponent(projectionComponentPre.get(currentProjection.getId()));
-                        ((ContinuousConnection)conn).setPostComponent(projectionComponentPost.get(currentProjection.getId()));
-                        
                     }
-                    
+                     
                 }
             }
             

@@ -23,7 +23,9 @@ public class OptimizedTest extends TestCase
         File exdir = new File(exampledirname);
         
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
-        String[] tests = new String[]{"testnet.nml","MediumNet.net.nml"};
+        String[] tests = new String[]{"testnet.nml","MediumNet.net.nml","complete.nml"};
+        //tests = new String[]{"MediumNet.net.nml"};
+        //tests = new String[]{"complete.nml"};
         
         for (String fn : tests) {
             File xmlFile = new File(exdir,fn);
@@ -54,14 +56,40 @@ public class OptimizedTest extends TestCase
                 
                 for(NetworkHelper nh: helpers)
                 {
+                    System.out.println("Testing: "+nh+ " "+nh.getPopulationSize(p));
+                    
                     assert netHelper1.getPopulationSize(p)==nh.getPopulationSize(p);
                     assert netHelper1.getPopulationComponent(p).equals(nh.getPopulationComponent(p));
                     assert netHelper1.getPopulationType(p).equals(nh.getPopulationType(p));
-                    assert netHelper1.getLocation(p, 0, false).getX() == nh.getLocation(p, 0, false).getX();
-                    assert netHelper1.getLocation(p, 0, false).getY() == nh.getLocation(p, 0, false).getY();
-                    assert netHelper1.getLocation(p, 0, false).getZ() == nh.getLocation(p, 0, false).getZ();
+                    
+                    if (netHelper1.populationHasPositions(p))
+                    {
+                        assert netHelper1.getLocation(p, 0, false).getX() == nh.getLocation(p, 0, false).getX();
+                        assert netHelper1.getLocation(p, 0, false).getY() == nh.getLocation(p, 0, false).getY();
+                        assert netHelper1.getLocation(p, 0, false).getZ() == nh.getLocation(p, 0, false).getZ();
+                    }
                 }
             }
+            
+            for (String p: netHelper1.getProjectionIds())
+            {
+                int size = netHelper1.getNumberConnections(p);
+                String conn01 = size>0 ? NeuroMLConverter.connectionInfo(netHelper1.getConnection(p, 0)) : "NONE";
+                System.out.println("Proj: "+p+" has "+size+" conns: "+conn01);
+                
+                for(NetworkHelper nh: helpers)
+                {
+                    assert netHelper1.getNumberConnections(p)==nh.getNumberConnections(p);
+                    
+                    if (netHelper1.getNumberConnections(p)>0)
+                    {
+                        String conn0i = NeuroMLConverter.connectionInfo(nh.getConnection(p, 0));
+                        System.out.println("  conn: "+conn0i);
+                        assert conn01.equals(conn0i);
+                    }
+                }
+            }
+            
         }
     }
     

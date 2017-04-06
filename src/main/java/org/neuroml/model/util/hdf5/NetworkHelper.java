@@ -6,11 +6,16 @@ package org.neuroml.model.util.hdf5;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
+import org.neuroml.model.BaseConnectionOldFormat;
+import org.neuroml.model.BaseProjection;
+import org.neuroml.model.Connection;
+import org.neuroml.model.ConnectionWD;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.PopulationTypes;
+import org.neuroml.model.Projection;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLException;
 
@@ -19,9 +24,21 @@ public class NetworkHelper
 {
     
     NeuroMLDocument neuroMLDocument;
+    
     HashMap<String,float[][]> populationInfo = new HashMap<String,float[][]>();
-    HashMap<String, String> populationComponents = new HashMap<String, String>();
-    HashMap<String, String> populationTypes = new HashMap<String, String>();
+    HashMap<String, Population> emptyPopulations = new HashMap<String, Population>();
+    
+    HashMap<String,float[][]> projectionInfo = new HashMap<String,float[][]>();
+    HashMap<String, HashMap<String,Integer>> projectionColumns = new HashMap<String, HashMap<String,Integer>>();
+    HashMap<String, BaseProjection> emptyProjections = new HashMap<String, BaseProjection>();
+    
+    HashMap<String,float[][]> electricalProjectionInfo = new HashMap<String,float[][]>();
+    HashMap<String, HashMap<String,Integer>> electricalProjectionColumns = new HashMap<String, HashMap<String,Integer>>();
+    HashMap<String, BaseProjection> emptyElectricalProjections = new HashMap<String, BaseProjection>();
+    
+    HashMap<String,float[][]> continuousProjectionInfo = new HashMap<String,float[][]>();
+    HashMap<String, HashMap<String,Integer>> continuousProjectionColumns = new HashMap<String, HashMap<String,Integer>>();
+    HashMap<String, BaseProjection> emptyContinuousProjections = new HashMap<String, BaseProjection>();
     
     public NetworkHelper()
     {
@@ -43,11 +60,17 @@ public class NetworkHelper
         this.neuroMLDocument = neuroMLDocument;
     }
     
-    protected void setPopulationArray(String popId, String component, String type, float[][] data)
+    protected void setPopulationArray(Population emptyPopulation, float[][] data)
     {
-        populationInfo.put(popId, data);
-        populationComponents.put(popId, component);
-        populationTypes.put(popId, type);
+        populationInfo.put(emptyPopulation.getId(), data);
+        emptyPopulations.put(emptyPopulation.getId(), emptyPopulation);
+    }
+    
+    protected void setProjectionArray(BaseProjection emptyProjection, HashMap<String,Integer> columns, float[][] data)
+    {
+        projectionInfo.put(emptyProjection.getId(), data);
+        emptyProjections.put(emptyProjection.getId(), emptyProjection);
+        projectionColumns.put(emptyProjection.getId(), columns);
     }
     
     public ArrayList<String> getPopulationIds()
@@ -59,9 +82,12 @@ public class NetworkHelper
         }
         else 
         {
-            for (Population p: neuroMLDocument.getNetwork().get(0).getPopulation())
+            if (neuroMLDocument!=null && !neuroMLDocument.getNetwork().isEmpty())
             {
-                popIds.add(p.getId());
+                for (Population p: neuroMLDocument.getNetwork().get(0).getPopulation())
+                {
+                    popIds.add(p.getId());
+                }
             }
         }
         return popIds;
@@ -71,7 +97,7 @@ public class NetworkHelper
     {
         if (!populationInfo.isEmpty())
         {
-            return populationComponents.get(populationId);
+            return emptyPopulations.get(populationId).getComponent();
         }
         else 
         {
@@ -86,11 +112,18 @@ public class NetworkHelper
         throw new NeuroMLException("Population "+populationId+" not found!");
     }
     
+    public boolean populationHasPositions(String populationId) throws NeuroMLException
+    {
+        return getPopulationType(populationId).equals(PopulationTypes.POPULATION_LIST.value());
+    }
+    
     public String getPopulationType(String populationId) throws NeuroMLException
     {
         if (!populationInfo.isEmpty())
         {
-            return populationTypes.get(populationId);
+            if (emptyPopulations.get(populationId).getType()==null || emptyPopulations.get(populationId).getType().value()==null)
+                return PopulationTypes.POPULATION.value();
+            return emptyPopulations.get(populationId).getType().value();
         }
         else 
         {
@@ -111,6 +144,9 @@ public class NetworkHelper
     {
         if (!populationInfo.isEmpty())
         {
+            if (populationInfo.get(populationId).length==0)
+                return emptyPopulations.get(populationId).getSize();
+            
             return populationInfo.get(populationId).length;
         }
         else 
@@ -171,6 +207,108 @@ public class NetworkHelper
     }
     
     
+    public ArrayList<String> getProjectionIds()
+    {
+        ArrayList<String> projIds = new ArrayList<String>();
+        if (!projectionInfo.isEmpty())
+        {
+            return new ArrayList<String>(projectionInfo.keySet());
+        }
+        else
+        {
+            for (Projection proj: neuroMLDocument.getNetwork().get(0).getProjection())
+            {
+                projIds.add(proj.getId());
+            }
+        }
+        return projIds;
+    }
+    
+    public int getNumberConnections(String projectionId) throws NeuroMLException
+    {
+        if (!projectionInfo.isEmpty())
+        {
+            return projectionInfo.get(projectionId).length;
+        }
+        else 
+        {
+            for (Projection proj: neuroMLDocument.getNetwork().get(0).getProjection())
+            {
+                if (proj.getConnection().size()>0 && proj.getConnectionWD().size()>0)
+                {
+                    throw new NeuroMLException("Cannot yet handle projections that mix connections/connectionWDs ");
+                }
+                
+                if (proj.getId().equals(projectionId))
+                {
+                    return proj.getConnection().size()+proj.getConnectionWD().size();
+                }
+            }
+        }
+        throw new NeuroMLException("Projection "+projectionId+" not found!");
+    }
+    
+    public BaseConnectionOldFormat getConnection(String projectionId, int index) throws NeuroMLException
+    {
+        
+        if (!projectionInfo.isEmpty())
+        {
+            
+            float[] connInfo = projectionInfo.get(projectionId)[index];
+            HashMap<String,Integer> columns = projectionColumns.get(projectionId);
+            
+            BaseConnectionOldFormat conn = new Connection();
+            
+            if (columns.containsKey("weight") && columns.get("weight")>=0)
+            {
+                ConnectionWD connw = new ConnectionWD();
+                conn = connw;
+                connw.setWeight(connInfo[columns.get("weight")]);
+                connw.setDelay(connInfo[columns.get("delay")]+" ms");
+            }
+                
+            conn.setId((int)connInfo[columns.get("id")]);
+            if (index!=conn.getId())
+                throw new NeuroMLException("Problem in projection "+projectionId+", connections are not ordered in increasing id...");
+            
+            conn.setPreCellId((int)connInfo[columns.get("pre_cell_id")]+"");
+            conn.setPostCellId((int)connInfo[columns.get("post_cell_id")]+"");
+            
+            conn.setPreSegmentId((int)connInfo[columns.get("pre_segment_id")]);
+            conn.setPostSegmentId((int)connInfo[columns.get("post_segment_id")]);
+            
+            conn.setPreFractionAlong(connInfo[columns.get("pre_fraction_along")]);
+            conn.setPostFractionAlong(connInfo[columns.get("post_fraction_along")]);
+            
+            
+            return conn;
+        }
+        else
+        {
+            for (Projection proj: neuroMLDocument.getNetwork().get(0).getProjection())
+            {
+                if (proj.getId().equals(projectionId))
+                {
+                    if (proj.getConnection().size()>0 && proj.getConnection().get(index).getId()==index)
+                        return proj.getConnection().get(index);
+                    if (proj.getConnectionWD().size()>0 && proj.getConnectionWD().get(index).getId()==index)
+                        return proj.getConnectionWD().get(index);
+                        
+                }
+            }
+        }
+        
+        throw new NeuroMLException("Connection "+index+" not found in projection "+projectionId);
+    }
+    
+    @Override
+    public String toString()
+    {
+        return "NetworkHelper containing NML doc: "+(neuroMLDocument!=null ? neuroMLDocument.getId() : "NONE")+
+            " and optimised elements on "+populationInfo.size()+" populations and "+projectionInfo.size()+" projections";
+    }
+    
+    
     public static void main(String args[])
     {
 
@@ -179,7 +317,9 @@ public class NetworkHelper
             
             String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
             files = new String[]{"src/test/resources/examples/MediumNet.net.nml",
-                "src/test/resources/examples/MediumNet.net.nml.h5"};
+                "src/test/resources/examples/MediumNet.net.nml.h5",
+                "src/test/resources/examples/complete.nml",
+                "src/test/resources/examples/complete.nml.h5"};
             
             for (String file: files)
             {
@@ -193,10 +333,19 @@ public class NetworkHelper
                 
                 for (String p: netHelper.getPopulationIds())
                 {
-                    System.out.println("Pop: "+p+" has "+netHelper.getPopulationSize(p)+" cells");
-                    System.out.println("Location 2: "+netHelper.getLocation(p, 2, false));
+                    System.out.println("Pop: "+p+" has "+netHelper.getPopulationSize(p)+" cells, positions: "+netHelper.populationHasPositions(p));
+                    if (netHelper.getPopulationSize(p)>0 && netHelper.populationHasPositions(p))
+                        System.out.println("Location 2: "+netHelper.getLocation(p, 2, false));
                 }
                 assert netHelper.getPopulationSize("pyramidals_48")==48;
+                
+                
+                for (String p: netHelper.getProjectionIds())
+                {
+                    System.out.println("Proj: "+p+" has "+netHelper.getNumberConnections(p)+" conns");
+                    if (netHelper.getNumberConnections(p)>0)
+                        System.out.println("Conn 0: "+ NeuroMLConverter.connectionInfo(netHelper.getConnection(p, 0)));
+                }
                 
                 /*
                 NeuroML2Validator nmlv = new NeuroML2Validator();
