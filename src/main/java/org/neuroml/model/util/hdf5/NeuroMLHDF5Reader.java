@@ -13,10 +13,24 @@ import ncsa.hdf.object.h5.*;
 import java.io.*;
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.HashMap;
 import ncsa.hdf.utils.SetNatives;
+import org.neuroml.model.BaseConnectionNewFormat;
+import org.neuroml.model.BaseConnectionOldFormat;
+import org.neuroml.model.BaseProjection;
 import org.neuroml.model.Connection;
+import org.neuroml.model.ConnectionWD;
+import org.neuroml.model.ContinuousConnection;
+import org.neuroml.model.ContinuousConnectionInstance;
+import org.neuroml.model.ContinuousConnectionInstanceW;
+import org.neuroml.model.ContinuousProjection;
+import org.neuroml.model.ElectricalConnection;
+import org.neuroml.model.ElectricalConnectionInstance;
+import org.neuroml.model.ElectricalConnectionInstanceW;
+import org.neuroml.model.ElectricalProjection;
 import org.neuroml.model.Input;
 import org.neuroml.model.InputList;
+import org.neuroml.model.InputW;
 import org.neuroml.model.Instance;
 import org.neuroml.model.Location;
 import org.neuroml.model.Network;
@@ -38,7 +52,15 @@ public class NeuroMLHDF5Reader
     Network currentNetwork = null;
     
     Population currentPopulation = null;
-    Projection currentProjection = null;
+    HashMap<String, Boolean> populationUsesList = new HashMap<String, Boolean>();
+    HashMap<String, String> populationComponent = new HashMap<String, String>();
+    
+    BaseProjection currentProjection = null;
+    String currentProjectionType = "";
+    HashMap<String, String> projectionSynapse = new HashMap<String, String>();
+    HashMap<String, String> projectionComponentPre = new HashMap<String, String>();
+    HashMap<String, String> projectionComponentPost = new HashMap<String, String>();
+    
     InputList currentInputList = null;
    
     NeuroMLConverter neuromlConverter;
@@ -176,20 +198,43 @@ public class NeuroMLHDF5Reader
             currentPopulation.setId(Hdf5Utils.getFirstStringValAttr(attrs, "id"));
             currentPopulation.setSize(Integer.parseInt(Hdf5Utils.getFirstStringValAttr(attrs, "size")));
             currentPopulation.setComponent(Hdf5Utils.getFirstStringValAttr(attrs, "component"));
-            
+            populationComponent.put(currentPopulation.getId(),currentPopulation.getComponent());
+            populationUsesList.put(currentPopulation.getId(), false); // until further notice...
             
 
         }
         if (g.getName().startsWith(NeuroMLElements.PROJECTION+"_"))
         {
-            currentProjection = new Projection();
-            currentNetwork.getProjection().add(currentProjection);
+            currentProjectionType = Hdf5Utils.getFirstStringValAttr(attrs, "type");
+            //currentProjection = new Projection();
+            
+            if (currentProjectionType.equals("projection"))
+            {
+                currentProjection = new Projection();
+                ((Projection)currentProjection).setSynapse(Hdf5Utils.getFirstStringValAttr(attrs, "synapse"));
+                currentNetwork.getProjection().add((Projection)currentProjection);
+            }
+            
+            if (currentProjectionType.equals("electricalProjection"))
+            {
+                currentProjection = new ElectricalProjection();
+                projectionSynapse.put(Hdf5Utils.getFirstStringValAttr(attrs, "id"), Hdf5Utils.getFirstStringValAttr(attrs, "synapse"));
+                currentNetwork.getElectricalProjection().add((ElectricalProjection)currentProjection);
+            }
+            
+            if (currentProjectionType.equals("continuousProjection"))
+            {
+                currentProjection = new ContinuousProjection();
+                projectionComponentPre.put(Hdf5Utils.getFirstStringValAttr(attrs, "id"), Hdf5Utils.getFirstStringValAttr(attrs, "preComponent"));
+                projectionComponentPost.put(Hdf5Utils.getFirstStringValAttr(attrs, "id"), Hdf5Utils.getFirstStringValAttr(attrs, "postComponent"));
+                currentNetwork.getContinuousProjection().add((ContinuousProjection)currentProjection);
+            }
+            
             currentProjection.setId(Hdf5Utils.getFirstStringValAttr(attrs, "id"));
             currentProjection.setPresynapticPopulation(Hdf5Utils.getFirstStringValAttr(attrs, "presynapticPopulation"));
             currentProjection.setPostsynapticPopulation(Hdf5Utils.getFirstStringValAttr(attrs, "postsynapticPopulation"));
-            currentProjection.setSynapse(Hdf5Utils.getFirstStringValAttr(attrs, "synapse"));
                 
-            printv("Found a projection: "+ currentProjection.getId());
+            printv("Found a projection: "+ currentProjection.getId()+" type: "+currentProjectionType);
             
         }
         if (g.getName().startsWith(NeuroMLElements.INPUT_LIST+"_") || g.getName().startsWith("input_list_")) // inputList_ preferred!
@@ -229,6 +274,7 @@ public class NeuroMLHDF5Reader
         else if (g.getName().startsWith(NeuroMLElements.PROJECTION))
         {
             currentProjection = null;
+            currentProjectionType = "";
         }
     }
     
@@ -251,6 +297,8 @@ public class NeuroMLHDF5Reader
         if (currentPopulation!=null)
         {
             currentPopulation.setType(PopulationTypes.POPULATION_LIST);
+            
+            populationUsesList.put(currentPopulation.getId(), true);
             
             if (optimized)
             {
@@ -300,8 +348,8 @@ public class NeuroMLHDF5Reader
         }
         else if (currentProjection!=null)
         {
-            printv("Adding info for Projection: "+ currentProjection);
-            
+            printv("-----------------------Adding info for Projection: "+ currentProjection+" type "+currentProjectionType);
+            printv(populationUsesList+"");
             if (!includeConnections) 
             {
                 printv("Explicitly asked to ignore connection information...");
@@ -319,41 +367,50 @@ public class NeuroMLHDF5Reader
                 int post_fraction_along_col = -1;
 
                 int prop_delay_col = -1;
+                int prop_weight_col = -1;
 
 
                 for (Attribute attribute : attrs) 
                 {
                     String storedInColumn = Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName());
-
+                    int colNum = attribute.getName().indexOf("column_")==0 ? Integer.parseInt(attribute.getName().substring("column_".length())) : -1;
+                    
                     if (storedInColumn.equals("id"))
                     {
-                        id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                        id_col = colNum;
                         printv("id col: "+id_col);
                     }
                     else if (storedInColumn.equals("pre_cell_id"))
                     {
-                        pre_cell_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                        pre_cell_id_col = colNum;
                     }
                     else if (storedInColumn.equals("post_cell_id"))
                     {
-                        post_cell_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                        post_cell_id_col = colNum;
                     }
                     else if (storedInColumn.equals("pre_segment_id"))
                     {
-                        pre_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                        pre_segment_id_col = colNum;
                     }
                     else if (storedInColumn.equals("post_segment_id"))
                     {
-                        post_segment_id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                        post_segment_id_col = colNum;
                     }
-
                     else if (storedInColumn.equals("pre_fraction_along"))
                     {
-                        pre_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                        pre_fraction_along_col = colNum;
                     }
                     else if (storedInColumn.equals("post_fraction_along"))
                     {
-                        post_fraction_along_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                        post_fraction_along_col = colNum;
+                    }
+                    else if (storedInColumn.equals("weight"))
+                    {
+                        prop_weight_col = colNum;
+                    }
+                    else if (storedInColumn.equals("delay"))
+                    {
+                        prop_delay_col = colNum;
                     }
 
                 }
@@ -367,6 +424,9 @@ public class NeuroMLHDF5Reader
                     int id = (int) data1[id_col];
                     int pre_cell_id = (int) data1[pre_cell_id_col];
                     int post_cell_id = (int) data1[post_cell_id_col];
+                    float weight = 1;
+                    float delay = 0;
+                        
                     if (pre_segment_id_col>=0)
                     {
                         pre_seg_id = (int) data1[pre_segment_id_col];
@@ -383,15 +443,122 @@ public class NeuroMLHDF5Reader
                     {
                         post_fract_along = data1[post_fraction_along_col];
                     }
-                    Connection conn = new Connection();
-                    conn.setId(id);
-                    conn.setPreCellId("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/???");
-                    conn.setPostCellId("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/???");
-                    conn.setPreSegmentId(pre_seg_id);
-                    conn.setPostSegmentId(post_seg_id);
-                    conn.setPreFractionAlong(pre_fract_along);
-                    conn.setPostFractionAlong(post_fract_along);
-                    currentProjection.getConnection().add(conn);
+                    if (prop_weight_col>=0)
+                    {
+                        weight = data1[prop_weight_col];
+                    }
+                    if (prop_delay_col>=0)
+                    {
+                        delay = data1[prop_delay_col];
+                    }
+                    
+                    if (currentProjectionType.equals("projection"))
+                    {
+                        BaseConnectionOldFormat connc = new Connection();
+                        
+                        if ( (prop_weight_col>=0 && weight!=1) || (prop_delay_col>=0 && delay !=0))
+                        {
+                            ConnectionWD connw = new ConnectionWD();
+                            connw.setWeight(weight);
+                            connw.setDelay(delay+" ms");
+                            connc = connw;
+                            ((Projection)currentProjection).getConnectionWD().add(connw);
+                        }
+                        else
+                        {
+                            ((Projection)currentProjection).getConnection().add((Connection)connc);
+                        }
+
+                        connc.setPreSegmentId(pre_seg_id);
+                        connc.setPostSegmentId(post_seg_id);
+                        connc.setPreFractionAlong(pre_fract_along);
+                        connc.setPostFractionAlong(post_fract_along);
+                        connc.setPreCellId("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/"+populationComponent.get(currentProjection.getPresynapticPopulation()));
+                        connc.setPostCellId("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/"+populationComponent.get(currentProjection.getPostsynapticPopulation()));
+                        
+                        connc.setId(id);
+                    }
+                    
+                    if (currentProjectionType.equals("electricalProjection"))
+                    {
+                        BaseConnectionNewFormat conn = new ElectricalConnection();
+                        
+                        if (populationUsesList.get(currentProjection.getPresynapticPopulation()) ||
+                            populationUsesList.get(currentProjection.getPostsynapticPopulation()))
+                        {
+                            if ( (prop_weight_col>=0 && weight!=1))
+                            {
+                                ElectricalConnectionInstanceW connw = new ElectricalConnectionInstanceW();
+                                connw.setWeight(weight);
+                                conn = connw;
+                                ((ElectricalProjection)currentProjection).getElectricalConnectionInstanceW().add(connw);
+                            }
+                            else
+                            {
+                                ElectricalConnectionInstance connc = new ElectricalConnectionInstance();
+                                conn = connc;
+                                ((ElectricalProjection)currentProjection).getElectricalConnectionInstance().add((ElectricalConnectionInstance)connc);
+                                
+                            }
+                            conn.setPreCell("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/"+populationComponent.get(currentProjection.getPresynapticPopulation()));
+                            conn.setPostCell("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/"+populationComponent.get(currentProjection.getPostsynapticPopulation()));
+                        }
+                        else
+                        {
+                            conn.setPreCell(pre_cell_id+"");
+                            conn.setPostCell(post_cell_id+"");
+                            ((ElectricalProjection)currentProjection).getElectricalConnection().add((ElectricalConnection)conn);
+                        }
+                        
+                        conn.setPreSegment(pre_seg_id);
+                        conn.setPostSegment(post_seg_id);
+                        conn.setPreFractionAlong(pre_fract_along);
+                        conn.setPostFractionAlong(post_fract_along);
+                        conn.setId(id);
+                        ((ElectricalConnection)conn).setSynapse(projectionSynapse.get(currentProjection.getId()));
+                    }
+                    
+                    if (currentProjectionType.equals("continuousProjection"))
+                    {
+                        BaseConnectionNewFormat conn = new ContinuousConnection();
+                        
+                        if (populationUsesList.get(currentProjection.getPresynapticPopulation()) ||
+                            populationUsesList.get(currentProjection.getPostsynapticPopulation()))
+                        {
+                            if ( (prop_weight_col>=0 && weight!=1))
+                            {
+                                ContinuousConnectionInstanceW connw = new ContinuousConnectionInstanceW();
+                                connw.setWeight(weight);
+                                conn = connw;
+                                ((ContinuousProjection)currentProjection).getContinuousConnectionInstanceW().add(connw);
+                            }
+                            else
+                            {
+                                ContinuousConnectionInstance connc = new ContinuousConnectionInstance();
+                                conn = connc;
+                                ((ContinuousProjection)currentProjection).getContinuousConnectionInstance().add((ContinuousConnectionInstance)connc);
+                                
+                            }
+                            conn.setPreCell("../"+currentProjection.getPresynapticPopulation()+"/"+pre_cell_id+"/"+populationComponent.get(currentProjection.getPresynapticPopulation()));
+                            conn.setPostCell("../"+currentProjection.getPostsynapticPopulation()+"/"+post_cell_id+"/"+populationComponent.get(currentProjection.getPostsynapticPopulation()));
+                        }
+                        else
+                        {
+                            conn.setPreCell(pre_cell_id+"");
+                            conn.setPostCell(post_cell_id+"");
+                            ((ContinuousProjection)currentProjection).getContinuousConnection().add((ContinuousConnection)conn);
+                        }
+                        
+                        conn.setPreSegment(pre_seg_id);
+                        conn.setPostSegment(post_seg_id);
+                        conn.setPreFractionAlong(pre_fract_along);
+                        conn.setPostFractionAlong(post_fract_along);
+                        conn.setId(id);
+                        ((ContinuousConnection)conn).setPreComponent(projectionComponentPre.get(currentProjection.getId()));
+                        ((ContinuousConnection)conn).setPostComponent(projectionComponentPost.get(currentProjection.getId()));
+                        
+                    }
+                    
                 }
             }
             
@@ -399,22 +566,71 @@ public class NeuroMLHDF5Reader
         else if (currentInputList !=null)
         {
             printv("Adding info for: "+ currentInputList.getId());
+            
+            int id_col = -1;
+            int targ_col = -1;
+            int seg_col = -1;
+            int fract_col = -1;
+            int weight_col = -1;
+
+
+            for (Attribute attribute : attrs) 
+            {
+                String storedInColumn = Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName());
+                int colNum = attribute.getName().indexOf("column_")==0 ? Integer.parseInt(attribute.getName().substring("column_".length())) : -1;
+
+                if (storedInColumn.equals("id"))
+                {
+                    id_col = colNum;
+                }
+                if (storedInColumn.equals("target_cell_id"))
+                {
+                    targ_col = colNum;
+                }
+                if (storedInColumn.equals("segment_id"))
+                {
+                    seg_col = colNum;
+                }
+                if (storedInColumn.equals("fraction_along"))
+                {
+                    fract_col = colNum;
+                }
+                if (storedInColumn.equals("weight"))
+                {
+                    weight_col = colNum;
+                }
+            }
                     
             for(int i = 0;i<data.length;i++)
             {
                 printv("Adding point "+i);
-                Float fcellId = data[i][0];
-                Float fsegmentId = data[i][1];
-                Float fractionAlong = data[i][2];
-                int cellId = fcellId.intValue();
-                int segmentId = fsegmentId.intValue();                
                 
+                int id = id_col>=0 ? (int)data[i][id_col] : i;
+                
+                int cellId = targ_col>=0 ? (int)data[i][targ_col] : 0;
+                
+                int segmentId = seg_col>=0 ? (int)data[i][seg_col] : 0;
+                float fractionAlong = fract_col>=0 ? data[i][fract_col] : 0.5f;
+                              
                 Input input = new Input();
-                input.setId(i);
-                input.setTarget("../"+currentInputList.getPopulation()+"/"+cellId+"/???");
+                
+                if (weight_col>=0)
+                {
+                    InputW inputw = new InputW();
+                    inputw.setWeight(data[i][weight_col]);
+                    input = inputw;
+                    currentInputList.getInputW().add(inputw);
+                }
+                else
+                {
+                    currentInputList.getInput().add(input);
+                }
+                
+                input.setId(id);
+                input.setTarget("../"+currentInputList.getPopulation()+"/"+cellId+"/"+populationComponent.get(currentInputList.getPopulation()));
                 input.setSegmentId(segmentId);
                 input.setFractionAlong(fractionAlong);
-                currentInputList.getInput().add(input);
+                
                 
             }
         }
@@ -472,6 +688,7 @@ public class NeuroMLHDF5Reader
             
             String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
             files = new String[]{"src/test/resources/examples/MediumNet.net.nml.h5"};
+            files = new String[]{"src/test/resources/examples/complete.nml.h5"};
             //files = new String[]{"/home/padraig/git/osb-model-validation/utilities/local_test/netpyneshowcase/NeuroML2/scaling/Balanced.net.nml.h5"};
             
             for (String file: files)
@@ -481,7 +698,7 @@ public class NeuroMLHDF5Reader
                 NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
                 nmlReader.setVerbose(true);
 
-                nmlReader.parse(h5File, false);
+                nmlReader.parse(h5File, true);
                 
                 NeuroMLDocument nml2Doc = nmlReader.getNeuroMLDocument();
                 System.out.println("File loaded: "+file+"\n"+NeuroMLConverter.summary(nml2Doc));

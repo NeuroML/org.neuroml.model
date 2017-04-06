@@ -24,14 +24,25 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import ncsa.hdf.object.Group;
 import org.neuroml.model.Base;
+import org.neuroml.model.BaseConnection;
+import org.neuroml.model.BaseConnectionNewFormat;
 import org.neuroml.model.BaseConnectionOldFormat;
 import org.neuroml.model.Connection;
 import org.neuroml.model.ConnectionWD;
+import org.neuroml.model.ContinuousConnection;
+import org.neuroml.model.ContinuousConnectionInstance;
+import org.neuroml.model.ContinuousConnectionInstanceW;
+import org.neuroml.model.ContinuousProjection;
+import org.neuroml.model.ElectricalConnection;
+import org.neuroml.model.ElectricalConnectionInstance;
+import org.neuroml.model.ElectricalConnectionInstanceW;
+import org.neuroml.model.ElectricalProjection;
 import org.neuroml.model.IafTauCell;
 import org.neuroml.model.Include;
 import org.neuroml.model.IncludeType;
 import org.neuroml.model.Input;
 import org.neuroml.model.InputList;
+import org.neuroml.model.InputW;
 import org.neuroml.model.Location;
 import org.neuroml.model.Morphology;
 import org.neuroml.model.Network;
@@ -332,6 +343,11 @@ public class NeuroMLConverter
             
             List<Projection> projs = network.getProjection();
             sortElements(projs);
+            List<ElectricalProjection> eprojs = network.getElectricalProjection();
+            sortElements(eprojs);
+            List<ContinuousProjection> cprojs = network.getContinuousProjection();
+            sortElements(cprojs);
+            
             String proj_info = "";
             int tot_projs = 0, tot_conns = 0;
             for (Projection projection: projs)
@@ -345,14 +361,70 @@ public class NeuroMLConverter
                 if (projection.getConnection().size()>0) 
                 {
                     Connection c = projection.getConnection().get(0);
-                    proj_info += "*      "+projection.getConnection().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
+                    proj_info += "*       "+projection.getConnection().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
                 }
                 
                 tot_conns+=projection.getConnectionWD().size();
                 if (projection.getConnectionWD().size()>0) 
                 {
                     ConnectionWD c = projection.getConnectionWD().get(0);
-                    proj_info += "*      "+projection.getConnectionWD().size()+" connections (wd): ["+ connectionInfo(c)+ ", ...]\n";
+                    proj_info += "*       "+projection.getConnectionWD().size()+" connections (wd): ["+ connectionInfo(c)+ ", ...]\n";
+                }
+            }
+            for (ElectricalProjection projection: eprojs)
+            {
+                proj_info += "*     Electrical projection: "+projection.getId()+
+                    " from "+projection.getPresynapticPopulation() +" to "+projection.getPostsynapticPopulation()
+                    + "\n";
+                tot_projs+=1;
+                
+                tot_conns+=projection.getElectricalConnection().size();
+                if (projection.getElectricalConnection().size()>0) 
+                {
+                    ElectricalConnection c = projection.getElectricalConnection().get(0);
+                    proj_info += "*       "+projection.getElectricalConnection().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
+                }
+                
+                tot_conns+=projection.getElectricalConnectionInstance().size();
+                if (projection.getElectricalConnectionInstance().size()>0) 
+                {
+                    ElectricalConnectionInstance c = projection.getElectricalConnectionInstance().get(0);
+                    proj_info += "*       "+projection.getElectricalConnectionInstance().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
+                }
+                
+                tot_conns+=projection.getElectricalConnectionInstanceW().size();
+                if (projection.getElectricalConnectionInstanceW().size()>0) 
+                {
+                    ElectricalConnectionInstanceW c = projection.getElectricalConnectionInstanceW().get(0);
+                    proj_info += "*       "+projection.getElectricalConnectionInstanceW().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
+                }
+            }
+            
+            for (ContinuousProjection projection: cprojs)
+            {
+                proj_info += "*     Continuous projection: "+projection.getId()+
+                    " from "+projection.getPresynapticPopulation() +" to "+projection.getPostsynapticPopulation()
+                    + "\n";
+                tot_projs+=1;
+                
+                tot_conns+=projection.getContinuousConnection().size();
+                if (projection.getContinuousConnection().size()>0) 
+                {
+                    ContinuousConnection c = projection.getContinuousConnection().get(0);
+                    proj_info += "*       "+projection.getContinuousConnection().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
+                }
+                
+                tot_conns+=projection.getContinuousConnectionInstance().size();
+                if (projection.getContinuousConnectionInstance().size()>0) 
+                {
+                    ContinuousConnection c = projection.getContinuousConnectionInstance().get(0);
+                    proj_info += "*       "+projection.getContinuousConnectionInstance().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
+                }
+                tot_conns+=projection.getContinuousConnectionInstanceW().size();
+                if (projection.getContinuousConnectionInstanceW().size()>0) 
+                {
+                    ContinuousConnection c = projection.getContinuousConnectionInstanceW().get(0);
+                    proj_info += "*       "+projection.getContinuousConnectionInstanceW().size()+" connections: ["+ connectionInfo(c)+ ", ...]\n";
                 }
             }
             info+= "*   "+tot_conns+" connections in "+tot_projs+" projections\n"+proj_info+"*\n";
@@ -374,6 +446,13 @@ public class NeuroMLConverter
                     il_info += "*      "+il.getInput().size()+" inputs: ["+ inputInfo(i)+ ", ...]\n";
                     
                 }
+                tot_is+=il.getInputW().size();
+                if (il.getInputW().size()>0) 
+                {
+                    InputW i = il.getInputW().get(0);
+                    il_info += "*      "+il.getInputW().size()+" inputs: ["+ inputInfo(i)+ ", ...]\n";
+                    
+                }
             }
             info+= "*   "+tot_is+" inputs in "+tot_ils+" input lists\n"+il_info+"*\n";
         }
@@ -382,19 +461,33 @@ public class NeuroMLConverter
         return info;
     }
     
-    public static int getPreCellId(BaseConnectionOldFormat c)
+    public static int getPreCellId(BaseConnection c)
     {
-        return getCellId(c.getPreCellId());
+        if (c instanceof BaseConnectionOldFormat)
+            return getCellId(((BaseConnectionOldFormat)c).getPreCellId());
+        else
+            return getCellId(((BaseConnectionNewFormat)c).getPreCell());
+            
     }
     
-    public static int getPostCellId(BaseConnectionOldFormat c)
+    public static int getPostCellId(BaseConnection c)
     {
-        return getCellId(c.getPostCellId());
+        if (c instanceof BaseConnectionOldFormat)
+            return getCellId(((BaseConnectionOldFormat)c).getPostCellId());
+        else
+            return getCellId(((BaseConnectionNewFormat)c).getPostCell());
     }
     
     private static int getCellId(String path)
     {
-        return Integer.parseInt(path.split("/")[2]);
+        try
+        {
+            return Integer.parseInt(path);
+        }
+        catch (NumberFormatException ne)
+        {
+            return Integer.parseInt(path.split("/")[2]);
+        }
     }
     
     private static String connectionInfo(Connection c)
@@ -408,6 +501,19 @@ public class NeuroMLConverter
             +"))";
     }
     
+    private static String formatDelay(String delay)
+    {
+        float factor = 1;
+        if (delay.endsWith("ms")) 
+            delay = delay.substring(0, delay.length()-2);
+        if (delay.endsWith("s")) 
+        {
+            delay = delay.substring(0, delay.length()-1);
+            factor = 0.001f;
+        }
+        return Float.parseFloat(delay)*factor+" ms";
+    }
+    
     private static String connectionInfo(ConnectionWD c)
     {
         return "(Connection "+c.getId()+": "+getPreCellId(c)
@@ -418,8 +524,53 @@ public class NeuroMLConverter
             +"("+c.getPostFractionAlong()
             +")"
             + " weight: "+c.getWeight()
-            + ", delay: "+c.getDelay()
+            + ", delay: "+formatDelay(c.getDelay())
             +"))";
+    }
+    
+    
+    private static String connectionInfo(BaseConnectionNewFormat c)
+    {
+        String type = null;
+        String more ="";
+        if (c instanceof ElectricalConnection)
+        {
+            type = "Electrical connection";
+            more += " synapse: "+((ElectricalConnection)c).getSynapse();
+        }
+        if (c instanceof ElectricalConnectionInstance)
+        {
+            type = "Electrical connection (Instance based)";
+        }
+        if (c instanceof ElectricalConnectionInstanceW)
+        {
+            type = "Electrical connection (Instance based & weight)";
+            more += ", weight: "+((ElectricalConnectionInstanceW)c).getWeight();
+        }
+        if (c instanceof ContinuousConnection)
+        {
+            type = "Continuous connection";
+            ContinuousConnection cc = (ContinuousConnection)c;
+            more += " pre comp: "+cc.getPreComponent()+", post comp: "+cc.getPostComponent();
+        }
+        if (c instanceof ContinuousConnectionInstance)
+        {
+            type = "Continuous connection (Instance based)";
+        }
+        if (c instanceof ContinuousConnectionInstanceW)
+        {
+            type = "Continuous connection (Instance based & weight)";
+            more += ", weight: "+((ContinuousConnectionInstanceW)c).getWeight();
+        }
+        
+        
+        return "("+type+" "+c.getId()+": "+getPreCellId(c)
+            +":"+c.getPreSegment()
+            +"("+c.getPreFractionAlong()
+            +") -> "+getPostCellId(c)
+            +":"+c.getPostSegment()
+            +"("+c.getPostFractionAlong()
+            +")"+more+")";
     }
     
     public static int getTargetCellId(Input i)
@@ -438,11 +589,20 @@ public class NeuroMLConverter
     
     private static String inputInfo(Input i)
     {
-        return "(Input "+i.getId()
+        String weightTag = "";
+        String weightInfo = "";
+        if (i instanceof InputW)
+        {
+            InputW iw = (InputW)i;
+            weightTag = " (weight)";
+            weightInfo = ", weight: "+iw.getWeight();
+        }
+           
+        return "(Input"+weightTag+" "+i.getId()
             +": "+getTargetCellId(i)
             +":"+getSegmentId(i)
             +"("+getFractionAlong(i)
-            +"))";
+            +")"+weightInfo+")";
     }
 	
 	public static LinkedHashMap<String,Standalone> getAllStandaloneElements(NeuroMLDocument nmlDocument) throws NeuroMLException
@@ -623,6 +783,7 @@ public class NeuroMLConverter
         
         String fileName = "../neuroConstruct/osb/showcase/NetPyNEShowcase/NeuroML2/scaling/Balanced.net.nml";
         fileName = "src/test/resources/examples/MediumNet.net.nml";
+        fileName = "src/test/resources/examples/complete.nml";
 		NeuroMLConverter nmlc = new NeuroMLConverter();
     	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName), true);
        

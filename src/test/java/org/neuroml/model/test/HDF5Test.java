@@ -23,7 +23,7 @@ public class HDF5Test extends TestCase
         File exdir = new File(exampledirname);
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
         for (File f : exdir.listFiles()) {
-            if (f.getName().endsWith(".nml")) {
+            if (f.getName().endsWith(".nml") && f.getName().indexOf("complete")<0) {
                 String filepath = f.getAbsolutePath();
                 System.out.println(">>      Trying to load: " + filepath);
                 NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(new File(filepath));
@@ -83,6 +83,8 @@ public class HDF5Test extends TestCase
             
             NeuroMLHDF5Writer.createNeuroMLH5file(nmlDoc, h5File);
             
+            System.out.println("Written to: "+h5File.getAbsolutePath());
+            
             NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
 
             nmlReader.parse(h5File, true);
@@ -100,6 +102,46 @@ public class HDF5Test extends TestCase
         }
     }
     
+    
+    @Test
+    public void testHDF5() throws Exception {
+        
+        File exdir = new File(exampledirname);
+        
+        NeuroMLConverter neuromlConverter = new NeuroMLConverter();
+        String[] tests = new String[]{"complete.nml"};
+        
+        for (String fn : tests) {
+            File ft = new File(exdir,fn);
+            String filepath = ft.getAbsolutePath();
+            System.out.println("      Trying to load: " + filepath);
+
+            NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(new File(filepath), true);
+            
+            String summary0 = NeuroMLConverter.summary(nmlDoc);
+            System.out.println("nmlDoc loaded: \n"+summary0);
+
+            File h5File = new File(filepath.replaceAll(".nml", ".nml.h5"));
+            if (!h5File.getParentFile().exists())
+                h5File.getParentFile().mkdir();
+            
+            
+            NeuroMLHDF5Reader nmlReader = new NeuroMLHDF5Reader();
+
+            nmlReader.parse(h5File, true);
+             
+            System.out.println("Parsed: "+h5File.getAbsolutePath());
+ 
+            String summary1 = NeuroMLConverter.summary(nmlReader.getNeuroMLDocument());
+
+            System.out.println("File loaded: "+h5File+"\n"+summary1);
+
+            assert(summary0.equals(summary1));
+            
+            System.out.println("Strings are equal!!");
+
+        }
+    }
     
     
     

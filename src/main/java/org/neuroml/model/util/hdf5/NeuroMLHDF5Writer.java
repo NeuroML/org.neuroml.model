@@ -23,6 +23,7 @@ import org.neuroml.model.Population;
 import org.neuroml.model.Projection;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLElements;
+import org.neuroml.model.util.NeuroMLException;
 
 
 public class NeuroMLHDF5Writer
@@ -118,6 +119,11 @@ public class NeuroMLHDF5Writer
                     }
                 }
                 
+                if (network.getElectricalProjection().size()>0)
+                    throw new NeuroMLException("Electrical projections can't yet be exported to HDF5...");
+                if (network.getContinuousProjection().size()>0)
+                    throw new NeuroMLException("Continuous projections can't yet be exported to HDF5...");
+                
                 for (Projection proj: network.getProjection())
                 {
                     Group projGroup = h5File.createGroup(NeuroMLElements.PROJECTION+"_"+proj.getId(), netGroup);
@@ -126,6 +132,10 @@ public class NeuroMLHDF5Writer
                     Hdf5Utils.addStringAttribute(projGroup, "postsynapticPopulation", proj.getPostsynapticPopulation(), h5File);
                     Hdf5Utils.addStringAttribute(projGroup, "synapse", proj.getSynapse(), h5File);
                     Hdf5Utils.addStringAttribute(projGroup, "type", "projection", h5File);
+                    
+                    if (!proj.getConnectionWD().isEmpty())
+                        throw new NeuroMLException("ConnectionWDs can't yet be exported to HDF5...");
+                        
                     
                     if (!proj.getConnection().isEmpty())
                     {
