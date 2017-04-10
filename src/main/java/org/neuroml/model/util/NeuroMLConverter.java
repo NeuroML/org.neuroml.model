@@ -27,6 +27,7 @@ import org.neuroml.model.Base;
 import org.neuroml.model.BaseConnection;
 import org.neuroml.model.BaseConnectionNewFormat;
 import org.neuroml.model.BaseConnectionOldFormat;
+import org.neuroml.model.ComponentType;
 import org.neuroml.model.Connection;
 import org.neuroml.model.ConnectionWD;
 import org.neuroml.model.ContinuousConnection;
@@ -181,6 +182,10 @@ public class NeuroMLConverter
                     {
                         addElementToDocument(nmlDocument, sae);
                     }
+                    for (ComponentType ct: subDoc.getComponentType())
+                    {
+                        nmlDocument.getComponentType().add(ct);
+                    }
                 }
                 toRemove.add(include);
             }
@@ -244,6 +249,10 @@ public class NeuroMLConverter
                         for (Standalone sae : saes.values())
                         {
                             addElementToDocument(nmlDocument, sae);
+                        }
+                        for (ComponentType ct: subDoc.getComponentType())
+                        {
+                            nmlDocument.getComponentType().add(ct);
                         }
                     }
                 }
@@ -310,6 +319,14 @@ public class NeuroMLConverter
         }
         info += post;
         
+        for (ComponentType ct: nmlDocument.getComponentType())
+        {
+            info +="*  ComponentType: "+ct.getName()+"\n";
+        }
+        if (nmlDocument.getComponentType().size()>0)
+            info +="*\n";
+            
+        
         for (Network network: nmlDocument.getNetwork()) {
             
             info += "*  Network: "+network.getId();
@@ -327,10 +344,15 @@ public class NeuroMLConverter
             int tot_pops = 0, tot_cells = 0;
             for (Population population: pops)
             {
+                int size;
+                if (population.getInstance().size()>0)
+                    size = population.getInstance().size();
+                else
+                    size = population.getSize();
                 pop_info += "*     Population: "+population.getId()+
-                    " with "+population.getSize() +" components of "+population.getComponent()+ "\n";
+                    " with "+ size +" components of "+population.getComponent()+ "\n";
                 tot_pops+=1;
-                tot_cells+=population.getSize();
+                tot_cells+=size;
                 if (population.getInstance().size()>0) 
                 {
                     Location l = population.getInstance().get(0).getLocation();
@@ -783,7 +805,7 @@ public class NeuroMLConverter
         
         String fileName = "../neuroConstruct/osb/showcase/NetPyNEShowcase/NeuroML2/scaling/Balanced.net.nml";
         fileName = "src/test/resources/examples/MediumNet.net.nml";
-        fileName = "src/test/resources/examples/complete.nml";
+        //fileName = "src/test/resources/examples/complete.nml";
 		NeuroMLConverter nmlc = new NeuroMLConverter();
     	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName), true);
        

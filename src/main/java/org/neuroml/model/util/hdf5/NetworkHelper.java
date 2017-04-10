@@ -304,8 +304,12 @@ public class NetworkHelper
     @Override
     public String toString()
     {
-        return "NetworkHelper containing NML doc: "+(neuroMLDocument!=null ? neuroMLDocument.getId() : "NONE")+
-            " and optimised elements on "+populationInfo.size()+" populations and "+projectionInfo.size()+" projections";
+        String nmlDocInfo = neuroMLDocument==null ? "NONE" : neuroMLDocument.getId()
+            +( (neuroMLDocument.getNetwork()==null || neuroMLDocument.getNetwork().size()==0) ? ", no network" : ", network: "+neuroMLDocument.getNetwork().get(0).getId()
+            + " with " + neuroMLDocument.getNetwork().get(0).getPopulation().size()+" populations");
+        
+        return "NetworkHelper containing NML doc: ("+nmlDocInfo+
+            ") and optimised elements on "+populationInfo.size()+" populations and "+projectionInfo.size()+" projections";
     }
     
     
@@ -327,7 +331,7 @@ public class NetworkHelper
 
                 NeuroMLConverter nmlConv = new NeuroMLConverter();
                 NetworkHelper netHelper = nmlConv.loadNeuroMLOptimized(h5File);
-                
+                System.out.println("Using: "+netHelper);
                 NeuroMLDocument nml2Doc = netHelper.getNeuroMLDocument();
                 System.out.println("File loaded: "+file+"\n"+NeuroMLConverter.summary(nml2Doc));
                 

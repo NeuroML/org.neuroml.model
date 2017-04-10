@@ -109,7 +109,7 @@ public class HDF5Test extends TestCase
         File exdir = new File(exampledirname);
         
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
-        String[] tests = new String[]{"complete.nml"};
+        String[] tests = new String[]{"complete.nml","MediumNet.net.nml"};
         
         for (String fn : tests) {
             File ft = new File(exdir,fn);
