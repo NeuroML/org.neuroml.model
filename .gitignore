@@ -5,3 +5,4 @@ src/main/java/META-INF/MANIFEST.MF
 .DS_Store
 /libjhdf5.so
 /libjhdf5.jnilib
+/src/test/resources/examples/temp/*.h5

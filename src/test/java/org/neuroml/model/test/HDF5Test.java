@@ -16,19 +16,26 @@ public class HDF5Test extends TestCase
     
     static String wdir = System.getProperty("user.dir");
     static String exampledirname = wdir + File.separator + "src/test/resources/examples";
+    static File exDir = new File(exampledirname);
+    static String tempdirname = wdir + File.separator + "src/test/resources/examples/temp";
+    static File tempDir = new File(tempdirname);
+    
+    protected void setUp() throws Exception {
+        if (!tempDir.exists())
+            tempDir.mkdir();
+    }
     
     @Test
     public void testWrite() throws Exception {
         System.out.println("---  Testing local examples... ");
-        File exdir = new File(exampledirname);
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
-        for (File f : exdir.listFiles()) {
+        for (File f : exDir.listFiles()) {
             if (f.getName().endsWith(".nml") && f.getName().indexOf("complete")<0) {
                 String filepath = f.getAbsolutePath();
                 System.out.println(">>      Trying to load: " + filepath);
                 NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(new File(filepath));
           
-                File h5File = new File(filepath.replaceAll("examples", "tmp").replaceAll(".nml", ".nml.h5"));
+                File h5File = new File(tempDir, f.getName().replaceAll(".nml", ".nml.h5"));
                 if (!h5File.getParentFile().exists())
                     h5File.getParentFile().mkdir();
                 
@@ -62,13 +69,12 @@ public class HDF5Test extends TestCase
     @Test
     public void testReadWrite() throws Exception {
         
-        File exdir = new File(exampledirname);
         
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
         String[] tests = new String[]{"testnet.nml","MediumNet.net.nml"};
         
         for (String fn : tests) {
-            File ft = new File(exdir,fn);
+            File ft = new File(exDir,fn);
             String filepath = ft.getAbsolutePath();
             System.out.println("      Trying to load: " + filepath);
 
@@ -77,7 +83,7 @@ public class HDF5Test extends TestCase
             String summary0 = NeuroMLConverter.summary(nmlDoc);
             System.out.println("nmlDoc loaded: \n"+summary0);
 
-            File h5File = new File(filepath.replaceAll(".nml", ".nml.h5"));
+            File h5File = new File(tempDir, ft.getName().replaceAll(".nml", ".nml.h5"));
             if (!h5File.getParentFile().exists())
                 h5File.getParentFile().mkdir();
             
@@ -106,13 +112,11 @@ public class HDF5Test extends TestCase
     @Test
     public void testHDF5() throws Exception {
         
-        File exdir = new File(exampledirname);
-        
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
         String[] tests = new String[]{"complete.nml","MediumNet.net.nml"};
         
         for (String fn : tests) {
-            File ft = new File(exdir,fn);
+            File ft = new File(exDir,fn);
             String filepath = ft.getAbsolutePath();
             System.out.println("      Trying to load: " + filepath);
 

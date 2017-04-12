@@ -18,7 +18,7 @@ public class OptimizedTest extends TestCase
     
     
     @Test
-    public void testReadWrite() throws Exception {
+    public void testRead() throws Exception {
         
         File exdir = new File(exampledirname);
         
