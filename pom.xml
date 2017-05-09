@@ -11,6 +11,17 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>com.sun.tools.xjc.maven2</groupId>
+            <artifactId>maven-jaxb-plugin</artifactId>
+            <version>1.1.1</version>
+            <exclusions>
+                <exclusion>
+                    <artifactId>jaxb-impl</artifactId>
+                    <groupId>com.sun.xml.bind</groupId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
             <version>4.11</version>
@@ -43,7 +54,7 @@
 
 		<repository>
 			<id>org.geppetto-mvn-repo</id>
-			<url>https://raw.github.com/openworm/org.geppetto.maven/mvn-repo</url>
+			<url>https://raw.github.com/openworm/org.geppetto.maven/mvn-repo-no-nml-lems</url>
 			<snapshots>
 				<enabled>true</enabled>
 				<updatePolicy>always</updatePolicy>
@@ -151,7 +162,7 @@
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.12.3</version>
+                <version>0.8.2</version>
                 <executions>
                     <execution>
                         <id>NeuroML2</id>
