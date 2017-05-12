@@ -63,6 +63,7 @@ public class NeuroMLElements {
 
     // Currents
     public static final String POINT_CURR_CURRENT = "i";
+    public static final String PULSE_GENERATOR_CURRENT = "pulseGenerator";
     
     // Spike sources
     public static final String BASE_SPIKE_SOURCE_COMP_TYPE = "baseSpikeSource";
