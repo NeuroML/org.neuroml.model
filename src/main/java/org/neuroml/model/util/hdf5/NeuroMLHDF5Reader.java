@@ -680,8 +680,9 @@ public class NeuroMLHDF5Reader
                 
         java.util.List members = g.getMemberList();
 
-        // NOTE: parsing contents twice to ensure subgroups are handled before datasets
-        // This is mainly because synapse_props groups will need to be parsed before dataset of connections  
+        // NOTE: parsing contents 3 times to ensure subgroups are handled before datasets
+        // and populations are handled before projections/inputs
+        // The former is mainly because synapse_props groups will need to be parsed before dataset of connections  
        
         
         for (int j=0; j<members.size(); j++)
@@ -692,9 +693,28 @@ public class NeuroMLHDF5Reader
             {
                 Group subGroup = (Group)obj;
                 
-                printv("---------    Found a sub group: "+subGroup.getName());
+                if(subGroup.getName().startsWith("population_"))
+                {
+                    printv("---------    Found a sub group (pop): "+subGroup.getName()+" "+subGroup.getName().startsWith("population_"));
+
+                    parseGroup(subGroup);
+                }
+            }
+        }
+        for (int j=0; j<members.size(); j++)
+        {
+            HObject obj = (HObject)members.get(j);
+            
+            if (obj instanceof Group)
+            {
+                Group subGroup = (Group)obj;
                 
-                parseGroup(subGroup);
+                if(!subGroup.getName().startsWith("population_"))
+                {
+                    printv("---------    Found a sub group (non pop): "+subGroup.getName()+" "+subGroup.getName().startsWith("population_"));
+
+                    parseGroup(subGroup);
+                }
             }
         }
         

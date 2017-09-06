@@ -16,6 +16,8 @@ import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.PopulationTypes;
 import org.neuroml.model.Projection;
+import org.neuroml.model.InputList;
+import org.neuroml.model.Input;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLException;
 
@@ -304,7 +306,7 @@ public class NetworkHelper
     @Override
     public String toString()
     {
-        String nmlDocInfo = neuroMLDocument==null ? "NONE" : neuroMLDocument.getId()
+        String nmlDocInfo = neuroMLDocument==null ? "NONE" : (neuroMLDocument.getId()==null ? "NO ID" : neuroMLDocument.getId())
             +( (neuroMLDocument.getNetwork()==null || neuroMLDocument.getNetwork().size()==0) ? ", no network" : ", network: "+neuroMLDocument.getNetwork().get(0).getId()
             + " with " + neuroMLDocument.getNetwork().get(0).getPopulation().size()+" populations");
         
@@ -320,6 +322,7 @@ public class NetworkHelper
         {
             
             String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
+            
             files = new String[]{"src/test/resources/examples/MediumNet.net.nml",
                 "src/test/resources/examples/MediumNet.net.nml.h5",
                 "src/test/resources/examples/complete.nml",
@@ -337,7 +340,7 @@ public class NetworkHelper
                 
                 for (String p: netHelper.getPopulationIds())
                 {
-                    System.out.println("Pop: "+p+" has "+netHelper.getPopulationSize(p)+" cells, positions: "+netHelper.populationHasPositions(p));
+                    System.out.println("Pop: "+p+" with comp "+netHelper.getPopulationComponent(p)+", has "+netHelper.getPopulationSize(p)+" cells, positions: "+netHelper.populationHasPositions(p));
                     if (netHelper.getPopulationSize(p)>0 && netHelper.populationHasPositions(p))
                         System.out.println("Location 2: "+netHelper.getLocation(p, 2, false));
                 }
@@ -349,6 +352,15 @@ public class NetworkHelper
                     System.out.println("Proj: "+p+" has "+netHelper.getNumberConnections(p)+" conns");
                     if (netHelper.getNumberConnections(p)>0)
                         System.out.println("Conn 0: "+ NeuroMLConverter.connectionInfo(netHelper.getConnection(p, 0)));
+                }
+                
+                for(InputList il: nml2Doc.getNetwork().get(0).getInputList())
+                {
+                    System.out.println("il: "+il.getId());
+                    for(Input i: il.getInput())
+                    {
+                        System.out.println("    i: "+i);
+                    }
                 }
                 
                 /*
