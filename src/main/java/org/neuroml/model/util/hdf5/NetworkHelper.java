@@ -272,19 +272,19 @@ public class NetworkHelper
             conn.setId((int)connInfo[columns.get("id")]);
             if (index!=conn.getId())
                 throw new NeuroMLException("Problem in projection "+projectionId+", connections are not ordered in increasing id...");
-            
-            if (columns.get("pre_cell_id") >= 0)
-		conn.setPreCellId((int)connInfo[columns.get("pre_cell_id")]+"");
-            if (columns.get("post_cell_id") >= 0)
-		conn.setPostCellId((int)connInfo[columns.get("post_cell_id")]+"");
+
+                /* These need to be present; no check for -1 */
+            conn.setPreCellId((int)connInfo[columns.get("pre_cell_id")]+"");
+            conn.setPostCellId((int)connInfo[columns.get("post_cell_id")]+"");
+
             if (columns.get("pre_segment_id") >= 0)
-		conn.setPreSegmentId((int)connInfo[columns.get("pre_segment_id")]);
+                conn.setPreSegmentId((int)connInfo[columns.get("pre_segment_id")]);
             if (columns.get("post_segment_id") >= 0)
-		conn.setPostSegmentId((int)connInfo[columns.get("post_segment_id")]);
+                conn.setPostSegmentId((int)connInfo[columns.get("post_segment_id")]);
             if (columns.get("pre_fraction_along") >= 0)
-		conn.setPreFractionAlong(connInfo[columns.get("pre_fraction_along")]);
+                conn.setPreFractionAlong(connInfo[columns.get("pre_fraction_along")]);
             if (columns.get("post_fraction_along") >= 0)
-		conn.setPostFractionAlong(connInfo[columns.get("post_fraction_along")]);
+                conn.setPostFractionAlong(connInfo[columns.get("post_fraction_along")]);
 
             return conn;
         }
