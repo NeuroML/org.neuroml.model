@@ -71,6 +71,7 @@ public class NeuroMLHDF5Reader
     
     boolean includeConnections = false;
     boolean optimized = false;
+    boolean includeIncludes = true;
     
     File sourceDocument;
     
@@ -109,9 +110,17 @@ public class NeuroMLHDF5Reader
     */
     public NeuroMLDocument parse(File hdf5File, boolean includeConnections, ArrayList<String> alreadyIncluded) throws Hdf5Exception, NeuroMLException 
     {
+        return parse(hdf5File, includeConnections, alreadyIncluded, true);
+    }
+    /*
+        alreadyIncluded is used if e.g. a parser has already read in other NML files before getting to the HDF5 file
+    */
+    public NeuroMLDocument parse(File hdf5File, boolean includeConnections, ArrayList<String> alreadyIncluded, boolean includeIncludes) throws Hdf5Exception, NeuroMLException 
+    {
         sourceDocument = hdf5File;
         this.includeConnections = includeConnections;
         this.alreadyIncluded = alreadyIncluded;
+        this.includeIncludes = includeIncludes;
         
         H5File h5File = Hdf5Utils.openForRead(hdf5File);
         
@@ -164,7 +173,7 @@ public class NeuroMLHDF5Reader
             for (Attribute attr: attrs) {
                 if (attr.getName().equals(NEUROML_TOP_LEVEL_CONTENT)){
                     String nml = Hdf5Utils.getFirstStringValAttr(attrs, attr.getName());
-                    neuroMLDocument = neuromlConverter.loadNeuroML(nml, true, sourceDocument.getAbsoluteFile().getParentFile(), alreadyIncluded);
+                    neuroMLDocument = neuromlConverter.loadNeuroML(nml, includeIncludes, sourceDocument.getAbsoluteFile().getParentFile(), alreadyIncluded);
                 }
             }
             if (neuroMLDocument==null)
@@ -745,6 +754,7 @@ public class NeuroMLHDF5Reader
             String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
             files = new String[]{"src/test/resources/examples/MediumNet.net.nml.h5"};
             files = new String[]{"src/test/resources/examples/complete.nml.h5"};
+            files = new String[]{"../git/ca1/NeuroML2/network/PINGNet_0.1.net.nml.h5"};
             //files = new String[]{"/home/padraig/git/osb-model-validation/utilities/local_test/netpyneshowcase/NeuroML2/scaling/Balanced.net.nml.h5"};
             
             for (String file: files)
