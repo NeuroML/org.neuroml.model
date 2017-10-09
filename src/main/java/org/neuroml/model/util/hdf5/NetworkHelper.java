@@ -216,7 +216,7 @@ public class NetworkHelper
         {
             return new ArrayList<String>(projectionInfo.keySet());
         }
-        else
+        else if (neuroMLDocument != null)
         {
             for (Projection proj: neuroMLDocument.getNetwork().get(0).getProjection())
             {
