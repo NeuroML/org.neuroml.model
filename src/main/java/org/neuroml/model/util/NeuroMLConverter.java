@@ -109,17 +109,22 @@ public class NeuroMLConverter
     
     public NetworkHelper loadNeuroMLOptimized(File xmlOrH5File) throws NeuroMLException
     {
+	return loadNeuroMLOptimized(xmlOrH5File, true);
+    }
+
+    public NetworkHelper loadNeuroMLOptimized(File xmlOrH5File, boolean includeIncludes) throws NeuroMLException
+    {
         try
         {
             if (xmlOrH5File.getName().endsWith("h5") ||xmlOrH5File.getName().endsWith("hdf5"))
             {
                 NeuroMLHDF5Reader h5Reader = new NeuroMLHDF5Reader();
-                NetworkHelper netHelper = h5Reader.parseOptimized(xmlOrH5File);
+                NetworkHelper netHelper = h5Reader.parseOptimized(xmlOrH5File, includeIncludes);
                 return netHelper;
             }
             else
             {
-                NeuroMLDocument nmlDoc = loadNeuroML(xmlOrH5File, true, true);
+                NeuroMLDocument nmlDoc = loadNeuroML(xmlOrH5File, includeIncludes, true);
                 NetworkHelper netHelper = new NetworkHelper(nmlDoc);
                 return netHelper;
             }
