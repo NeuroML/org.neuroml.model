@@ -143,6 +143,8 @@ public class NeuroMLHDF5Reader
     {
         sourceDocument = hdf5File;
         this.includeIncludes = includeIncludes;
+        
+        includeConnections = true;
         optimized = true;
         networkHelper = new NetworkHelper();
         
@@ -759,7 +761,7 @@ public class NeuroMLHDF5Reader
             String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
             files = new String[]{"src/test/resources/examples/MediumNet.net.nml.h5"};
             files = new String[]{"src/test/resources/examples/complete.nml.h5"};
-            files = new String[]{"../git/ca1/NeuroML2/network/PINGNet_0.1.net.nml.h5"};
+            files = new String[]{"../git/ca1/NeuroML2/network/PINGNet_0_1.net.nml.h5"};
             //files = new String[]{"/home/padraig/git/osb-model-validation/utilities/local_test/netpyneshowcase/NeuroML2/scaling/Balanced.net.nml.h5"};
             
             for (String file: files)

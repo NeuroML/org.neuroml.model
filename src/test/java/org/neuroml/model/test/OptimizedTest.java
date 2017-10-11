@@ -31,7 +31,7 @@ public class OptimizedTest extends TestCase
             File xmlFile = new File(exdir,fn);
             File h5File = new File(exdir,fn+".h5");
             
-            System.out.println("      Trying to load: " + xmlFile.getAbsolutePath());
+            System.out.println("==========================\n      Trying to load: " + xmlFile.getAbsolutePath());
 
             NeuroMLDocument nmlDoc0 = neuromlConverter.loadNeuroML(xmlFile, true);
             String xmlString = neuromlConverter.neuroml2ToXml(nmlDoc0);
@@ -41,12 +41,15 @@ public class OptimizedTest extends TestCase
 
             
             nmlConv = new NeuroMLConverter();
-            NetworkHelper netHelper2 = nmlConv.loadNeuroMLOptimized(h5File);
+            NetworkHelper netHelperH5inclIncls = nmlConv.loadNeuroMLOptimized(h5File, true);
             
             nmlConv = new NeuroMLConverter();
-            NetworkHelper netHelper3 = nmlConv.loadNeuroMLOptimized(xmlString);
+            NetworkHelper netHelperH5notInclIncls = nmlConv.loadNeuroMLOptimized(h5File, false);
+            
+            nmlConv = new NeuroMLConverter();
+            NetworkHelper netHelperXmlString = nmlConv.loadNeuroMLOptimized(xmlString);
 
-            NetworkHelper[] helpers = new NetworkHelper[]{netHelper2,netHelper3};
+            NetworkHelper[] helpers = new NetworkHelper[]{netHelperH5inclIncls, netHelperH5notInclIncls, netHelperXmlString};
             
             for (String p: netHelper1.getPopulationIds())
             {
