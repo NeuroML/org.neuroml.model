@@ -23,7 +23,7 @@ public class OptimizedTest extends TestCase
         File exdir = new File(exampledirname);
         
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
-        String[] tests = new String[]{"testnet.nml","MediumNet.net.nml","complete.nml"};
+        String[] tests = new String[]{"testnet.nml","MediumNet.net.nml","complete.nml", "Balanced.net.nml"};
         //tests = new String[]{"MediumNet.net.nml"};
         //tests = new String[]{"complete.nml"};
         
@@ -78,7 +78,7 @@ public class OptimizedTest extends TestCase
             {
                 int size = netHelper1.getNumberConnections(p);
                 String conn01 = size>0 ? NeuroMLConverter.connectionInfo(netHelper1.getConnection(p, 0)) : "NONE";
-                System.out.println("Proj: "+p+" has "+size+" conns: "+conn01);
+                System.out.println(" - Proj: "+p+" has "+size+" conns: "+conn01);
                 
                 for(NetworkHelper nh: helpers)
                 {
