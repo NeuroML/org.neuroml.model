@@ -57,7 +57,7 @@ public class NetworkHelper
         return neuroMLDocument;
     }
 
-    protected void setNeuroMLDocument(NeuroMLDocument neuroMLDocument)
+    public void setNeuroMLDocument(NeuroMLDocument neuroMLDocument)
     {
         this.neuroMLDocument = neuroMLDocument;
     }
