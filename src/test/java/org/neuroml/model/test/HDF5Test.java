@@ -30,7 +30,7 @@ public class HDF5Test extends TestCase
         System.out.println("---  Testing local examples... ");
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
         for (File f : exDir.listFiles()) {
-            if (f.getName().endsWith(".nml") && f.getName().indexOf("complete")<0) {
+            if (f.getName().endsWith(".nml") && f.getName().indexOf("complete")<0 && f.getName().indexOf("Balanced")<0) {
                 String filepath = f.getAbsolutePath();
                 System.out.println(">>      Trying to load: " + filepath);
                 NeuroMLDocument nmlDoc = neuromlConverter.loadNeuroML(new File(filepath));

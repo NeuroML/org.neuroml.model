@@ -109,17 +109,22 @@ public class NeuroMLConverter
     
     public NetworkHelper loadNeuroMLOptimized(File xmlOrH5File) throws NeuroMLException
     {
+        return loadNeuroMLOptimized(xmlOrH5File, true);
+    }
+
+    public NetworkHelper loadNeuroMLOptimized(File xmlOrH5File, boolean includeIncludes) throws NeuroMLException
+    {
         try
         {
             if (xmlOrH5File.getName().endsWith("h5") ||xmlOrH5File.getName().endsWith("hdf5"))
             {
                 NeuroMLHDF5Reader h5Reader = new NeuroMLHDF5Reader();
-                NetworkHelper netHelper = h5Reader.parseOptimized(xmlOrH5File);
+                NetworkHelper netHelper = h5Reader.parseOptimized(xmlOrH5File, includeIncludes);
                 return netHelper;
             }
             else
             {
-                NeuroMLDocument nmlDoc = loadNeuroML(xmlOrH5File, true, true);
+                NeuroMLDocument nmlDoc = loadNeuroML(xmlOrH5File, includeIncludes, true);
                 NetworkHelper netHelper = new NetworkHelper(nmlDoc);
                 return netHelper;
             }
@@ -805,11 +810,16 @@ public class NeuroMLConverter
         
         String fileName = "../neuroConstruct/osb/showcase/NetPyNEShowcase/NeuroML2/scaling/Balanced.net.nml";
         fileName = "src/test/resources/examples/MediumNet.net.nml";
+        fileName = "../git/ca1/NeuroML2/network/PINGNet_0_1.net.nml";
+        fileName = "../git/ca1/NeuroML2/network/PINGNet_0_1.net.nml.h5";
         //fileName = "src/test/resources/examples/complete.nml";
 		NeuroMLConverter nmlc = new NeuroMLConverter();
-    	NeuroMLDocument nmlDocument = nmlc.loadNeuroML(new File(fileName), true);
+        
+    	NetworkHelper nmlDocument = nmlc.loadNeuroMLOptimized(new File(fileName), true);
        
-        System.out.println("Loaded: \n"+NeuroMLConverter.summary(nmlDocument));
+        System.out.println("Loaded: \n"+NeuroMLConverter.summary(nmlDocument.getNeuroMLDocument()));
+        
+        
         /*
         fileName = "../neuroConstruct/osb/showcase/NetPyNEShowcase/NeuroML2/scaling/Balanced.net.nml.h5";
         

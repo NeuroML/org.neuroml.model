@@ -23,7 +23,7 @@ public class OptimizedTest extends TestCase
         File exdir = new File(exampledirname);
         
         NeuroMLConverter neuromlConverter = new NeuroMLConverter();
-        String[] tests = new String[]{"testnet.nml","MediumNet.net.nml","complete.nml"};
+        String[] tests = new String[]{"testnet.nml","MediumNet.net.nml","complete.nml", "Balanced.net.nml"};
         //tests = new String[]{"MediumNet.net.nml"};
         //tests = new String[]{"complete.nml"};
         
@@ -31,7 +31,7 @@ public class OptimizedTest extends TestCase
             File xmlFile = new File(exdir,fn);
             File h5File = new File(exdir,fn+".h5");
             
-            System.out.println("      Trying to load: " + xmlFile.getAbsolutePath());
+            System.out.println("==========================\n      Trying to load: " + xmlFile.getAbsolutePath());
 
             NeuroMLDocument nmlDoc0 = neuromlConverter.loadNeuroML(xmlFile, true);
             String xmlString = neuromlConverter.neuroml2ToXml(nmlDoc0);
@@ -41,12 +41,15 @@ public class OptimizedTest extends TestCase
 
             
             nmlConv = new NeuroMLConverter();
-            NetworkHelper netHelper2 = nmlConv.loadNeuroMLOptimized(h5File);
+            NetworkHelper netHelperH5inclIncls = nmlConv.loadNeuroMLOptimized(h5File, true);
             
             nmlConv = new NeuroMLConverter();
-            NetworkHelper netHelper3 = nmlConv.loadNeuroMLOptimized(xmlString);
+            NetworkHelper netHelperH5notInclIncls = nmlConv.loadNeuroMLOptimized(h5File, false);
+            
+            nmlConv = new NeuroMLConverter();
+            NetworkHelper netHelperXmlString = nmlConv.loadNeuroMLOptimized(xmlString);
 
-            NetworkHelper[] helpers = new NetworkHelper[]{netHelper2,netHelper3};
+            NetworkHelper[] helpers = new NetworkHelper[]{netHelperH5inclIncls, netHelperH5notInclIncls, netHelperXmlString};
             
             for (String p: netHelper1.getPopulationIds())
             {
@@ -75,7 +78,7 @@ public class OptimizedTest extends TestCase
             {
                 int size = netHelper1.getNumberConnections(p);
                 String conn01 = size>0 ? NeuroMLConverter.connectionInfo(netHelper1.getConnection(p, 0)) : "NONE";
-                System.out.println("Proj: "+p+" has "+size+" conns: "+conn01);
+                System.out.println(" - Proj: "+p+" has "+size+" conns: "+conn01);
                 
                 for(NetworkHelper nh: helpers)
                 {
