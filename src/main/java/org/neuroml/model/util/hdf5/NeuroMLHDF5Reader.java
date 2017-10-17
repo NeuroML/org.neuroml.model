@@ -133,10 +133,10 @@ public class NeuroMLHDF5Reader
         
         return neuroMLDocument;
     }
-
+    
     public NetworkHelper parseOptimized(File hdf5File) throws Hdf5Exception, NeuroMLException 
     {
-	return parseOptimized(hdf5File, true);
+        return parseOptimized(hdf5File, true);
     }
 
     public NetworkHelper parseOptimized(File hdf5File, boolean includeIncludes) throws Hdf5Exception, NeuroMLException
