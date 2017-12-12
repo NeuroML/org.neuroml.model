@@ -39,6 +39,7 @@ import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.PopulationTypes;
 import org.neuroml.model.Projection;
+import org.neuroml.model.Property;
 import org.neuroml.model.util.NeuroML2Validator;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLElements;
@@ -214,6 +215,17 @@ public class NeuroMLHDF5Reader
             currentPopulation.setId(Hdf5Utils.getFirstStringValAttr(attrs, "id"));
             currentPopulation.setSize(Integer.parseInt(Hdf5Utils.getFirstStringValAttr(attrs, "size")));
             currentPopulation.setComponent(Hdf5Utils.getFirstStringValAttr(attrs, "component"));
+            
+            for (Attribute attr: attrs) {
+                if (attr.getName().startsWith("property:")){
+                    String propName = attr.getName().substring(9);
+                    Property p = new Property();
+                    p.setTag(propName);
+                    p.setValue(Hdf5Utils.getFirstStringValAttr(attrs, attr.getName()));
+                    currentPopulation.getProperty().add(p);
+                }
+            }
+            
             populationComponent.put(currentPopulation.getId(),currentPopulation.getComponent());
             populationUsesList.put(currentPopulation.getId(), false); // until further notice...
             
@@ -288,7 +300,7 @@ public class NeuroMLHDF5Reader
             if (optimized)
             {
                 if (networkHelper.getPopulationIds().isEmpty() || !networkHelper.getPopulationIds().contains(currentPopulation.getId()))
-                    networkHelper.setPopulationArray(currentPopulation, new float[0][0]);
+                    networkHelper.setPopulationArray(currentPopulation, new HashMap<String,Integer>(), new float[0][0]);
             }
             currentPopulation = null;
         }
@@ -328,50 +340,61 @@ public class NeuroMLHDF5Reader
             currentPopulation.setType(PopulationTypes.POPULATION_LIST);
             
             populationUsesList.put(currentPopulation.getId(), true);
+
+            int id_col = -1;
+            int x_col = 1;
+            int y_col = 2;
+            int z_col = 3;
+
+            for (Attribute attribute : attrs) 
+            {
+                String storedInColumn = Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName());
+
+                if (storedInColumn.equals("id"))
+                {
+                    id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                }
+                if (storedInColumn.equals("x"))
+                {
+                    x_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                }
+                if (storedInColumn.equals("y"))
+                {
+                    y_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                }
+                if (storedInColumn.equals("z"))
+                {
+                    z_col = Integer.parseInt(attribute.getName().substring("column_".length()));
+                }
+            }
             
             if (optimized)
             {
-                networkHelper.setPopulationArray(currentPopulation, data);
+                HashMap<String,Integer> columns = new HashMap<String, Integer>();
+                columns.put("id", id_col);
+                columns.put("x", x_col);
+                columns.put("y", y_col);
+                columns.put("z", z_col);
+                    
+                networkHelper.setPopulationArray(currentPopulation, columns, data);
             }
             else
             {
-                int id_col = 0;
-                int x_col = 1;
-                int y_col = 2;
-                int z_col = 3;
 
-                for (Attribute attribute : attrs) 
+                for (int j=0; j<data.length; j++)
                 {
-                    String storedInColumn = Hdf5Utils.getFirstStringValAttr(attrs, attribute.getName());
-
-                    if (storedInColumn.equals("id"))
-                    {
-                        id_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    }
-                    if (storedInColumn.equals("x"))
-                    {
-                        x_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    }
-                    if (storedInColumn.equals("y"))
-                    {
-                        y_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    }
-                    if (storedInColumn.equals("z"))
-                    {
-                        z_col = Integer.parseInt(attribute.getName().substring("column_".length()));
-                    }
-                }
-
-                for (float[] data1 : data)
-                {
+                    float[] data1 = data[j];
                     Location l = new Location();
                     l.setX(data1[x_col]);
                     l.setY(data1[y_col]);
                     l.setZ(data1[z_col]);
-                    Instance i = new Instance();
-                    i.setId(new BigInteger ((int)data1[id_col]+""));
-                    i.setLocation(l);
-                    currentPopulation.getInstance().add(i);
+                    Instance inst = new Instance();
+                    if (id_col>=0)
+                        inst.setId(new BigInteger ((int)data1[id_col]+""));
+                    else
+                        inst.setId(new BigInteger(j+""));
+                    inst.setLocation(l);
+                    currentPopulation.getInstance().add(inst);
                 }
             }
         }
@@ -465,14 +488,15 @@ public class NeuroMLHDF5Reader
                 }
                 else
                 {
-
-                    for (float[] data1 : data)
+                    for (int j=0; j<data.length; j++)
                     {
+                        float[] data1 = data[j];
                         int pre_seg_id = 0;
                         float pre_fract_along = 0.5f;
                         int post_seg_id = 0;
                         float post_fract_along = 0.5f;
-                        int id = (int) data1[id_col];
+                        
+                        int id = id_col>=0 ? (int) data1[id_col] : j;
                         int pre_cell_id = (int) data1[pre_cell_id_col];
                         int post_cell_id = (int) data1[post_cell_id_col];
                         float weight = 1;
@@ -761,7 +785,7 @@ public class NeuroMLHDF5Reader
             String[] files = new String[]{"src/test/resources/examples/simplenet.nml.h5"};
             files = new String[]{"src/test/resources/examples/MediumNet.net.nml.h5"};
             files = new String[]{"src/test/resources/examples/complete.nml.h5"};
-            files = new String[]{"../git/ca1/NeuroML2/network/PINGNet_0_1.net.nml.h5"};
+            //files = new String[]{"../git/ca1/NeuroML2/network/PINGNet_0_1.net.nml.h5"};
             //files = new String[]{"/home/padraig/git/osb-model-validation/utilities/local_test/netpyneshowcase/NeuroML2/scaling/Balanced.net.nml.h5"};
             
             for (String file: files)

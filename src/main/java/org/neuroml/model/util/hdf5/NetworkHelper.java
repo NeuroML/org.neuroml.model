@@ -28,6 +28,7 @@ public class NetworkHelper
     NeuroMLDocument neuroMLDocument;
     
     HashMap<String,float[][]> populationInfo = new HashMap<String,float[][]>();
+    HashMap<String, HashMap<String,Integer>> populationColumns = new HashMap<String, HashMap<String,Integer>>();
     HashMap<String, Population> emptyPopulations = new HashMap<String, Population>();
     
     HashMap<String,float[][]> projectionInfo = new HashMap<String,float[][]>();
@@ -62,10 +63,11 @@ public class NetworkHelper
         this.neuroMLDocument = neuroMLDocument;
     }
     
-    protected void setPopulationArray(Population emptyPopulation, float[][] data)
+    protected void setPopulationArray(Population emptyPopulation, HashMap<String,Integer> columns, float[][] data)
     {
         populationInfo.put(emptyPopulation.getId(), data);
         emptyPopulations.put(emptyPopulation.getId(), emptyPopulation);
+        populationColumns.put(emptyPopulation.getId(), columns);
     }
     
     protected void setProjectionArray(BaseProjection emptyProjection, HashMap<String,Integer> columns, float[][] data)
@@ -171,11 +173,15 @@ public class NetworkHelper
         
         if (!populationInfo.isEmpty())
         {
+            HashMap<String,Integer> columns = populationColumns.get(populationId);
             Location loc = new Location();
+            
             float[] locInfo = populationInfo.get(populationId)[index]; 
-            loc.setX(locInfo[1]);
-            loc.setY(locInfo[2]);
-            loc.setZ(locInfo[3]);
+            
+            loc.setX(locInfo[columns.get("x")]);
+            loc.setY(locInfo[columns.get("y")]);
+            loc.setZ(locInfo[columns.get("z")]);
+            
             return loc;
         }
         else 
@@ -269,7 +275,8 @@ public class NetworkHelper
                 connw.setDelay(connInfo[columns.get("delay")]+" ms");
             }
                 
-            conn.setId((int)connInfo[columns.get("id")]);
+            int conn_id = columns.get("id")>=0 ? (int)connInfo[columns.get("id")] : index; 
+            conn.setId(conn_id);
             if (index!=conn.getId())
                 throw new NeuroMLException("Problem in projection "+projectionId+", connections are not ordered in increasing id...");
 
@@ -330,6 +337,7 @@ public class NetworkHelper
                 "src/test/resources/examples/MediumNet.net.nml.h5",
                 "src/test/resources/examples/complete.nml",
                 "src/test/resources/examples/complete.nml.h5"};
+            files = new String[]{"../git/ca1/NeuroML2/network/PINGNet_0_1.net.nml.h5"};
             
             for (String file: files)
             {

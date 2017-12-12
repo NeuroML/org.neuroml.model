@@ -21,6 +21,7 @@ import org.neuroml.model.Network;
 import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Population;
 import org.neuroml.model.Projection;
+import org.neuroml.model.Property;
 import org.neuroml.model.util.NeuroMLConverter;
 import org.neuroml.model.util.NeuroMLElements;
 import org.neuroml.model.util.NeuroMLException;
@@ -84,6 +85,9 @@ public class NeuroMLHDF5Writer
                     
                     
                     Hdf5Utils.addStringAttribute(popGroup, "size", size+"", h5File);
+                    
+                    for (Property p: population.getProperty())
+                        Hdf5Utils.addStringAttribute(popGroup, "property:"+p.getTag(), p.getValue(), h5File);
                     
                     if (!population.getInstance().isEmpty())
                     {
@@ -660,7 +664,7 @@ public class NeuroMLHDF5Writer
         File h5File = new File("../temp/net.h5");
         //File nmlFile = new File("src/test/resources/examples/testnet.nml");
         File nmlFile = new File("src/test/resources/examples/MediumNet.net.nml");
-
+        h5File = new File("src/test/resources/examples/MediumNet.net.nml.h5");
         try
         {
             NeuroMLConverter neuromlConverter = new NeuroMLConverter();
@@ -692,7 +696,7 @@ public class NeuroMLHDF5Writer
     }
     
     
-    private static void compare(String s1, String s2) throws Exception
+    public static void compare(String s1, String s2) throws Exception
     {
         //System.out.println("Comparing\n"+"\n----------------------------\n"+s1+"\n----------------------------\n"+s2+"\n----------------------------\n");
         String[] s1a = s1.split("\n");

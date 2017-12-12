@@ -140,7 +140,7 @@ public class HDF5Test extends TestCase
 
             System.out.println("File loaded: "+h5File+"\n"+summary1);
 
-            assert(summary0.equals(summary1));
+            NeuroMLHDF5Writer.compare(summary0, summary1);
             
             System.out.println("Strings are equal!!");
 

@@ -51,6 +51,7 @@ import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.ObjectFactory;
 import org.neuroml.model.Population;
 import org.neuroml.model.Projection;
+import org.neuroml.model.Property;
 import org.neuroml.model.Standalone;
 import org.neuroml.model.util.hdf5.Hdf5Exception;
 import org.neuroml.model.util.hdf5.NetworkHelper;
@@ -362,6 +363,13 @@ public class NeuroMLConverter
                 {
                     Location l = population.getInstance().get(0).getLocation();
                     pop_info += "*       Locations: [("+ l.getX() + ","+ l.getY() + ","+ l.getZ() + "), ...]\n";
+                }
+                if (population.getProperty().size()>0)
+                {
+                    pop_info += "*       Properties: ";
+                    for (Property p: population.getProperty())
+                        pop_info += p.getTag()+"="+p.getValue()+"; ";
+                    pop_info += "\n";
                 }
             }
             info+= "*   "+tot_cells+" cells in "+tot_pops+" populations\n"+pop_info+"*\n";
@@ -811,7 +819,7 @@ public class NeuroMLConverter
         String fileName = "../neuroConstruct/osb/showcase/NetPyNEShowcase/NeuroML2/scaling/Balanced.net.nml";
         fileName = "src/test/resources/examples/MediumNet.net.nml";
         fileName = "../git/ca1/NeuroML2/network/PINGNet_0_1.net.nml";
-        fileName = "../git/ca1/NeuroML2/network/PINGNet_0_1.net.nml.h5";
+        fileName = "../git/ca1/NeuroML2/network/PINGNet_0_1.net.nml";
         //fileName = "src/test/resources/examples/complete.nml";
 		NeuroMLConverter nmlc = new NeuroMLConverter();
         
