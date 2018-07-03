@@ -38,6 +38,8 @@ public class NeuroMLElements {
     
     public static final String BASE_PYNN_CELL = "basePyNNCell";
     
+    public static final String BASE_RATE_UNIT = "baseRateUnit";
+    
     public static final String CELL_COMP_TYPE = "cell";
     
     
@@ -83,6 +85,8 @@ public class NeuroMLElements {
     public static final String GAP_JUNCTION = "gapJunction"; 
     
     public static final String SYNAPSE_PORT_IN = "in";
+    
+    public static final String BASE_RATE_SYNAPSE = "baseRateSynapse";
     
     // Networks
     public static final String NETWORK = "network";
