@@ -6,3 +6,4 @@ src/main/java/META-INF/MANIFEST.MF
 /libjhdf5.so
 /libjhdf5.jnilib
 /src/test/resources/examples/temp/*.h5
+/nb-configuration.xml
