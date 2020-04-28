@@ -3,10 +3,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.neuroml.model</groupId>
     <artifactId>org.neuroml.model</artifactId>
-    <version>1.6.1</version>
+    <version>1.7.0</version>
     <packaging>bundle</packaging>
     <properties>
-        <build.version2>2beta5</build.version2>
+        <build.version2>2.1</build.version2>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
@@ -30,12 +30,12 @@
         <dependency>
             <groupId>org.neuroml.model.injectingplugin</groupId>
             <artifactId>org.neuroml.model.injectingplugin</artifactId>
-            <version>1.6.1</version>
+            <version>1.7.0</version>
         </dependency>
         <dependency>
             <groupId>org.neuroml.core</groupId>
             <artifactId>neuroml2-base-definitions</artifactId>
-            <version>1.6.1</version>
+            <version>1.7.0</version>
         </dependency>
         
 		<dependency>
@@ -102,7 +102,7 @@
                   </goals>
                   <configuration>
                     <resourceBundles>
-                      <resourcebundle>org.neuroml.core:neuroml2-base-definitions:1.6.1</resourcebundle>
+                      <resourcebundle>org.neuroml.core:neuroml2-base-definitions:1.7.0</resourcebundle>
                     </resourceBundles>
                   </configuration>
                 </execution>
@@ -188,7 +188,7 @@
                                 <plugin>
                                     <groupId>org.neuroml.model.injectingplugin</groupId>
                                     <artifactId>org.neuroml.model.injectingplugin</artifactId>
-                                    <version>1.6.1</version>
+                                    <version>1.7.0</version>
                                 </plugin>
                             </plugins>
                         </configuration>
