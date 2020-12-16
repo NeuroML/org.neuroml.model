@@ -12,7 +12,7 @@ More details about NeuroML can be found on the official [NeuroML website](http:/
 
 A collection of models in NeuroML can be found on the [Open Source Brain](http://www.opensourcebrain.org) repository.
 
-[![Build Status](https://travis-ci.org/NeuroML/org.neuroml.model.png)](https://travis-ci.org/NeuroML/org.neuroml.model)
+[![Build Status](https://travis-ci.com/NeuroML/org.neuroml.model.png)](https://travis-ci.com/NeuroML/org.neuroml.model)
 
 This code is distributed under the terms of the GNU Lesser General Public License.
 
