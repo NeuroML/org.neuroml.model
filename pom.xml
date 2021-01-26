@@ -37,7 +37,7 @@
             <artifactId>neuroml2-base-definitions</artifactId>
             <version>1.7.1</version>
         </dependency>
-        
+
 		<dependency>
 			<groupId>ncsa.hdf</groupId>
 			<artifactId>object</artifactId>
@@ -61,7 +61,7 @@
 			</snapshots>
 		</repository>
 	</repositories>
-    
+
     <build>
         <plugins>
             <plugin>
@@ -155,8 +155,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.0</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
             <plugin>
