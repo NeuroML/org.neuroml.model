@@ -1,6 +1,14 @@
 NeuroML v2 Model Java API
 =========================
 
+[![Travis CI](https://travis-ci.com/NeuroML/org.neuroml.model.svg?branch=master)](https://travis-ci.com/NeuroML/org.neuroml.model)
+[![GitHub](https://img.shields.io/github/license/NeuroML/org.neuroml.model)](https://github.com/NeuroML/org.neuroml.model/blob/master/LICENSE.lesser)
+[![GitHub pull requests](https://img.shields.io/github/issues-pr/NeuroML/org.neuroml.model)](https://github.com/NeuroML/org.neuroml.model/pulls)
+[![GitHub issues](https://img.shields.io/github/issues/NeuroML/org.neuroml.model)](https://github.com/NeuroML/org.neuroml.model/issues)
+[![GitHub Org's stars](https://img.shields.io/github/stars/NeuroML?style=social)](https://github.com/NeuroML)
+[![Twitter Follow](https://img.shields.io/twitter/follow/NeuroML?style=social)](https://twitter.com/NeuroML)
+
+
 NeuroML is an international, collaborative initiative to develop standards for the exchange of models of neuronal 
 systems and to allow for greater transparency and accessibility of these complex models.
 
@@ -12,9 +20,7 @@ More details about NeuroML can be found on the official [NeuroML website](http:/
 
 A collection of models in NeuroML can be found on the [Open Source Brain](http://www.opensourcebrain.org) repository.
 
-[![Build Status](https://travis-ci.com/NeuroML/org.neuroml.model.png)](https://travis-ci.com/NeuroML/org.neuroml.model)
-
 This code is distributed under the terms of the GNU Lesser General Public License.
 
-
+API documentation can be found [here](http://neuroml.github.io/org.neuroml.model/index.html)
 
