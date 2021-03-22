@@ -3,10 +3,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.neuroml.model</groupId>
     <artifactId>org.neuroml.model</artifactId>
-    <version>1.6.1</version>
+    <version>1.7.2</version>
     <packaging>bundle</packaging>
     <properties>
-        <build.version2>2beta5</build.version2>
+        <build.version2>2.1</build.version2>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
@@ -30,14 +30,14 @@
         <dependency>
             <groupId>org.neuroml.model.injectingplugin</groupId>
             <artifactId>org.neuroml.model.injectingplugin</artifactId>
-            <version>1.6.1</version>
+            <version>1.7.2</version>
         </dependency>
         <dependency>
             <groupId>org.neuroml.core</groupId>
             <artifactId>neuroml2-base-definitions</artifactId>
-            <version>1.6.1</version>
+            <version>1.7.2</version>
         </dependency>
-        
+
 		<dependency>
 			<groupId>ncsa.hdf</groupId>
 			<artifactId>object</artifactId>
@@ -61,9 +61,23 @@
 			</snapshots>
 		</repository>
 	</repositories>
-    
+
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>3.2.0</version>
+                <configuration>
+                    <source>8</source>
+                    <top>
+                            &lt;br /&gt;&emsp;Learn more about NeuroML at &lt;a href=&quot;http://neuroml.org&quot; target=&quot;_blank&quot;&gt;NeuroML.org&lt;/a&gt;
+                            &lt;br /&gt;
+                            &lt;br /&gt;
+                    </top>
+                    <bottom>Copyright NeuroML Contributors 2021</bottom>
+                </configuration>
+            </plugin>
             <plugin>
                 <artifactId>maven-assembly-plugin</artifactId>
                 <configuration>
@@ -102,7 +116,7 @@
                   </goals>
                   <configuration>
                     <resourceBundles>
-                      <resourcebundle>org.neuroml.core:neuroml2-base-definitions:1.6.1</resourcebundle>
+                      <resourcebundle>org.neuroml.core:neuroml2-base-definitions:1.7.2</resourcebundle>
                     </resourceBundles>
                   </configuration>
                 </execution>
@@ -155,14 +169,14 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.0</version>
                 <configuration>
-                    <source>1.6</source>
-                    <target>1.6</target>
+                    <source>1.7</source>
+                    <target>1.7</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.8.2</version>
+                <version>0.14.0</version>
                 <executions>
                     <execution>
                         <id>NeuroML2</id>
@@ -188,7 +202,7 @@
                                 <plugin>
                                     <groupId>org.neuroml.model.injectingplugin</groupId>
                                     <artifactId>org.neuroml.model.injectingplugin</artifactId>
-                                    <version>1.6.1</version>
+                                    <version>1.7.2</version>
                                 </plugin>
                             </plugins>
                         </configuration>

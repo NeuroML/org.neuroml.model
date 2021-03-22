@@ -18,20 +18,20 @@ import org.neuroml.model.SegmentGroup;
  *
  */
 public class CellUtils {
-    
-    
+
+
     /*
-    * This is an initial attempt to tag a subset of a cell's segment groups as 
+    * This is an initial attempt to tag a subset of a cell's segment groups as
     * the non overlapping groups which correspond to the "cables" of MorphML
     */
     public static String NEUROML2_NEUROLEX_UNBRANCHED_NONOVERLAPPING_SEG_GROUP = "sao864921383";
-    
-    
+
+
     public static boolean isUnbranchedNonOverlapping(SegmentGroup sg) {
         return sg.getNeuroLexId()!=null &&
                sg.getNeuroLexId().equals(NEUROML2_NEUROLEX_UNBRANCHED_NONOVERLAPPING_SEG_GROUP);
     }
-    
+
     public static boolean hasUnbranchedNonOverlappingInfo(Cell cell)
     {
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup())
@@ -52,7 +52,7 @@ public class CellUtils {
         }
         return idsVsSegments;
     }
-    
+
     public static SegmentGroup getSegmentGroup(Cell cell, String id) throws NeuroMLException {
         for (SegmentGroup sg: cell.getMorphology().getSegmentGroup()) {
             if (sg.getId().equals(id))
@@ -60,7 +60,7 @@ public class CellUtils {
         }
         throw new NeuroMLException("No SegmentGroup with id: "+id+" in cell with id: "+cell.getId());
     }
-    
+
     public static Segment getSegmentWithId(Cell cell, int segmentId) throws NeuroMLException {
         List<Segment> segments = cell.getMorphology().getSegment();
         if (segments.size()>segmentId) {
@@ -74,7 +74,7 @@ public class CellUtils {
         }
         throw new NeuroMLException("No Segment with id: "+segmentId+" in cell with id: "+cell.getId());
     }
-    
+
     public static LinkedHashMap<String, SegmentGroup> getNamesVsSegmentGroups(Cell cell) {
 
         LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups = new LinkedHashMap<String, SegmentGroup>();
@@ -83,9 +83,9 @@ public class CellUtils {
         }
         return namesVsSegmentGroups;
     }
-    
+
     public static ArrayList<Integer> getSegmentIdsInGroup(Cell cell, String segmentGroup) {
-        
+
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
             if (sg.getId().equals(segmentGroup)) {
                 LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups = getNamesVsSegmentGroups(cell);
@@ -94,11 +94,11 @@ public class CellUtils {
         }
         return new ArrayList<Integer>();
     }
-    
+
     public static ArrayList<Integer> getSegmentIdsInGroup(LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups, SegmentGroup segmentGroup) {
 
         ArrayList<Integer> segsHere = new ArrayList<Integer>();
-        
+
         for (Member memb : segmentGroup.getMember()) {
             segsHere.add(memb.getSegment());
         }
@@ -107,12 +107,12 @@ public class CellUtils {
             ArrayList<Integer> segs = getSegmentIdsInGroup(namesVsSegmentGroups, namesVsSegmentGroups.get(sg));
             segsHere.addAll(segs);
         }
-        
+
         return segsHere;
     }
-    
+
     public static boolean hasSegmentGroup(Cell cell, String segmentGroup) {
-        
+
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
             if (sg.getId().equals(segmentGroup)) {
                 return true;
@@ -120,9 +120,9 @@ public class CellUtils {
         }
         return false;
     }
-    
+
     public static ArrayList<Segment> getSegmentsInGroup(Cell cell, String segmentGroup) throws NeuroMLException {
-        
+
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
             if (sg.getId().equals(segmentGroup)) {
                 LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups = getNamesVsSegmentGroups(cell);
@@ -131,11 +131,11 @@ public class CellUtils {
         }
         throw new NeuroMLException("No SegmentGroup: "+segmentGroup+" in cell with id: "+cell.getId());
     }
-    
+
     public static ArrayList<Segment> getSegmentsInGroup(Cell cell, LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups, SegmentGroup segmentGroup) throws NeuroMLException {
 
         ArrayList<Segment> segsHere = new ArrayList<Segment>();
-        
+
         for (Member memb : segmentGroup.getMember()) {
             segsHere.add(getSegmentWithId(cell, memb.getSegment()));
         }
@@ -144,33 +144,41 @@ public class CellUtils {
             ArrayList<Segment> segs = getSegmentsInGroup(cell, namesVsSegmentGroups, namesVsSegmentGroups.get(sg));
             segsHere.addAll(segs);
         }
-        
+
         return segsHere;
     }
-    
+
     public static LinkedHashMap<SegmentGroup, ArrayList<Integer>> getSegmentGroupsVsSegIds(Cell cell) {
-        
+
         LinkedHashMap<SegmentGroup, ArrayList<Integer>> sgVsSegId = new LinkedHashMap<SegmentGroup, ArrayList<Integer>>();
-        
+
         LinkedHashMap<String, SegmentGroup> namesVsSegmentGroups = getNamesVsSegmentGroups(cell);
-        
+
         for (SegmentGroup sg : cell.getMorphology().getSegmentGroup()) {
             ArrayList<Integer> segsHere = getSegmentIdsInGroup(namesVsSegmentGroups, sg);
             sgVsSegId.put(sg, segsHere);
         }
-        
+
         return sgVsSegId;
     }
-    
+
     public static double distance(Point3DWithDiam p, Point3DWithDiam d) {
         return Math.sqrt( Math.pow(p.getX()-d.getX(),2) + Math.pow(p.getY()-d.getY(),2) + Math.pow(p.getZ()-d.getZ(),2) );
     }
-    
+
     public static double getFractionAlongSegGroupLength(Cell cell, String segmentGroup, int segmentId, float fractAlongSegment) throws NeuroMLException {
 
         ArrayList<Segment> segs = getSegmentsInGroup(cell, segmentGroup);
+        if (segs.size()==1)
+        {
+            if(segs.get(0).getId()!=segmentId)
+            {
+                throw new NeuroMLException("Error in getFractionAlongSegGroupLength "+segs.get(0).getId() +" != "+segmentId);
+            }
+            return fractAlongSegment;
+        }
         double totalLength = 0;
-        
+
         Segment lastSeg = null;
         for(Segment seg: segs) {
             Point3DWithDiam p;
@@ -185,13 +193,13 @@ public class CellUtils {
                 }
             }
             double dist = distance(p, seg.getDistal());
-            //System.out.println("Length of "+seg.getId()+": "+dist);
+
             totalLength += dist;
             lastSeg = seg;
         }
-        //System.out.println("Total length of "+segs.size()+" segments: "+totalLength);
+        //System.out.println(" - Total length of "+segs.size()+" segments in "+cell.getId()+": "+totalLength+"; checking "+fractAlongSegment+" along "+segmentGroup);
         double segGrpLength = 0;
-        
+
         lastSeg = null;
         boolean foundSeg = false;
         for(Segment seg: segs) {
@@ -221,7 +229,7 @@ public class CellUtils {
         }
         if (!foundSeg)
             throw new NeuroMLException("Segment "+segmentId+" not found in "+segmentGroup);
-        
+
         return segGrpLength/totalLength;
     }
 
@@ -229,24 +237,28 @@ public class CellUtils {
         NeuroMLConverter conv = new NeuroMLConverter();
         //String test = "/home/padraig/neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/bask.cell.nml";
         //String test = "/home/padraig/neuroConstruct/osb/hippocampus/networks/nc_superdeep/neuroConstruct/generatedNeuroML2/pvbasketcell.cell.nml";
-        String test = "/home/padraig/neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/pyr_4_sym.cell.nml";
+        String test = "/Users/padraig/neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/pyr_4_sym.cell.nml";
+        test = "/Users/padraig/git/GoC_Varied_Inputs/Cells/Golgi/GoC.cell.nml";
         //test = "/home/padraig/neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/bask_soma.cell.nml";
         NeuroMLDocument nml2 = conv.loadNeuroML(new File(test));
 
         Cell cell = nml2.getCell().get(0);
         System.out.println("cell: " + cell.getId());
-        
+
         LinkedHashMap<Integer, Segment> ids = getIdsVsSegments(cell);
-        
+
         System.out.println("getIdsVsSegments: ");
         for (Integer id: ids.keySet()) {
             System.out.println("ID "+id+": "+ids.get(id));
         }
-        
+
         LinkedHashMap<SegmentGroup, ArrayList<Integer>> sgVsSegId = getSegmentGroupsVsSegIds(cell);
         for (SegmentGroup sg: sgVsSegId.keySet()) {
             System.out.println("SG "+sg.getId()+": "+sgVsSegId.get(sg));
         }
+        getFractionAlongSegGroupLength(cell, "soma_group", 0, 0.1f);
+        //getFractionAlongSegGroupLength(cell, "basal2", 8, 0.1f);
+        //getFractionAlongSegGroupLength(cell, "some_apicals", 2, 0.5f);
 
     }
 
