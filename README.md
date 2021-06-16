@@ -22,5 +22,5 @@ A collection of models in NeuroML can be found on the [Open Source Brain](http:/
 
 This code is distributed under the terms of the GNU Lesser General Public License.
 
-API documentation can be found [here](http://neuroml.github.io/org.neuroml.model/index.html)
+API documentation can be found [here](http://neuroml.github.io/org.neuroml.model/index.html).
 
