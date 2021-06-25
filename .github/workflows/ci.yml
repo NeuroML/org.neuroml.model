@@ -36,6 +36,7 @@ jobs:
         cd ..
     - name: Install NeuroML2
       run: |
+        export main_repo_branch=${GITHUB_REF##*/}
         echo Using branch $main_repo_branch
         git clone https://github.com/NeuroML/NeuroML2.git
         cd NeuroML2
