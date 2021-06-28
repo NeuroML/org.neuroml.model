@@ -68,6 +68,7 @@ public class NeuroML2Validator {
 	public StandardTest TEST_ONE_SEG_MISSING_PARENT = new StandardTest(10002, "Only one segment should have no parent");
 	public StandardTest TEST_MEMBER_SEGMENT_EXISTS =  new StandardTest(10003, "Segment Id used in the member element of segmentGroup should exist");
 	public StandardTest TEST_REPEATED_GROUPS =        new StandardTest(10004, "No repeated segmentGroup Ids allowed within a cell");
+	public StandardTest WARN_INCLUDE_SEGMENT_GROUP_ORDER =  new StandardTest(100005, "Segment Group used in the include element of segmentGroup should probably be defined BEFORE it is used in the segmentGroup in which it is included, for optimal portability", StandardTest.LEVEL.WARNING);
 	public StandardTest TEST_INCLUDE_SEGMENT_GROUP_EXISTS =  new StandardTest(10005, "Segment Group used in the include element of segmentGroup should exist");
 	public StandardTest TEST_SEGMENT_GROUP_IN_BIOPHYSICS_EXISTS =  new StandardTest(10006, "Segment Groups used in biophysicalProperties should exist");
     
@@ -222,7 +223,8 @@ public class NeuroML2Validator {
                             test(TEST_MEMBER_SEGMENT_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", member: "+member.getSegment(), segIds.contains(new Integer(member.getSegment().intValue())));
                         }
                         for (Include inc: segmentGroup.getInclude()) {
-                            test(TEST_INCLUDE_SEGMENT_GROUP_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", includes: "+inc.getSegmentGroup(), segGroups.contains(inc.getSegmentGroup()));
+                            // This first time, just warn if not found
+                            test(WARN_INCLUDE_SEGMENT_GROUP_ORDER, "SegmentGroup: "+segmentGroup.getId()+", includes: "+inc.getSegmentGroup(), segGroups.contains(inc.getSegmentGroup()));
                         }
                         /*
                         int numIntDiv;
@@ -242,6 +244,14 @@ public class NeuroML2Validator {
                                     test(TEST_NUM_INT_DIVS_SEGMENT_GROUP, "SegmentGroup: "+segmentGroup.getId()+", has incorrect location for <property> for numberInternalDivisions (should be child of <segmentGroup>)", false);
                                 }
                             }
+                        }
+                    }
+                    
+                    for(SegmentGroup segmentGroup: cell.getMorphology().getSegmentGroup()) {
+                        segGroups.add(segmentGroup.getId());
+                        for (Include inc: segmentGroup.getInclude()) {
+                            // This second time time, all segment groups are known, so fail if included group missing
+                            test(TEST_INCLUDE_SEGMENT_GROUP_EXISTS, "SegmentGroup: "+segmentGroup.getId()+", includes: "+inc.getSegmentGroup(), segGroups.contains(inc.getSegmentGroup()));
                         }
                     }
 
@@ -508,12 +518,14 @@ public class NeuroML2Validator {
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/pyr_4_sym.cell.nml");
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/MediumNet.net.nml");
         //File f = new File("../OpenCortex/examples/Deterministic.net.nml");
-        File f = new File("../neuroConstruct/osb/cerebellum/cerebellar_granule_cell/GranuleCell/neuroConstruct/generatedNeuroML2/GranuleCell.net.nml");
+        //File f = new File("../neuroConstruct/osb/cerebellum/cerebellar_granule_cell/GranuleCell/neuroConstruct/generatedNeuroML2/GranuleCell.net.nml");
+        File f = new File("../git/Documentation/source/Userdocs/NML2_examples/olm.cell.nml");
         
         
         NeuroML2Validator nv = new NeuroML2Validator();
         nv.validateWithTests(f);
         System.out.println("Validity: "+nv.getValidity());
+        System.out.println("Warnings: "+nv.getWarnings());
     }
 	
 
