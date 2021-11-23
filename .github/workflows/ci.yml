@@ -5,17 +5,18 @@ name: Java CI with Maven
 
 on:
   push:
-    branches:  [ master, development, experimental ]
+    branches:  [ master, development, experimental, osb* ]
   pull_request:
-    branches:  [ master, development, experimental ]
+    branches:  [ master, development, experimental, osb* ]
 
 jobs:
   build_and_test:
 
     runs-on: ubuntu-latest
     strategy:
-      matrix:
-        java: [ '8', '11']
+      matrix:        
+        java: [ '8', '11', '16', '17' ]
+        runs-on: [ubuntu-latest, macos-11, windows-latest]
 
     name: Test on Java ${{ matrix.Java }}
     steps:
