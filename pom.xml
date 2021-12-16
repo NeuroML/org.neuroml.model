@@ -3,24 +3,13 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>org.neuroml.model</groupId>
     <artifactId>org.neuroml.model</artifactId>
-    <version>1.7.2</version>
+    <version>1.8.1</version>
     <packaging>bundle</packaging>
     <properties>
         <build.version2>2.1</build.version2>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
-        <dependency>
-            <groupId>com.sun.tools.xjc.maven2</groupId>
-            <artifactId>maven-jaxb-plugin</artifactId>
-            <version>1.1.1</version>
-            <exclusions>
-                <exclusion>
-                    <artifactId>jaxb-impl</artifactId>
-                    <groupId>com.sun.xml.bind</groupId>
-                </exclusion>
-            </exclusions>
-        </dependency>
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
@@ -30,37 +19,37 @@
         <dependency>
             <groupId>org.neuroml.model.injectingplugin</groupId>
             <artifactId>org.neuroml.model.injectingplugin</artifactId>
-            <version>1.7.2</version>
+            <version>1.8.1</version>
         </dependency>
         <dependency>
             <groupId>org.neuroml.core</groupId>
             <artifactId>neuroml2-base-definitions</artifactId>
-            <version>1.7.2</version>
+            <version>1.8.1</version>
         </dependency>
 
-		<dependency>
-			<groupId>ncsa.hdf</groupId>
-			<artifactId>object</artifactId>
-			<version>2.12</version>
-		</dependency>
-		<dependency>
-			<groupId>org.slf4j</groupId>
-			<artifactId>slf4j-api</artifactId>
-			<version>1.7.22</version>
-		</dependency>
+        <dependency>
+            <groupId>ncsa.hdf</groupId>
+            <artifactId>object</artifactId>
+            <version>2.12</version>
+        </dependency>
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>1.7.22</version>
+        </dependency>
 
     </dependencies>
-	<repositories>
+    <repositories>
 
-		<repository>
-			<id>org.geppetto-mvn-repo</id>
-			<url>https://raw.github.com/openworm/org.geppetto.maven/mvn-repo-no-nml-lems</url>
-			<snapshots>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-			</snapshots>
-		</repository>
-	</repositories>
+        <repository>
+            <id>org.geppetto-mvn-repo</id>
+            <url>https://raw.github.com/openworm/org.geppetto.maven/mvn-repo-no-nml-lems</url>
+            <snapshots>
+                <enabled>true</enabled>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
 
     <build>
         <plugins>
@@ -105,51 +94,51 @@
                 </executions>
             </plugin>
             <plugin>
-              <artifactId>maven-remote-resources-plugin</artifactId>
-              <version>1.5</version>
-              <executions>
-                <execution>
-                  <id>fetch-remote-resources</id>
-                  <phase>generate-sources</phase>
-                  <goals>
-                    <goal>process</goal>
-                  </goals>
-                  <configuration>
-                    <resourceBundles>
-                      <resourcebundle>org.neuroml.core:neuroml2-base-definitions:1.7.2</resourcebundle>
-                    </resourceBundles>
-                  </configuration>
-                </execution>
-              </executions>
+                <artifactId>maven-remote-resources-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>fetch-remote-resources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>process</goal>
+                        </goals>
+                        <configuration>
+                            <resourceBundles>
+                                <resourcebundle>org.neuroml.core:neuroml2-base-definitions:1.8.1</resourcebundle>
+                            </resourceBundles>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
-           <plugin>
-              <artifactId>maven-resources-plugin</artifactId>
-              <version>2.6</version>
-              <executions>
-                <execution>
-                  <id>copy-resources</id>
-                  <phase>generate-sources</phase>
-                  <goals>
-                    <goal>copy-resources</goal>
-                  </goals>
-                  <configuration>
-                    <outputDirectory>${project.build.directory}/maven-shared-archive-resources/Schemas/NeuroML2/bindings/</outputDirectory>
-                    <resources>
-                      <resource>
-                          <directory>${project.basedir}/src/main/resources/bindings/</directory>
-                          <filtering>false</filtering>
-                      </resource>
-                    </resources>
-                  </configuration>
-                </execution>
-              </executions>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>2.6</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/maven-shared-archive-resources/Schemas/NeuroML2/bindings/</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/resources/bindings/</directory>
+                                    <filtering>false</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.felix</groupId>
                 <artifactId>maven-bundle-plugin</artifactId>
-                <version>2.3.7</version>
+                <version>5.1.2</version>
                 <extensions>true</extensions>
                 <configuration>
                     <manifestLocation>src/main/java/META-INF</manifestLocation>
@@ -177,6 +166,13 @@
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb2-plugin</artifactId>
                 <version>0.14.0</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>org.glassfish.jaxb</groupId>
+                        <artifactId>jaxb-runtime</artifactId>
+                        <version>2.3.3</version>
+                    </dependency>
+                </dependencies>
                 <executions>
                     <execution>
                         <id>NeuroML2</id>
@@ -202,7 +198,7 @@
                                 <plugin>
                                     <groupId>org.neuroml.model.injectingplugin</groupId>
                                     <artifactId>org.neuroml.model.injectingplugin</artifactId>
-                                    <version>1.7.2</version>
+                                    <version>1.8.1</version>
                                 </plugin>
                             </plugins>
                         </configuration>
