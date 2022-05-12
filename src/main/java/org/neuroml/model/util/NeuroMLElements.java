@@ -2,7 +2,7 @@ package org.neuroml.model.util;
 
 public class NeuroMLElements {
 
-    public static final String ORG_NEUROML_MODEL_VERSION = "1.8.1";
+    public static final String ORG_NEUROML_MODEL_VERSION = "1.9.0";
 
     public static final String NAMESPACE_URI_VERSION_2 = "http://www.neuroml.org/schema/neuroml2";
 
@@ -16,10 +16,11 @@ public class NeuroMLElements {
     public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_0 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2.0.xsd";
     public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_1 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2.1.xsd";
     public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_2 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2.2.xsd";
+    public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_3 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2.3.xsd";
 
 
-    public static final String LATEST_SCHEMA = "/Schemas/NeuroML2/NeuroML_v2.2.xsd";
-    public static final String LATEST_SCHEMA_LOCATION = DEFAULT_SCHEMA_LOCATION_VERSION_2_2;
+    public static final String LATEST_SCHEMA = "/Schemas/NeuroML2/NeuroML_v2.3.xsd";
+    public static final String LATEST_SCHEMA_LOCATION = DEFAULT_SCHEMA_LOCATION_VERSION_2_3;
 
     // Top level...
     public static final String NEUROML_ROOT = "neuroml";
