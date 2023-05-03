@@ -16,11 +16,8 @@ import org.neuroml.model.util.NeuroMLElements;
  */
 public class AppTest extends TestCase {
 
-    public void testVersions() throws IOException {
-        System.out.println("Running a test on version usage, making all references to versions are: v" + NeuroMLElements.ORG_NEUROML_MODEL_VERSION + "...");
-
+    private boolean isInPom(String s) throws IOException{
         File pom = new File("pom.xml");
-        String toFind = "<artifactId>org.neuroml.model</artifactId><version>"+NeuroMLElements.ORG_NEUROML_MODEL_VERSION+"</version>";
         InputStream ins = new FileInputStream(pom);
         InputStreamReader insr = new InputStreamReader(ins);
         BufferedReader fr = new BufferedReader(insr);
@@ -32,7 +29,22 @@ public class AppTest extends TestCase {
         fr.close();
         String sdat = sb.toString();
         
-        assert(sdat.indexOf(toFind)>0);
+        return sdat.indexOf(s)>0;
+    }
+
+    public void testVersions() throws IOException {
+        System.out.println("Running a test on version usage, making all references to versions are: v" + NeuroMLElements.ORG_NEUROML_MODEL_VERSION + "...");
+
+
+        String toFind = "<artifactId>org.neuroml.model</artifactId><version>"+NeuroMLElements.ORG_NEUROML_MODEL_VERSION+"</version>";
+    
+        assert(isInPom(toFind));
+
+        toFind = "<build.version2>"+NeuroMLElements.LATEST_SCHEMA_VERSION+"</build.version2>";
+    
+        assert(isInPom(toFind));
+
+        assert(NeuroMLElements.LATEST_SCHEMA_LOCATION.indexOf(NeuroMLElements.LATEST_SCHEMA_VERSION)>0);
 
     }
 
