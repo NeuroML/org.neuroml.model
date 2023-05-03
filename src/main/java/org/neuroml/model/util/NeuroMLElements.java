@@ -19,7 +19,8 @@ public class NeuroMLElements {
     public static final String DEFAULT_SCHEMA_LOCATION_VERSION_2_3 = "https://raw.githubusercontent.com/NeuroML/NeuroML2/development/Schemas/NeuroML2/NeuroML_v2.3.xsd";
 
 
-    public static final String LATEST_SCHEMA = "/Schemas/NeuroML2/NeuroML_v2.3.xsd";
+    public static final String LATEST_SCHEMA_VERSION = "2.3";
+    public static final String LATEST_SCHEMA = "/Schemas/NeuroML2/NeuroML_v"+LATEST_SCHEMA_VERSION+".xsd";
     public static final String LATEST_SCHEMA_LOCATION = DEFAULT_SCHEMA_LOCATION_VERSION_2_3;
 
     // Top level...
