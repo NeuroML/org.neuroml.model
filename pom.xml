@@ -6,7 +6,7 @@
     <version>1.9.0</version>
     <packaging>bundle</packaging>
     <properties>
-        <build.version2>2.1</build.version2>
+        <build.version2>2.3</build.version2>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
     <dependencies>
