@@ -45,8 +45,6 @@ import org.xml.sax.SAXException;
 
 /*
  *        
- *        WORK IN PROGRESS!!!
- *        
  * TODO: Needs to be moved to a separate package for validation!
  */
 public class NeuroML2Validator {
@@ -488,7 +486,33 @@ public class NeuroML2Validator {
 			testValidity(xmlFile, new StreamSource(in));
 			validity.append(VALID_AGAINST_SCHEMA);
 		} catch (Exception e) {
-			validity.append("File: "+ xmlFile.getAbsolutePath()+" is not valid against the schema: "+NeuroMLElements.LATEST_SCHEMA+"!!\n"+e.getMessage());
+            String error = e.getMessage();
+
+            StringBuilder formatted = new StringBuilder("  Error when parsing against Schema ("+e.getClass()+"): \n\n    ");
+
+            String indent = new String("    ");
+            for (int i=0; i<error.length(); i++) {
+                char c = error.charAt(i);
+                formatted.append(c);
+                if (c==';') {formatted.append("\n"+indent);}
+                if (c=='.' && i<error.length()-1 && error.charAt(i+1)==' ') {formatted.append("\n"+indent); i+=1;}
+            }
+            
+			validity.append("File: "+ xmlFile.getAbsolutePath()+" is not valid against the schema: "+NeuroMLElements.LATEST_SCHEMA+"!!\n"+formatted);
+            
+            if (error.indexOf("is not allowed to appear in element")>0) {
+			    validity.append("\n\n  Please check which attributes are allowed in that NeuroML element");
+            }
+            if (error.indexOf("end-tag")>0) {
+			    validity.append("\n\n  Please make sure the XML is formatted correctly");
+            }
+            if (error.indexOf("cvc-complex-type.2.4")>=0) {
+			    validity.append("\n\n  Note 1: if the above mentioned element is not a part of the core NeuroML elements, then the document can't be validated against the Schema. This may not matter if a definition in LEMS is available for that element (e.g. a new ComponentType has been defined and included) and the model should be able to run in simulators that support new LEMS elements." 
+                + "\n\n  Note 2: If the element giving trouble is a core NeuroML element, remember that when validating with the NeuroML Schema, the order of the elements is important. Try switching the order of the above mentioned elements in line with how they are defined in the Schema, keeping elements of the same type together.");
+            }
+            
+
+
 		}
 	}
 
@@ -515,11 +539,12 @@ public class NeuroML2Validator {
     
     
 	public static void main(String[] args) throws Exception {
+        File f = new File("../neuroConstruct/osb/showcase/BlueBrainProjectShowcase/NMC/NeuroML2/CaDynamics_E2_NML2.nml");
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/pyr_4_sym.cell.nml");
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/MediumNet.net.nml");
         //File f = new File("../OpenCortex/examples/Deterministic.net.nml");
         //File f = new File("../neuroConstruct/osb/cerebellum/cerebellar_granule_cell/GranuleCell/neuroConstruct/generatedNeuroML2/GranuleCell.net.nml");
-        File f = new File("../git/Documentation/source/Userdocs/NML2_examples/olm.cell.nml");
+        //File f = new File("../git/Documentation/source/Userdocs/NML2_examples/olm.cell.nml");
         
         
         NeuroML2Validator nv = new NeuroML2Validator();
