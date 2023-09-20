@@ -2,6 +2,9 @@ NeuroML v2 Model Java API
 =========================
 
 [![Java CI with Maven](https://github.com/NeuroML/org.neuroml.model/actions/workflows/ci.yml/badge.svg)](https://github.com/NeuroML/org.neuroml.model/actions/workflows/ci.yml)
+[![pages-build-deployment](https://github.com/NeuroML/org.neuroml.model/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/NeuroML/org.neuroml.model/actions/workflows/pages/pages-build-deployment)
+[![Publish javadocs](https://github.com/NeuroML/org.neuroml.model/actions/workflows/javadocs.yml/badge.svg)](https://github.com/NeuroML/org.neuroml.model/actions/workflows/javadocs.yml)
+
 [![GitHub](https://img.shields.io/github/license/NeuroML/org.neuroml.model)](https://github.com/NeuroML/org.neuroml.model/blob/master/LICENSE.lesser)
 [![GitHub pull requests](https://img.shields.io/github/issues-pr/NeuroML/org.neuroml.model)](https://github.com/NeuroML/org.neuroml.model/pulls)
 [![GitHub issues](https://img.shields.io/github/issues/NeuroML/org.neuroml.model)](https://github.com/NeuroML/org.neuroml.model/issues)
@@ -23,4 +26,6 @@ A collection of models in NeuroML can be found on the [Open Source Brain](http:/
 
 This code is distributed under the terms of the GNU Lesser General Public License.
 
-API documentation can be found [here](http://neuroml.github.io/org.neuroml.model/index.html).
+API documentation can be found [here](http://neuroml.github.io/org.neuroml.model/index.html).  
+
+
