@@ -40,6 +40,8 @@ import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
 import org.neuroml.model.Species;
 import org.neuroml.model.Standalone;
+import org.neuroml.model.Morphology;
+import org.neuroml.model.BiophysicalProperties;
 import org.w3c.dom.Element;
 import org.xml.sax.SAXException;
 
@@ -139,22 +141,22 @@ public class NeuroML2Validator {
 			return;
 		}
 		NeuroMLConverter conv = new NeuroMLConverter();
-		NeuroMLDocument nml2 = conv.loadNeuroML(xmlFile, true, false);
-		validateWithTests(nml2);
+		NeuroMLDocument nml2doc = conv.loadNeuroML(xmlFile, true, false);
+		validateWithTests(nml2doc);
 		
 	}
 	
 	/*
 	 * TODO: Needs to be moved to a separate package for validation!
 	 */
-	public void validateWithTests(NeuroMLDocument nml2) throws NeuroMLException
+	public void validateWithTests(NeuroMLDocument nml2doc) throws NeuroMLException
 	{
 		// Checks the areas the Schema just can't reach...
         
 		//////////////////////////////////////////////////////////////////
 		// <include ...>
 		//////////////////////////////////////////////////////////////////
-        for (IncludeType include: nml2.getInclude()) {
+        for (IncludeType include: nml2doc.getInclude()) {
             File inclFile = new File(baseDirectory, include.getHref());
             
 		    test(TEST_INCLUDED_FILES_EXIST, "Included file: "+include.getHref()
@@ -164,7 +166,7 @@ public class NeuroML2Validator {
         LinkedHashMap<String,Standalone> standalones = null;
         try 
         {
-            standalones = NeuroMLConverter.getAllStandaloneElements(nml2);
+            standalones = NeuroMLConverter.getAllStandaloneElements(nml2doc);
         }
         catch (NeuroMLException ne) 
         {
@@ -186,7 +188,7 @@ public class NeuroML2Validator {
             //////////////////////////////////////////////////////////////////
 
             HashMap<String, ArrayList<Integer>> cellidsVsSegs = new HashMap<String, ArrayList<Integer>>();
-            for (Cell cell: nml2.getCell()){
+            for (Cell cell: nml2doc.getCell()){
 
                 // Morphologies
                 ArrayList<Integer> segIds = new ArrayList<Integer>();
@@ -194,8 +196,10 @@ public class NeuroML2Validator {
 
                 boolean rootFound = false;
                 int numParentless = 0;
-                if (cell.getMorphology() != null) {
-                    for(Segment segment: cell.getMorphology().getSegment()) {
+                Morphology morphology = CellUtils.getCellMorphology(cell, nml2doc);
+
+                if (morphology != null) {
+                    for(Segment segment: morphology.getSegment()) {
                         int segId = segment.getId();
 
                         test(TEST_REPEATED_IDS, "Current segment ID: "+segId, !segIds.contains(segId));
@@ -212,7 +216,7 @@ public class NeuroML2Validator {
                     test(WARN_ROOT_ID_0, "", rootFound);
                     test(TEST_ONE_SEG_MISSING_PARENT, "", (numParentless==1));
 
-                    for(SegmentGroup segmentGroup: cell.getMorphology().getSegmentGroup()) {
+                    for(SegmentGroup segmentGroup: morphology.getSegmentGroup()) {
 
                         test(TEST_REPEATED_GROUPS, "SegmentGroup: "+segmentGroup.getId(), !segGroups.contains(segmentGroup.getId()));
 
@@ -245,7 +249,7 @@ public class NeuroML2Validator {
                         }
                     }
                     
-                    for(SegmentGroup segmentGroup: cell.getMorphology().getSegmentGroup()) {
+                    for(SegmentGroup segmentGroup: morphology.getSegmentGroup()) {
                         segGroups.add(segmentGroup.getId());
                         for (Include inc: segmentGroup.getInclude()) {
                             // This second time time, all segment groups are known, so fail if included group missing
@@ -257,8 +261,10 @@ public class NeuroML2Validator {
                     //TODO: test for morphology attribute!
                 }
 
-                if (cell.getBiophysicalProperties()!=null) {
-                    MembraneProperties mp = cell.getBiophysicalProperties().getMembraneProperties();
+                BiophysicalProperties bp = CellUtils.getCellBiophysicalProperties(cell, nml2doc);
+
+                if (bp!=null) {
+                    MembraneProperties mp = bp.getMembraneProperties();
 
                     //TODO: consolidate!
                     for (ChannelDensity cd: mp.getChannelDensity()) {
@@ -292,7 +298,7 @@ public class NeuroML2Validator {
                         test(TEST_ION_CHANNEL_EXISTS, "Ion channel: "+cd.getIonChannel()+" in "+cd.getId()+" not found!", standaloneIds.contains(cd.getIonChannel()));
                     }
 
-                    IntracellularProperties ip = cell.getBiophysicalProperties().getIntracellularProperties();
+                    IntracellularProperties ip = bp.getIntracellularProperties();
 
                     for (Species sp: ip.getSpecies()) {
                         /* See PospischilEtAl2008/NeuroML2/cells/LTS/LTS.cell.nml for example.
@@ -306,7 +312,7 @@ public class NeuroML2Validator {
             }
 
 
-            for (Network network: nml2.getNetwork()) {
+            for (Network network: nml2doc.getNetwork()) {
 
                 ArrayList<String> allNetElementIds = new ArrayList<String>();
                 //////////////////////////////////////////////////////////////////
@@ -463,6 +469,18 @@ public class NeuroML2Validator {
 		
 		if (warnings.length()==0)
 			warnings.append(NO_WARNINGS);
+
+        String testFail = "failed!";
+        if (validity.indexOf(testFail)>=0)
+        {
+            
+            int num = (validity.length() - validity.toString().replaceAll(testFail,"").length())/testFail.length();
+			if (num==1)
+                validity.append("\n1 failure in validation!");
+            else
+                validity.append("\n"+num+" failures in validation!");
+        }
+
 		
 	}
 	
@@ -539,7 +557,10 @@ public class NeuroML2Validator {
     
     
 	public static void main(String[] args) throws Exception {
-        File f = new File("../neuroConstruct/osb/showcase/BlueBrainProjectShowcase/NMC/NeuroML2/CaDynamics_E2_NML2.nml");
+        //File f = new File("../git/morphology_include/pyr_soma_m_in_b_in.cell.nml");
+        //File f = new File("../git/morphology_include/pyr_soma_m_out_b_in.cell.nml");
+        //File f = new File("../git/morphology_include/pyr_soma_m_in_b_out.cell.nml");
+        File f = new File("../git/morphology_include/pyr_soma_m_out_b_out.cell.nml");
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/pyr_4_sym.cell.nml");
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/MediumNet.net.nml");
         //File f = new File("../OpenCortex/examples/Deterministic.net.nml");

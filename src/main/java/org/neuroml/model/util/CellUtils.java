@@ -13,6 +13,8 @@ import org.neuroml.model.NeuroMLDocument;
 import org.neuroml.model.Point3DWithDiam;
 import org.neuroml.model.Segment;
 import org.neuroml.model.SegmentGroup;
+import org.neuroml.model.Morphology;
+import org.neuroml.model.BiophysicalProperties;
 
 /**
  *
@@ -43,6 +45,41 @@ public class CellUtils {
         }
         return false;
     }
+
+    public static Morphology getCellMorphology(Cell cell, NeuroMLDocument nml2doc) {
+        
+        if (cell.getMorphology()!=null) {
+
+            return cell.getMorphology();
+        }
+        
+        else if (cell.getMorphologyAttr() !=null)
+        {
+            for (Morphology m: nml2doc.getMorphology()) {
+                if (m.getId().equals(cell.getMorphologyAttr()))
+                    return m;
+            }
+        }
+        return null;
+    }
+
+    public static BiophysicalProperties getCellBiophysicalProperties(Cell cell, NeuroMLDocument nml2doc) {
+        
+        if (cell.getBiophysicalProperties()!=null) {
+
+            return cell.getBiophysicalProperties();
+        }
+        
+        else if (cell.getBiophysicalPropertiesAttr() !=null)
+        {
+            for (BiophysicalProperties bp: nml2doc.getBiophysicalProperties()) {
+                if (bp.getId().equals(cell.getBiophysicalPropertiesAttr()))
+                    return bp;
+            }
+        }
+        return null;
+    }
+
 
     public static LinkedHashMap<Integer, Segment> getIdsVsSegments(Cell cell) {
 
@@ -240,9 +277,9 @@ public class CellUtils {
         String test = "/Users/padraig/neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/pyr_4_sym.cell.nml";
         test = "/Users/padraig/git/GoC_Varied_Inputs/Cells/Golgi/GoC.cell.nml";
         //test = "/home/padraig/neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/bask_soma.cell.nml";
-        NeuroMLDocument nml2 = conv.loadNeuroML(new File(test));
+        NeuroMLDocument nml2doc = conv.loadNeuroML(new File(test));
 
-        Cell cell = nml2.getCell().get(0);
+        Cell cell = nml2doc.getCell().get(0);
         System.out.println("cell: " + cell.getId());
 
         LinkedHashMap<Integer, Segment> ids = getIdsVsSegments(cell);
