@@ -560,7 +560,8 @@ public class NeuroML2Validator {
         //File f = new File("../git/morphology_include/pyr_soma_m_in_b_in.cell.nml");
         //File f = new File("../git/morphology_include/pyr_soma_m_out_b_in.cell.nml");
         //File f = new File("../git/morphology_include/pyr_soma_m_in_b_out.cell.nml");
-        File f = new File("../git/morphology_include/pyr_soma_m_out_b_out.cell.nml");
+        //File f = new File("../git/morphology_include/pyr_soma_m_out_b_out.cell.nml");
+        File f = new File("../NeuroML2/examples/NML2_FullNeuroML.nml");
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/pyr_4_sym.cell.nml");
         //File f = new File("../neuroConstruct/osb/cerebral_cortex/networks/ACnet2/neuroConstruct/generatedNeuroML2/MediumNet.net.nml");
         //File f = new File("../OpenCortex/examples/Deterministic.net.nml");
