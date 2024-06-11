@@ -32,14 +32,14 @@ jobs:
       uses: actions/checkout@v4
       with:
         repository: NeuroML/NeuroML2
-        ref: development
+        ref: ${{ github.ref }}
         path: NeuroML2
 
     - name: Checkout org.neuroml.model.injectingplugin
       uses: actions/checkout@v4
       with:
         repository: NeuroML/org.neuroml.model.injectingplugin
-        ref: development
+        ref: ${{ github.ref }}
         path: org.neuroml.model.injectingplugin
 
     - name: Install NeuroML deps
