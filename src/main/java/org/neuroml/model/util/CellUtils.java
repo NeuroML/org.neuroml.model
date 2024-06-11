@@ -93,7 +93,7 @@ public class CellUtils {
     }
 
     /**
-     * @deprecated use LinkedHashMap<Integer, Segment> getIdsVsSegments(Cell cell, NeuroMLDocument nml2doc) instead.  
+     * @deprecated use getIdsVsSegments(Cell cell, NeuroMLDocument nml2doc) instead.  
      */
     @Deprecated
     public static LinkedHashMap<Integer, Segment> getIdsVsSegments(Cell cell) {
