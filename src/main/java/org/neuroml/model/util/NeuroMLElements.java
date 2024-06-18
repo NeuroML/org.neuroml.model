@@ -47,6 +47,7 @@ public class NeuroMLElements {
     public static final String BASE_RATE_UNIT = "baseRateUnit";
 
     public static final String CELL_COMP_TYPE = "cell";
+    public static final String CELL_2CA_POOLS_COMP_TYPE = "cell2CaPools";
 
 
     public static final String BASE_COND_SCALING_CA = "baseConductanceScalingCaDependent";
