@@ -9,16 +9,17 @@ jobs:
 
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     - name: Set up JDK 17
-      uses: actions/setup-java@v1
+      uses: actions/setup-java@v4
       with:
         java-version: 17
         java-package: jdk
+        distribution: 'temurin'
 
     - name: Set up Python 3.9
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: 3.9
 
@@ -28,17 +29,17 @@ jobs:
         pip install ghp-import
 
     - name: Checkout NeuroML2
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: NeuroML/NeuroML2
-        ref: development
+        ref: ${{ github.ref }}
         path: NeuroML2
 
     - name: Checkout org.neuroml.model.injectingplugin
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         repository: NeuroML/org.neuroml.model.injectingplugin
-        ref: development
+        ref: ${{ github.ref }}
         path: org.neuroml.model.injectingplugin
 
     - name: Install NeuroML deps
