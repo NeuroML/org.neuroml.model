@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         java: [ '8', '11', '16', '17', '19', '21' ]
-        runs-on: [ubuntu-latest, macos-12, windows-latest]
+        runs-on: [ubuntu-latest, macos-13, windows-latest]
         exclude:
           - runs-on: macos-latest
             java: "8"
@@ -33,8 +33,8 @@ jobs:
         java-version: ${{ matrix.Java }}
         distribution: 'temurin'
 
-    - name: Install HDF5 on macos-latest (v14)
-      if: ${{ matrix.runs-on == 'macos-latest' }}
+    - name: Install HDF5 on macos
+      if: ${{ matrix.runs-on == 'macos-latest' || matrix.runs-on == 'macos-13' }}
       run: |
         brew install hdf5
 
