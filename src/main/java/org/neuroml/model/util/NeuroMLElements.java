@@ -36,6 +36,7 @@ public class NeuroMLElements {
 
     // Cells
     public static final String BASE_CELL_COMP_TYPE = "baseCell";
+    public static final String BASE_CELL_MEMB_POT_COMP_TYPE = "baseCellMembPot";
     public static final String BASE_CELL_CAP_COMP_TYPE = "baseCellMembPotCap";
     public static final String BASE_CELL_CAP_POINT_COND_BASED = "pointCellCondBased";
     public static final String BASE_CELL_CAP_POINT_COND_BASED_CA = "pointCellCondBasedCa";
