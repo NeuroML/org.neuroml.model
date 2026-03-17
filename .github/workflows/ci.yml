@@ -44,6 +44,7 @@ jobs:
         # Install org.neuroml.model.injectingplugin
 
         export main_repo_branch=${{env.main_repo_branch}}
+        if [[ ${main_repo_branch} == "osb_test_master" ]]; then main_repo_branch=master ; fi
         if [[ ${main_repo_branch} != "master" && ${main_repo_branch} != "development" && ${main_repo_branch} != "experimental" && ${main_repo_branch} != *"osb"* ]]; then main_repo_branch=development ; fi
         echo Using branch $main_repo_branch
 
