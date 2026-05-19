@@ -30,12 +30,7 @@ jobs:
       with:
         java-version: ${{ matrix.Java }}
         distribution: 'temurin'
-
-    - name: Install HDF5 on macos
-      if: ${{ matrix.runs-on == 'macos-latest' || matrix.runs-on == 'macos-13' }}
-      run: |
-        brew install hdf5
-
+        
     - name: Install and test (non Win)
       env:
         main_repo_branch: ${GITHUB_REF_NAME}
