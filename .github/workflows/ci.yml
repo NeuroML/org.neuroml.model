@@ -18,9 +18,6 @@ jobs:
       matrix:
         java: [ '8', '11', '17', '19', '21', '25' ]
         runs-on: [ubuntu-latest, macos-15-intel, windows-latest]
-        exclude:
-          - runs-on: macos-latest
-            java: "8"
 
     name: Test on Java ${{ matrix.Java }} on ${{ matrix.runs-on }}
     steps:
@@ -32,9 +29,9 @@ jobs:
         distribution: 'temurin'
         
     - name: Install and test (non Win)
+      if: ${{ ! contains(matrix.runs-on, 'windows') }}
       env:
         main_repo_branch: ${GITHUB_REF_NAME}
-      if: ${{ matrix.runs-on != 'windows-latest' }}
       run: |
         # Install org.neuroml.model.injectingplugin
 
@@ -62,7 +59,7 @@ jobs:
         mvn dependency:tree
 
     - name: Install and test (Win)
-      if: ${{ matrix.runs-on == 'windows-latest' }}
+      if: ${{ contains(matrix.runs-on, 'windows') }}
       run: |
         # Install org.neuroml.model.injectingplugin
 
